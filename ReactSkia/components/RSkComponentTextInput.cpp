@@ -270,6 +270,7 @@ void RSkComponentTextInput::processEventKey (rnsKey eventKeyType,bool* stopPropa
       } else {
         textString = textString+keyPressMetrics.text;
       }
+      cursor_.end = textString.length();
     } else {
       switch(eventKeyType){
         case RNS_KEY_Left:
@@ -311,8 +312,10 @@ void RSkComponentTextInput::processEventKey (rnsKey eventKeyType,bool* stopPropa
           return;
         case RNS_KEY_Back:
         case RNS_KEY_Delete:
-          if (!textString.empty() && (cursor_.end!=cursor_.locationFromEnd))
+          if (!textString.empty() && (cursor_.end!=cursor_.locationFromEnd)){
             textString.erase(textString.begin()+(cursor_.end-cursor_.locationFromEnd-1)); //acts like a backspace.
+            cursor_.end = textString.length();
+          }
           else
             *waitForupdateProps = false;
           RNS_LOG_DEBUG("[processEventKey] After removing a charector in string = "<<textString);
