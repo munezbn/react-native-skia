@@ -20,9 +20,8 @@ void WindowDelegator::createWindow(SkSize windowSize,std::function<void ()> wind
   if(runOnTaskRunner) {
     ownsTaskrunner_ = runOnTaskRunner;
     windowTaskRunner_ = std::make_unique<RnsShell::TaskLoop>();
-    std::thread workerThread(&WindowDelegator::windowWorkerThread,this);
+    workerThread_=std::thread (&WindowDelegator::windowWorkerThread,this);
     RNS_LOG_TODO("Need to check : Remove worker Thread detach & use join on closewindow");
-    workerThread.detach();
     windowTaskRunner_->waitUntilRunning();
     windowTaskRunner_->dispatch([&](){createNativeWindow();});
   } else {
@@ -84,6 +83,9 @@ void WindowDelegator::closeWindow() {
   sem_destroy(&semRenderingDone_);
   windowDelegatorCanvas=nullptr;
   windowReadyTodrawCB_=nullptr;
+  if (workerThread_.joinable() ) {
+    workerThread_.join();
+  }
 }
 
 void WindowDelegator::commitDrawCall(bool blockRenderCall) {

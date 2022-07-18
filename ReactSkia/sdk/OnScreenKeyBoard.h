@@ -159,12 +159,12 @@ class OnScreenKeyboard : public WindowDelegator{
     std::string   displayString_{}; // Text to be displayed on screen
     std::string   lastDisplayedString_{};
     unsigned int  placeHolderLength_{0};
-    unsigned int  placeHolderStringStartY{0};
+    unsigned int  placeHolderVerticalStart_{0};
 
     int           cursorPosition_{0};
     SkPoint       visibleDisplayStringRange_{0,0};/*x=start , Y-end*/
     OSKState      oskState_{OSK_STATE_INACTIVE};
-    bool          autoActivateReturnKey{false};
+    bool          autoActivateReturnKey_{false};
 };
 
 }// namespace sdk

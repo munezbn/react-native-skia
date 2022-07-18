@@ -48,6 +48,7 @@ class WindowDelegator {
     sem_t semReadyToDraw_;
     sem_t semRenderingDone_;
     std::mutex renderCtrlMutex;
+    std::thread workerThread_;
 
     std::function<void ()> windowReadyTodrawCB_{nullptr};
     std::function<void ()> faileSafeCB_{nullptr};

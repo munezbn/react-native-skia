@@ -58,7 +58,7 @@ void OnScreenKeyboard::exit() {
 
 /*Resetting old values & States*/
   oskHandle.oskState_=OSK_STATE_INACTIVE;
-  oskHandle.autoActivateReturnKey=false;
+  oskHandle.autoActivateReturnKey_=false;
 
   oskHandle.displayString_.clear();
   oskHandle.lastDisplayedString_.clear();
@@ -75,8 +75,14 @@ void  OnScreenKeyboard::updatePlaceHolderString(std::string displayString,int cu
   if(oskHandle.oskState_ != OSK_STATE_ACTIVE)
     return;
   oskHandle.drawPlaceHolderDisplayString();
-  if(oskHandle.oskState_== OSK_STATE_ACTIVE)
+  if(oskHandle.oskState_== OSK_STATE_ACTIVE) {
+#ifdef RNS_SHELL_HAS_GPU_SUPPORT
+/*Setting synchronized Rendering to reduce the occurrence of swap buffer issue with opengl Backend,*/
     oskHandle.commitDrawCall(true);
+#else
+    oskHandle.commitDrawCall(false);
+#endif /*RNS_SHELL_HAS_GPU_SUPPORT*/
+  }
 }
 
 void OnScreenKeyboard::launchOSKWindow(OSKConfig oskConfig) {
@@ -102,7 +108,7 @@ void OnScreenKeyboard::launchOSKWindow(OSKConfig oskConfig) {
     oskLayout_.kbLayoutType = ALPHA_LOWERCASE_LAYOUT;
 
   if(oskConfig_.enablesReturnKeyAutomatically)
-    autoActivateReturnKey=true;
+    autoActivateReturnKey_=true;
 
   unsigned int XscaleFactor = screenSize_.width()/baseScreenSize.width();
   unsigned int YscaleFactor =screenSize_.height()/baseScreenSize.height();
@@ -110,9 +116,9 @@ void OnScreenKeyboard::launchOSKWindow(OSKConfig oskConfig) {
   oskLayout_.textHLFontSize= OSK_HIGHLIGHT_FONT_SIZE *XscaleFactor;
   placeHolderLength_=screenSize_.width()*OSK_PLACEHOLDER_LENGTH;
   oskLayout_.horizontalStartOffset= ((screenSize_.width()-placeHolderLength_)/2)*XscaleFactor;
-  placeHolderStringStartY=(screenSize_.height()*OSK_PLACEHOLDER_VERTICAL_OFFSET) + OSK_PLACEHOLDER_HEIGHT - ((OSK_PLACEHOLDER_HEIGHT-oskLayout_.textFontSize)/2);
+  placeHolderVerticalStart_=(screenSize_.height()*OSK_PLACEHOLDER_VERTICAL_OFFSET) + OSK_PLACEHOLDER_HEIGHT - ((OSK_PLACEHOLDER_HEIGHT-oskLayout_.textFontSize)/2);
 
-  /*Craeting OSK Window*/
+  /*Creating OSK Window*/
   std::function<void()> createWindowCB = std::bind(&OnScreenKeyboard::windowReadyToDrawCB,this);
   std::function<void()> faileSafeCB = std::bind(&OnScreenKeyboard::drawOSK,this);
   createWindow(screenSize_,createWindowCB,faileSafeCB);
@@ -135,7 +141,7 @@ void OnScreenKeyboard::drawPlaceHolderDisplayString() {
 
   font.setSize(oskLayout_.textFontSize);
   font.measureText("j",1, SkTextEncoding::kUTF8, &maxbounds);//MaxBound character
-  maxbounds.offset(oskLayout_.horizontalStartOffset,placeHolderStringStartY);
+  maxbounds.offset(oskLayout_.horizontalStartOffset,placeHolderVerticalStart_);
   font.measureText(".",1, SkTextEncoding::kUTF8, &spaceBounds);
 
 /*Caculate the visible string Range to display string*/
@@ -185,7 +191,7 @@ void OnScreenKeyboard::drawPlaceHolderDisplayString() {
     /* Enchenement : To be modified/optimized to draw only from the differed character*/
     textPaint.setColor((oskConfig_.theme == OSK_LIGHT_THEME) ? OSK_LIGHT_THEME_PLACEHOLDER_COLOR: OSK_DARK_THEME_PLACEHOLDER_COLOR);
     getStringBound (lastDisplayedString_,0,lastDisplayedString_.size(),bounds,font);
-    bounds.offset(oskLayout_.horizontalStartOffset,placeHolderStringStartY);
+    bounds.offset(oskLayout_.horizontalStartOffset,placeHolderVerticalStart_);
     bounds.fLeft=oskLayout_.horizontalStartOffset;
     bounds.fRight=((bounds.width()+RESERVED_LENGTH) < placeHolderLength_ ) ? (bounds.fRight +RESERVED_LENGTH) :(oskLayout_.horizontalStartOffset+placeHolderLength_);
     bounds.fTop=maxbounds.fTop;
@@ -199,7 +205,7 @@ void OnScreenKeyboard::drawPlaceHolderDisplayString() {
   if(!displayString_.empty()) {
     textPaint.setColor(fontColor_);
     textPaint.setAntiAlias(true);
-    windowDelegatorCanvas->drawSimpleText(displayString_.c_str(), displayString_.size(), SkTextEncoding::kUTF8,oskLayout_.horizontalStartOffset+LEFT_INSET,placeHolderStringStartY,font, textPaint);
+    windowDelegatorCanvas->drawSimpleText(displayString_.c_str(), displayString_.size(), SkTextEncoding::kUTF8,oskLayout_.horizontalStartOffset+LEFT_INSET,placeHolderVerticalStart_,font, textPaint);
   } else {
     clearPlaceHolder();
   }
@@ -210,7 +216,7 @@ void OnScreenKeyboard::drawPlaceHolderDisplayString() {
   cursorPaint.setAntiAlias(true);
   cursorPaint.setStrokeWidth(CURSOR_WIDTH);
   getStringBound (displayString_,0,newcursorPosition,bounds,font);
-  bounds.offset(oskLayout_.horizontalStartOffset,placeHolderStringStartY);
+  bounds.offset(oskLayout_.horizontalStartOffset,placeHolderVerticalStart_);
   if(!newcursorPosition) bounds.fRight=oskLayout_.horizontalStartOffset;
 
   windowDelegatorCanvas->drawLine(bounds.fRight+TEXT_TO_CURSOR_GAP,maxbounds.fBottom,bounds.fRight+TEXT_TO_CURSOR_GAP,maxbounds.fTop,cursorPaint);
@@ -222,7 +228,7 @@ void OnScreenKeyboard::drawPlaceHolderDisplayString() {
   paint.setStyle(SkPaint::kStroke_Style);
   SkRect bounds;
   font.measureText(lastDisplayedString_.c_str(),  lastDisplayedString_.size(), SkTextEncoding::kUTF8, &bounds);
-  bounds.offset(oskLayout_.horizontalStartOffset,placeHolderStringStartY);
+  bounds.offset(oskLayout_.horizontalStartOffset,placeHolderVerticalStart_);
   windowDelegatorCanvas->drawRect(bounds,paint);
 #endif /*DRAW_STRING_BOUNDING_BOX*/
 }
@@ -383,8 +389,8 @@ inline void OnScreenKeyboard::drawKBKeyFont(SkPoint index,SkColor color,bool onH
      */
       char* fontFamily=nullptr;
       if(!strcmp(keyName,"return")) {
-        /* If autoActivateReturnKey is set. Return key to be presented in disabled/In-Active look until TI was empty.*/
-        if(autoActivateReturnKey && displayString_.empty())
+        /* If autoActivateReturnKey_ is set. Return key to be presented in disabled/In-Active look until TI was empty.*/
+        if(autoActivateReturnKey_ && displayString_.empty())
           textPaint.setColor((oskConfig_.theme == OSK_LIGHT_THEME) ? OSK_LIGHT_THEME_INACTIVE_FONT_COLOR: OSK_DARK_THEME_INACTIVE_FONT_COLOR);
           if(oskConfig_.returnKeyLabel == OSK_RETURN_KEY_SEARCH) {
             keyName=(char*)"search";
@@ -566,21 +572,30 @@ void OnScreenKeyboard::onHWkeyHandler(rnsKey keyValue, rnsKeyAction eventKeyActi
     }
     break;
   }
+
+  RNS_LOG_DEBUG("OSK KEY VALUE RECEIVED : "<<RNSKeyMap[OSKkeyValue]);
+
+  /* Enable Return Key on Valid Key Event if disabled*/
+  if((OSKkeyValue != RNS_KEY_UnKnown) && autoActivateReturnKey_) {
+    autoActivateReturnKey_=false;
+    drawKBKeyFont(oskLayout_.returnKeyIndex,fontColor_);
+  }
   if((lastFocussIndex_ != hlCandidate)) {
     drawHighLightOnKey(hlCandidate);
     currentFocussIndex_=hlCandidate;
     if(OSKkeyValue == RNS_KEY_UnKnown) drawCallPendingToRender=true;
   }
-  /* Enable Reurn Key on Valid Key EVent if disabled*/
-  if((OSKkeyValue != RNS_KEY_UnKnown) && autoActivateReturnKey) {
-    autoActivateReturnKey=false;
-    drawKBKeyFont(oskLayout_.returnKeyIndex,fontColor_);
-    if(OSKkeyValue == RNS_KEY_UnKnown) drawCallPendingToRender=true;
+/* To reduce the draw call and to avoid the frequency of swap buffer issue in openGL backend,
+   trigger commit only if there is no key emit to client. As in the other case commit will be
+   taken care as part of update string call from client , followed by key emit
+*/
+  if( drawCallPendingToRender && (oskState_== OSK_STATE_ACTIVE)) {
+    commitDrawCall();
   }
-  if( drawCallPendingToRender && (oskState_== OSK_STATE_ACTIVE)) commitDrawCall();
-
-  RNS_LOG_DEBUG("OSK KEY VALUE RECEIVED : "<<RNSKeyMap[OSKkeyValue]);
-  if(OSKkeyValue != RNS_KEY_UnKnown)  NotificationCenter::subWindowCenter().emit("onOSKKeyEvent", OSKkeyValue, RNS_KEY_Press);
+  /* Emit only known keys to client*/
+  if(OSKkeyValue != RNS_KEY_UnKnown) {
+    NotificationCenter::subWindowCenter().emit("onOSKKeyEvent", OSKkeyValue, RNS_KEY_Press);
+  }
 }
 
 inline void OnScreenKeyboard::clearPlaceHolder() {

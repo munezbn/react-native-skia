@@ -6,6 +6,8 @@
  */
 
 #include "include/core/SkPaint.h"
+#include "modules/skparagraph/src/ParagraphImpl.h"
+
 #include "ReactSkia/components/RSkComponentTextInput.h"
 #include "ReactSkia/components/RSkComponent.h"
 #include "ReactSkia/core_modules/RSkSpatialNavigator.h"
@@ -94,6 +96,15 @@ void RSkComponentTextInput::drawTextInput(SkCanvas *canvas,
   paragraph_->paint(canvas, frame.origin.x + layout.contentInsets.left, frame.origin.y + layout.contentInsets.top + yOffset);
   drawCursor(canvas, layout);
 
+  //Notify OSK to update it's user input display String
+  #if ENABLE(FEATURE_ONSCREEN_KEYBOARD)
+  if (0 == displayString_.size()) {
+    /*In case of Empty displayString,TextInput renders PlaceHolder Name in TI BOX. To avoid it, passing empty string here */
+    OnScreenKeyboard::updatePlaceHolderString("",(cursor_.end - cursor_.locationFromEnd));
+  } else {
+    OnScreenKeyboard::updatePlaceHolderString((static_cast<ParagraphImpl*>(paragraph_.get()))->text().data(),(cursor_.end - cursor_.locationFromEnd));
+  }
+  #endif/*FEATURE_ONSCREEN_KEYBOARD*/
 }
 void RSkComponentTextInput::drawCursor(SkCanvas *canvas, LayoutMetrics layout){
   // draw Cursor
@@ -132,23 +143,13 @@ void RSkComponentTextInput::OnPaint(SkCanvas *canvas) {
                           textLayout.paraStyle, data.layoutManager->collection_));
   if (0 == displayString_.size()) {
     textAttributes.foregroundColor = placeholderColor_;
-#if ENABLE(FEATURE_ONSCREEN_KEYBOARD)
-    OnScreenKeyboard::updatePlaceHolderString(displayString_,(cursor_.end - cursor_.locationFromEnd));
-#endif/*FEATURE_ONSCREEN_KEYBOARD*/
-
     data.layoutManager->buildText(textLayout, textInputProps.backgroundColor, textInputProps.paragraphAttributes, textAttributes, placeholderString_, true);
   } else {
     if (secureTextEntry_) {
       std::string secureTextString(displayString_);
       data.layoutManager->buildText(textLayout, textInputProps.backgroundColor, textInputProps.paragraphAttributes, textAttributes, secureTextString.replace( secureTextString.begin(), secureTextString.end(), secureTextString.size(), '*'), true);
-#if ENABLE(FEATURE_ONSCREEN_KEYBOARD)
-      OnScreenKeyboard::updatePlaceHolderString(secureTextString,(cursor_.end - cursor_.locationFromEnd));
-#endif/*FEATURE_ONSCREEN_KEYBOARD*/
     } else {
       data.layoutManager->buildText(textLayout, textInputProps.backgroundColor, textInputProps.paragraphAttributes, textAttributes, displayString_, true);
-#if ENABLE(FEATURE_ONSCREEN_KEYBOARD)
-      OnScreenKeyboard::updatePlaceHolderString(displayString_,(cursor_.end - cursor_.locationFromEnd));
-#endif/*FEATURE_ONSCREEN_KEYBOARD*/
     }
   }
   drawShadow(canvas, frame, borderMetrics, textInputProps.backgroundColor, layer()->shadowOpacity, layer()->shadowFilter);
