@@ -276,6 +276,9 @@ void RSkComponentTextInput::processEventKey (rnsKey eventKeyType,bool* stopPropa
           if(cursor_.locationFromEnd < cursor_.end ){
             RNS_LOG_DEBUG("[processEventKey]Left key pressed cursor_.locationFromEnd = "<<cursor_.locationFromEnd);
             cursor_.locationFromEnd++; // locationFromEnd
+            textInputMetrics.selectionRange.location = cursor_.end - cursor_.locationFromEnd;
+            textInputMetrics.selectionRange.length = 0;
+            textInputEventEmitter->onSelectionChange(textInputMetrics);
           }
           *stopPropagation = true;
           keyPressMetrics.eventCount = eventCount_;
@@ -289,6 +292,9 @@ void RSkComponentTextInput::processEventKey (rnsKey eventKeyType,bool* stopPropa
           if (cursor_.locationFromEnd>0){
             RNS_LOG_DEBUG("[processEventKey] Right key pressed cursor_.locationFromEnd = "<<cursor_.locationFromEnd);
             cursor_.locationFromEnd--;
+            textInputMetrics.selectionRange.location = cursor_.end - cursor_.locationFromEnd;
+            textInputMetrics.selectionRange.length = 0;
+            textInputEventEmitter->onSelectionChange(textInputMetrics);
           }
           *stopPropagation = true;
           keyPressMetrics.eventCount = eventCount_;
@@ -328,7 +334,7 @@ void RSkComponentTextInput::processEventKey (rnsKey eventKeyType,bool* stopPropa
     }
   //currently selection is not supported selectionRange length is
   //is always 0 & selectionRange.location always end
-  textInputMetrics.selectionRange.location = cursor_.end ;
+  textInputMetrics.selectionRange.location = cursor_.end - cursor_.locationFromEnd;
   textInputMetrics.selectionRange.length = 0;
   int textLengthAfterEdit = textString.length();
   if (updateString) {
