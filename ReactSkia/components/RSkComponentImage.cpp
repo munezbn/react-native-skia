@@ -98,13 +98,12 @@ void RSkComponentImage::OnPaint(SkCanvas *canvas) {
     /* TODO: Handle filter quality based of configuration. Setting Low Filter Quality as default for now*/
     paint.setFilterQuality(DEFAULT_IMAGE_FILTER_QUALITY);
     if(imageProps.resizeMode == ImageResizeMode::Repeat) {
-       sk_sp<SkImageFilter> imageTileFilter(SkImageFilters::Tile(targetRect,frameRect,nullptr));
-       sk_sp<SkImageFilter>  imageBlurFilter = SkImageFilters::Blur(imageProps.blurRadius, imageProps.blurRadius,imageTileFilter);
-       paint.setImageFilter(std::move(imageBlurFilter));
-    } else{
-      sk_sp<SkImageFilter>  imageBlurFilter = SkImageFilters::Blur(imageProps.blurRadius, imageProps.blurRadius,nullptr);
-      paint.setImageFilter(std::move(imageBlurFilter));
+        imageFilter = (SkImageFilters::Tile(targetRect,frameRect,nullptr));
     }
+    if(imageProps.blurRadius)
+      imageFilter = imageFilter ? SkImageFilters::Blur(imageProps.blurRadius, imageProps.blurRadius,imageFilter) : SkImageFilters::Blur(imageProps.blurRadius, imageProps.blurRadius,nullptr);
+
+    paint.setImageFilter(std::move(imageFilter));
     canvas->drawImageRect(imageData,targetRect,&paint);
     if(needClipAndRestore) {
       canvas->restore();
