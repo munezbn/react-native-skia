@@ -8,7 +8,7 @@ var resizemodes = [
     "stretch",
     "repeat",
 ];
-var blurRadius =[0,1,3,5,10,50,100,200,2000]
+var blurRadius =[0,-1,-3,5,10,50,100,200,2000]
 var useCases =9;
 var timerValue=3000;
 
@@ -32,7 +32,7 @@ const [UseCaseCount, toggleState] = useState(0);
                
                }}>
       <Image
-        style={{width:300,height:300,borderColor:"red",shadowColor:'red',shadowRadius:2,shadowOffset:{width:10,height:10},shadowOpacity:1,borderWidth:3}}
+        style={{width:500,height:250,resizeMode:resizemodes[UseCaseCount],shadowColor:'blue',shadowRadius:2,shadowOffset:{width:10,height:10},shadowOpacity:1}}
         source={require('./disney-1-logo-png-transparent.png')}
         blurRadius={blurRadius[UseCaseCount]}
       />

@@ -61,6 +61,8 @@ void RSkComponentImage::OnPaint(SkCanvas *canvas) {
   // Draw order 1.Shadow 2. Background 3.Image Shadow 4. Image 5.Border
   bool contentShadow = false;
   bool needClipAndRestore =false;
+  sk_sp<SkImageFilter> imageFilter;
+
   if(layer()->shadowFilter) {
     contentShadow=drawShadow(canvas,frame,imageBorderMetrics,imageProps.backgroundColor,layer()->shadowOpacity,layer()->shadowFilter);
   }
@@ -72,18 +74,13 @@ void RSkComponentImage::OnPaint(SkCanvas *canvas) {
     /*Draw Image Shadow*/
     if(contentShadow) {
       if(imageProps.resizeMode == ImageResizeMode::Repeat) {
-        sk_sp<SkImageFilter> imageTileFilter(SkImageFilters::Tile(targetRect,frameRect,layer()->shadowFilter));
-        shadowPaint.setImageFilter(std::move(imageTileFilter));
-        if(imageProps.blurRadius) {
-          sk_sp<SkImageFilter>  imageBlurFilter = SkImageFilters::Blur(imageProps.blurRadius, imageProps.blurRadius,imageTileFilter);
-          shadowPaint.setImageFilter(std::move(imageBlurFilter));
-        }
-      } else if(imageProps.blurRadius) {
-        sk_sp<SkImageFilter>  imageBlurFilter = SkImageFilters::Blur(imageProps.blurRadius, imageProps.blurRadius,layer()->shadowFilter);
-        shadowPaint.setImageFilter(std::move(imageBlurFilter));
-      } else {
-        shadowPaint.setImageFilter(layer()->shadowFilter);
+        imageFilter = SkImageFilters::Tile(targetRect,frameRect,layer()->shadowFilter);
       }
+      if(imageProps.blurRadius) {
+        imageFilter = imageFilter ? SkImageFilters::Blur(imageProps.blurRadius, imageProps.blurRadius,imageFilter) : SkImageFilters::Blur(imageProps.blurRadius, imageProps.blurRadius,layer()->shadowFilter);
+      }
+      imageFilter ? shadowPaint.setImageFilter(std::move(imageFilter)) : shadowPaint.setImageFilter(layer()->shadowFilter);
+
       if(!(isOpaque(layer()->shadowOpacity)))
         canvas->saveLayerAlpha(&frameRect,layer()->shadowOpacity);
       canvas->drawImageRect(imageData, targetRect, &shadowPaint);
