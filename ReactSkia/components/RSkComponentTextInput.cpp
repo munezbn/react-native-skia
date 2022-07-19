@@ -263,6 +263,8 @@ void RSkComponentTextInput::processEventKey (rnsKey eventKeyType,bool* stopPropa
   auto textInputEventEmitter = std::static_pointer_cast<TextInputEventEmitter const>(component.eventEmitter);
   auto const &textInputProps = *std::static_pointer_cast<TextInputProps const>(component.props);
   keyPressMetrics.text = RNSKeyMap[eventKeyType];
+  bool bSendOnSelectNotification = false;
+
     //Displayable Charector Range
     if ((eventKeyType >= RNS_KEY_1 && eventKeyType <= RNS_KEY_Less)) {
       if (cursor_.locationFromEnd != 0){
@@ -274,28 +276,20 @@ void RSkComponentTextInput::processEventKey (rnsKey eventKeyType,bool* stopPropa
     } else {
       switch(eventKeyType){
         case RNS_KEY_Left:
-          if(cursor_.locationFromEnd < cursor_.end ){
-            RNS_LOG_DEBUG("[processEventKey]Left key pressed cursor_.locationFromEnd = "<<cursor_.locationFromEnd);
-            cursor_.locationFromEnd++; // locationFromEnd
-            textInputMetrics.selectionRange.location = cursor_.end - cursor_.locationFromEnd;
-            textInputMetrics.selectionRange.length = 0;
-            textInputEventEmitter->onSelectionChange(textInputMetrics);
-          }
-          *stopPropagation = true;
-          keyPressMetrics.eventCount = eventCount_;
-          if (!caretHidden_) {
-            drawAndSubmit();
-          }
-          textInputEventEmitter->onKeyPress(keyPressMetrics);
-          *waitForupdateProps = false;
-          return;
         case RNS_KEY_Right:
-          if (cursor_.locationFromEnd>0){
-            RNS_LOG_DEBUG("[processEventKey] Right key pressed cursor_.locationFromEnd = "<<cursor_.locationFromEnd);
-            cursor_.locationFromEnd--;
-            textInputMetrics.selectionRange.location = cursor_.end - cursor_.locationFromEnd;
-            textInputMetrics.selectionRange.length = 0;
-            textInputEventEmitter->onSelectionChange(textInputMetrics);
+          if (RNS_KEY_Left == eventKeyType){
+            if(cursor_.locationFromEnd < cursor_.end ){
+              RNS_LOG_DEBUG("[processEventKey]Left key pressed cursor_.locationFromEnd = "<<cursor_.locationFromEnd);
+              cursor_.locationFromEnd++; // locationFromEnd
+              bSendOnSelectNotification = true;
+            }
+          }
+          else{
+            if (cursor_.locationFromEnd>0){
+              RNS_LOG_DEBUG("[processEventKey] Right key pressed cursor_.locationFromEnd = "<<cursor_.locationFromEnd);
+              cursor_.locationFromEnd--;
+              bSendOnSelectNotification = true;
+            }
           }
           *stopPropagation = true;
           keyPressMetrics.eventCount = eventCount_;
@@ -304,6 +298,13 @@ void RSkComponentTextInput::processEventKey (rnsKey eventKeyType,bool* stopPropa
           }
           textInputEventEmitter->onKeyPress(keyPressMetrics);
           *waitForupdateProps = false;
+          if (bSendOnSelectNotification){
+            //currently selection is not supported selectionRange length is
+            //is always 0 & selectionRange.location always end
+            textInputMetrics.selectionRange.location = cursor_.end - cursor_.locationFromEnd;
+            textInputMetrics.selectionRange.length = 0;
+            textInputEventEmitter->onSelectionChange(textInputMetrics);
+          }
           return;
         case RNS_KEY_Up:
         case RNS_KEY_Down:
@@ -339,6 +340,7 @@ void RSkComponentTextInput::processEventKey (rnsKey eventKeyType,bool* stopPropa
   //is always 0 & selectionRange.location always end
   textInputMetrics.selectionRange.location = cursor_.end - cursor_.locationFromEnd;
   textInputMetrics.selectionRange.length = 0;
+
   int textLengthAfterEdit = textString.length();
   if (updateString) {
     if (displayString_ != textString) {
