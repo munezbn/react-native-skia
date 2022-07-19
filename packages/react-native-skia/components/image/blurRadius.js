@@ -32,7 +32,7 @@ const [UseCaseCount, toggleState] = useState(0);
                
                }}>
       <Image
-        style={{width:500,height:250,resizeMode:resizemodes[UseCaseCount],shadowColor:'blue',shadowRadius:2,shadowOffset:{width:10,height:10},shadowOpacity:1}}
+        style={{width:500,height:250,resizeMode:resizemodes[UseCaseCount],shadowColor:'yellow',shadowRadius:2,shadowOffset:{width:10,height:10},shadowOpacity:1}}
         source={require('./disney-1-logo-png-transparent.png')}
         blurRadius={blurRadius[UseCaseCount]}
       />

@@ -102,8 +102,9 @@ void RSkComponentImage::OnPaint(SkCanvas *canvas) {
     }
     if(imageProps.blurRadius)
       imageFilter =  SkImageFilters::Blur(imageProps.blurRadius, imageProps.blurRadius,(imageFilter ? imageFilter : nullptr));
-
-    paint.setImageFilter(std::move(imageFilter));
+    if(imageFilter) {
+      paint.setImageFilter(std::move(imageFilter));
+    }
     canvas->drawImageRect(imageData,targetRect,&paint);
     if(needClipAndRestore) {
       canvas->restore();
