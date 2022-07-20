@@ -76,7 +76,7 @@ void RSkComponentImage::OnPaint(SkCanvas *canvas) {
       if(imageProps.resizeMode == ImageResizeMode::Repeat) {
         imageFilter = SkImageFilters::Tile(targetRect,frameRect,layer()->shadowFilter);
       }
-      if(imageProps.blurRadius >= 0) {
+      if(imageProps.blurRadius > 0) {
         imageFilter = SkImageFilters::Blur(imageProps.blurRadius, imageProps.blurRadius,(imageFilter ? imageFilter : layer()->shadowFilter));
       }
       imageFilter ? shadowPaint.setImageFilter(std::move(imageFilter)) : shadowPaint.setImageFilter(layer()->shadowFilter);
@@ -100,7 +100,7 @@ void RSkComponentImage::OnPaint(SkCanvas *canvas) {
     if(imageProps.resizeMode == ImageResizeMode::Repeat) {
         imageFilter = (SkImageFilters::Tile(targetRect,frameRect,nullptr));
     }
-    if(imageProps.blurRadius >= 0)
+    if(imageProps.blurRadius > 0)
       imageFilter =  SkImageFilters::Blur(imageProps.blurRadius, imageProps.blurRadius,(imageFilter ? imageFilter : nullptr));
     if(imageFilter) {
       paint.setImageFilter(std::move(imageFilter));
