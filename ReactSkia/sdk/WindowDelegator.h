@@ -24,10 +24,10 @@ class WindowDelegator {
     WindowDelegator(){};
    ~WindowDelegator(){};
 
-    void createWindow(SkSize windowSize,std::function<void ()> windowReadyTodrawCB,std::function<void ()> faileSafeCB=nullptr,bool runOnTaskRunner=true);
+    void createWindow(SkSize windowSize,std::function<void ()> windowReadyTodrawCB,std::function<void ()> forceFullScreenDraw=nullptr,bool runOnTaskRunner=true);
     void closeWindow();
     void setWindowTittle(const char* titleString);
-    void commitDrawCall(bool blockRenderCall=false);
+    void commitDrawCall();
 
     SkCanvas *windowDelegatorCanvas{nullptr};
 
@@ -35,7 +35,7 @@ class WindowDelegator {
     void onExposeHandler(RnsShell::Window* window);
     void windowWorkerThread();
     void createNativeWindow();
-    void renderToDisplay(bool blockRenderCall=false);
+    void renderToDisplay();
 
     std::unique_ptr<RnsShell::WindowContext> windowContext_{nullptr};
     RnsShell::Window* window_{nullptr};
@@ -51,7 +51,7 @@ class WindowDelegator {
     std::thread workerThread_;
 
     std::function<void ()> windowReadyTodrawCB_{nullptr};
-    std::function<void ()> faileSafeCB_{nullptr};
+    std::function<void ()> forceFullScreenDraw_{nullptr};
 
     RnsShell::PlatformDisplay::Type displayPlatForm_;
     int exposeEventID_{-1};

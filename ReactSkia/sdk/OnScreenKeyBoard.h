@@ -79,6 +79,8 @@ typedef struct keyPosition {
   SkPoint        textXY{}; // text X,Y to draw
   SkPoint        textHLXY{}; // Text X,Y to draw on Highlight Tile
   SkPoint        textCapsHLXY{}; // Text X,Y for Upper Case Alphabets
+  SkScalar       fontSize;
+  SkScalar       fontHLSize;
   SkRect         highlightTile; // Highlight Tile coverage
 }keyPosition_t;
 typedef struct KeyInfo {
@@ -119,11 +121,22 @@ class OnScreenKeyboard : public WindowDelegator{
       KBLayoutSibblingInfoContainer*    siblingInfo;
       keyPlacementConfig_t*          kbGroupConfig;
       KBLayoutType      kbLayoutType;
-      unsigned int      textFontSize;
-      unsigned int      textHLFontSize;
-      unsigned int      horizontalStartOffset;
       SkPoint           defaultFocussIndex;
       SkPoint           returnKeyIndex;
+      // Common Horizontal start offset for left alligned OSK
+      SkScalar      horizontalStartOffset;
+      // PlaceHolder Title
+      SkScalar      placeHolderTitleVerticalStart_{0};
+      // Place Holder
+      SkScalar      placeHolderLength_{0};
+      SkScalar      placeHolderVerticalStart_{0};
+      SkScalar      placeHolderTextVerticalStart_{0};
+      // Key Board
+      SkScalar      kBVerticalStart_{0};
+      SkScalar      kBHeight_{0};
+      // Font dimension
+      SkScalar      textFontSize;
+      SkScalar      textHLFontSize;
     };
 
     OnScreenKeyboard(){};
@@ -132,7 +145,7 @@ class OnScreenKeyboard : public WindowDelegator{
     void launchOSKWindow(OSKConfig oskConfig);
     void onHWkeyHandler(rnsKey key, rnsKeyAction eventKeyAction);
     void createOSKLayout(OSKTypes KBtype );
-    void clearPlaceHolder();
+    void clearScreen(int32_t top,int32_t left,int32_t width,int32_t height,SkPaint & paintObj);
     void getStringBound (std::string & stringToMeasure,unsigned int boundRangeStart,unsigned int boundRangeEnd,SkRect & stringBounds,SkFont & stringFont);
 
     void emitOSKKeyEvent(rnsKey keyValue);
@@ -142,14 +155,21 @@ class OnScreenKeyboard : public WindowDelegator{
     void drawOSK();
     void drawPlaceHolderDisplayString();
     void drawKBLayout(OSKTypes oskType);
-    void drawKBKeyFont(SkPoint index,SkColor color,bool onHLTile=false);
+    void drawKBKeyFont(SkPoint index,bool onHLTile=false);
 
 // Members for OSK Layout & sytling
     OSKConfig     oskConfig_;
     OSKLayout     oskLayout_;
     SkSize        screenSize_{0,0};
-    SkColor       bgColor_{SK_ColorWHITE};
-    SkColor       fontColor_{SK_ColorWHITE};
+    SkFont        textFont_;// font object for Normal fonts
+    SkFont        textHLFont_;// font object for High Lighted fonts
+    SkPaint       oskBGPaint_;// Paint object for OSK BackGround
+    SkPaint       textPaint_;// Paint object for normal text
+    SkPaint       textHLPaint_;// Paint object for Highlighted text
+    SkPaint       inactiveTextPaint_;// Paint object for inactive text
+    SkPaint       cursorPaint_;// Paint object for cursor
+    SkPaint       placeHolderPaint_;// Paint object for Place Holder
+    SkPaint       highLightTilePaint_;//paint objet for key High light
 
 // Members for OSK operations
     int           subWindowKeyEventId_{-1};
@@ -158,9 +178,6 @@ class OnScreenKeyboard : public WindowDelegator{
     SkPoint       lastFocussIndex_{};
     std::string   displayString_{}; // Text to be displayed on screen
     std::string   lastDisplayedString_{};
-    unsigned int  placeHolderLength_{0};
-    unsigned int  placeHolderVerticalStart_{0};
-
     int           cursorPosition_{0};
     SkPoint       visibleDisplayStringRange_{0,0};/*x=start , Y-end*/
     OSKState      oskState_{OSK_STATE_INACTIVE};

@@ -11,17 +11,16 @@
 namespace rns {
 namespace sdk {
 
-void WindowDelegator::createWindow(SkSize windowSize,std::function<void ()> windowReadyCB,std::function<void ()>faileSafeCB,bool runOnTaskRunner) {
+void WindowDelegator::createWindow(SkSize windowSize,std::function<void ()> windowReadyCB,std::function<void ()>forceFullScreenDraw,bool runOnTaskRunner) {
 
   windowSize_=windowSize;
   windowReadyTodrawCB_=windowReadyCB;
-  faileSafeCB_=faileSafeCB;
+  forceFullScreenDraw_=forceFullScreenDraw;
 
   if(runOnTaskRunner) {
     ownsTaskrunner_ = runOnTaskRunner;
     windowTaskRunner_ = std::make_unique<RnsShell::TaskLoop>();
     workerThread_=std::thread (&WindowDelegator::windowWorkerThread,this);
-    RNS_LOG_TODO("Need to check : Remove worker Thread detach & use join on closewindow");
     windowTaskRunner_->waitUntilRunning();
     windowTaskRunner_->dispatch([&](){createNativeWindow();});
   } else {
@@ -88,27 +87,26 @@ void WindowDelegator::closeWindow() {
   }
 }
 
-void WindowDelegator::commitDrawCall(bool blockRenderCall) {
+void WindowDelegator::commitDrawCall() {
   if(!windowActive) return;
 
   if( ownsTaskrunner_ )  {
     if( windowTaskRunner_->running() )
-      windowTaskRunner_->dispatch([&](){ renderToDisplay(blockRenderCall); });
-      if(blockRenderCall)sem_wait(&semRenderingDone_);
+      windowTaskRunner_->dispatch([&](){ renderToDisplay(); });
   } else {
-    renderToDisplay(false);
+    renderToDisplay();
   }
 }
 
-inline void WindowDelegator::renderToDisplay(bool signalOnCompletion) {
+inline void WindowDelegator::renderToDisplay() {
   if(!windowActive) return;
 
   std::scoped_lock lock(renderCtrlMutex);
 
 #ifdef RNS_SHELL_HAS_GPU_SUPPORT
   int bufferAge=windowContext_->bufferAge();
-  if((bufferAge != 1) && (faileSafeCB_)) {
-    faileSafeCB_();
+  if((bufferAge != 1) && (forceFullScreenDraw_)) {
+    forceFullScreenDraw_();
   }
 #endif/*RNS_SHELL_HAS_GPU_SUPPORT*/
 
@@ -117,8 +115,6 @@ inline void WindowDelegator::renderToDisplay(bool signalOnCompletion) {
     std::vector<SkIRect> emptyRect;// No partialUpdate handled , so passing emptyRect instead of dirtyRect
     windowContext_->swapBuffers(emptyRect);
   }
-  if(signalOnCompletion) sem_post(&semRenderingDone_);
-
 }
 
 void WindowDelegator::setWindowTittle(const char* titleString) {
