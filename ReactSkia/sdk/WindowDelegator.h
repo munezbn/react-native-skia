@@ -46,7 +46,6 @@ class WindowDelegator {
     bool ownsTaskrunner_{false};
 /* members to fullfill X11 suggestion of "draw on receiving expose event to avoid data loss" */
     sem_t semReadyToDraw_;
-    sem_t semRenderingDone_;
     std::mutex renderCtrlMutex;
     std::thread workerThread_;
 

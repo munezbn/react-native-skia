@@ -40,7 +40,6 @@ void  WindowDelegator::createNativeWindow() {
                                                                          std::placeholders::_1);
     exposeEventID_ = NotificationCenter::defaultCenter().addListener("windowExposed",handler);
   }
-  sem_init(&semRenderingDone_,0,0);
   window_ = RnsShell::Window::createNativeWindow(&RnsShell::PlatformDisplay::sharedDisplayForCompositing(),
                                                  SkSize::Make(windowSize_.width(),windowSize_.height()),
                                                  RnsShell::SubWindow);
@@ -79,7 +78,6 @@ void WindowDelegator::closeWindow() {
     backBuffer_ = nullptr;
   }
   sem_destroy(&semReadyToDraw_);
-  sem_destroy(&semRenderingDone_);
   windowDelegatorCanvas=nullptr;
   windowReadyTodrawCB_=nullptr;
   if (workerThread_.joinable() ) {
@@ -106,6 +104,7 @@ inline void WindowDelegator::renderToDisplay() {
 #ifdef RNS_SHELL_HAS_GPU_SUPPORT
   int bufferAge=windowContext_->bufferAge();
   if((bufferAge != 1) && (forceFullScreenDraw_)) {
+// Forcing full screen redraw as damage region handling is not done
     forceFullScreenDraw_();
   }
 #endif/*RNS_SHELL_HAS_GPU_SUPPORT*/

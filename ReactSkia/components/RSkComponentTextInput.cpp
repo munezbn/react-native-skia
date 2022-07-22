@@ -100,7 +100,7 @@ void RSkComponentTextInput::drawTextInput(SkCanvas *canvas,
   #if ENABLE(FEATURE_ONSCREEN_KEYBOARD)
   if (0 == displayString_.size()) {
     /*In case of Empty displayString,TextInput renders PlaceHolder Name in TI BOX. To avoid it, passing empty string here */
-    OnScreenKeyboard::updatePlaceHolderString("",0);
+    OnScreenKeyboard::updatePlaceHolderString(std::string(),0);
   } else {
     OnScreenKeyboard::updatePlaceHolderString((static_cast<ParagraphImpl*>(paragraph_.get()))->text().data(),(cursor_.end - cursor_.locationFromEnd));
   }

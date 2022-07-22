@@ -124,19 +124,15 @@ class OnScreenKeyboard : public WindowDelegator{
       SkPoint           defaultFocussIndex;
       SkPoint           returnKeyIndex;
       // Common Horizontal start offset for left alligned OSK
-      SkScalar      horizontalStartOffset;
+      SkScalar          horizontalStartOffset;
       // PlaceHolder Title
-      SkScalar      placeHolderTitleVerticalStart_{0};
+      SkScalar          placeHolderTitleVerticalStart;
       // Place Holder
-      SkScalar      placeHolderLength_{0};
-      SkScalar      placeHolderVerticalStart_{0};
-      SkScalar      placeHolderTextVerticalStart_{0};
+      SkScalar          placeHolderLength;
+      SkScalar          placeHolderVerticalStart;
+      SkScalar          placeHolderTextVerticalStart;
       // Key Board
-      SkScalar      kBVerticalStart_{0};
-      SkScalar      kBHeight_{0};
-      // Font dimension
-      SkScalar      textFontSize;
-      SkScalar      textHLFontSize;
+      SkScalar          kBVerticalStart;
     };
 
     OnScreenKeyboard(){};
@@ -145,8 +141,8 @@ class OnScreenKeyboard : public WindowDelegator{
     void launchOSKWindow(OSKConfig oskConfig);
     void onHWkeyHandler(rnsKey key, rnsKeyAction eventKeyAction);
     void createOSKLayout(OSKTypes KBtype );
-    void clearScreen(int32_t top,int32_t left,int32_t width,int32_t height,SkPaint & paintObj);
-    void getStringBound (std::string & stringToMeasure,unsigned int boundRangeStart,unsigned int boundRangeEnd,SkRect & stringBounds,SkFont & stringFont);
+    void clearScreen(int32_t x,int32_t y,int32_t width,int32_t height,SkPaint & paintObj);
+    SkScalar getStringBound (const std::string & stringToMeasure,unsigned int startIndex,unsigned int endIndex,SkFont & stringFont);
 
     void emitOSKKeyEvent(rnsKey keyValue);
     void windowReadyToDrawCB();
@@ -177,11 +173,12 @@ class OnScreenKeyboard : public WindowDelegator{
     SkPoint       currentFocussIndex_{};
     SkPoint       lastFocussIndex_{};
     std::string   displayString_{}; // Text to be displayed on screen
-    std::string   lastDisplayedString_{};
     int           cursorPosition_{0};
     SkPoint       visibleDisplayStringRange_{0,0};/*x=start , Y-end*/
     OSKState      oskState_{OSK_STATE_INACTIVE};
     bool          autoActivateReturnKey_{false};
+    SkScalar      spaceWidth_{0};
+    SkScalar      displayStrWidth_{0};
 };
 
 }// namespace sdk

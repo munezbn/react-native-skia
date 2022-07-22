@@ -38,9 +38,9 @@ namespace sdk {
 #define OSK_KB_VERTICAL_OFFSET                0.3
 // Place Holder configuration
 #define OSK_PLACEHOLDER_CURSOR_WIDTH          3 /* Cursor line thickness*/
-#define OSK_PLACEHOLDER_TEXT_TO_CURSOR_GAP    4 /* Space between String end & Cursor*/
 #define OSK_PLACEHOLDER_LEFT_INSET            2 /* offset from PlaceHolder Start*/
 #define OSK_PLACEHOLDER_RIGHT_INSET           3 /* Safe offset to avoid overflow*/
+#define OSK_PLACEHOLDER_RESERVED_LENGTH (OSK_PLACEHOLDER_CURSOR_WIDTH+OSK_PLACEHOLDER_LEFT_INSET+OSK_PLACEHOLDER_RIGHT_INSET)
 
 //Fail Safe Configurations
 #define DRAW_FONT_FAILURE_INDICATOR  "??"
