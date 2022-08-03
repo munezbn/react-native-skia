@@ -21,6 +21,8 @@
 // SOFTWARE.
 //
 
+#include <folly/io/async/ScopedEventBaseThread.h>
+
 #include <iostream>
 #include <functional>
 #include <map>
@@ -62,9 +64,11 @@ class NotificationCenter {
 
         NotificationCenter(const NotificationCenter&) = delete;  
         const NotificationCenter& operator = (const NotificationCenter&) = delete;
+        folly::ScopedEventBaseThread eventBaseThread_;
     public:
         NotificationCenter() {
             NotificationCenter::last_listener = 0;
+            eventBaseThread_.getEventBase()->waitUntilRunning();
         }
 
         ~NotificationCenter() {}
@@ -89,7 +93,7 @@ class NotificationCenter {
 
         template <typename... Args>
         void emit(std::string eventName, Args... args);
-
+        
 };
 
 template <typename... Args>
@@ -115,20 +119,25 @@ unsigned int NotificationCenter::on(std::string eventName, std::function<void (A
 
 template <typename... Args>
 void NotificationCenter::emit(std::string eventName, Args... args) {
-    std::list<std::shared_ptr<Listener<Args...>>> handlers;
-    
-    {
-        std::lock_guard<std::mutex> lock(mutex);
+    //Creating the dispatch Handler for dispach the event in the event base foly thread. 
+    auto dispatchHandler = [=](){
+      std::cout<<"*********** Dispatching from labda thread *************"<<"     eventName:"<< eventName<<std::endl;   
+      std::list<std::shared_ptr<Listener<Args...>>> handlers;
+      {
+        std::lock_guard<std::mutex> lock(mutex);     
         auto range = listeners.equal_range(eventName);
         handlers.resize(std::distance(range.first, range.second));
-        std::transform(range.first, range.second, handlers.begin(), [] (std::pair<const std::string, std::shared_ptr<ListenerBase>> p) {
-            auto l = std::dynamic_pointer_cast<Listener<Args...>>(p.second);
-            
-            return l;
-        });
-    }
-
+        std::transform(range.first, range.second, handlers.begin(), 
+            [] (std::pair<const std::string, std::shared_ptr<ListenerBase>> p) {
+              auto l = std::dynamic_pointer_cast<Listener<Args...>>(p.second);  
+              return l;
+            });
+      }
     for (auto& h : handlers) {
         h->cb(args...);
-    }        
+    }   
+    };//End of dispacthHandler
+
+    eventBaseThread_.getEventBase()->runInEventBaseThread(std::move(dispatchHandler));
+     
 }
