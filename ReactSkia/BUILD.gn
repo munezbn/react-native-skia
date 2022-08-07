@@ -208,6 +208,14 @@ source_set("ReactSkia") {
     "LegacyNativeModules/uimanager/UiManagerModule.h",
   ]
 
+  # Thirdparty Codegen Fabric Components and Native modules
+  sources += [
+    "RSkThirdPartyFabricComponentsProvider.cpp",
+    "RSkThirdPartyFabricComponentsProvider.h",
+    "RSkThirdPartyNativeModuleProvider.cpp",
+    "RSkThirdPartyNativeModuleProvider.h",
+  ]
+
   if (is_mac) {
     sources += [
       "platform/macosx/MainRunLoopEventBeat.h",

@@ -13,9 +13,10 @@ using namespace RnsShell;
 
 class ComponentViewRegistry;
 class JSITurboModuleManager;
+class MessageQueueThreadImpl;
 class MountingManager;
-class Scheduler;
 class RSkSurfaceWindow;
+class Scheduler;
 
 class RNInstance {
  public:
@@ -32,8 +33,10 @@ class RNInstance {
   void RegisterComponents();
 
  private:
-  std::unique_ptr<Instance> instance_;
+  std::shared_ptr<Instance> instance_;
   std::unique_ptr<JSITurboModuleManager> turboModuleManager_;
+  std::shared_ptr<MessageQueueThreadImpl> moduleMessageQueue_;
+  std::shared_ptr<ModuleRegistry> moduleRegistry_;
   std::shared_ptr<Scheduler> fabricScheduler_;
   std::unique_ptr<MountingManager> mountingManager_;
   std::unique_ptr<ComponentViewRegistry> componentViewRegistry_;

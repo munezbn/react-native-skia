@@ -6,8 +6,10 @@
  * LICENSE file in the root directory of this source tree.
  */
 
-#include "ReactSkia/utils/RnsLog.h"
+#include "cxxreact/Instance.h"
+#include "cxxreact/CxxNativeModule.h"
 
+#include "ReactSkia/utils/RnsLog.h"
 #include "LegacyNativeModule.h"
 
 // Refer : react-native/ReactCommon/cxxreact/CxxNativeModule.cpp
@@ -59,7 +61,7 @@ void LegacyNativeModule::invoke(
     unsigned int reactMethodId,
     folly::dynamic &&params,
     int callId) {
-  RNS_LOG_NOT_IMPL;
+  RNS_LOG_NOT_IMPL; // Used for async invoke : Refer react-native/ReactCommon/cxxreact/CxxNativeModule.cpp
 }
 
 MethodCallResult LegacyNativeModule::callSerializableNativeHook(
@@ -89,6 +91,7 @@ void LegacyNativeModule::lazyInit() {
   provider_ = nullptr;
   if (module_) {
     methods_ = module_->getMethods();
+    module_->setInstance(instance_);
   }
 }
 
