@@ -21,7 +21,7 @@
 // SOFTWARE.
 //
 
-#include <folly/io/async/ScopedEventBaseThread.h>
+
 
 #include <iostream>
 #include <functional>
@@ -30,6 +30,7 @@
 #include <mutex>
 #include <list>
 #include <algorithm>
+#include <folly/io/async/ScopedEventBaseThread.h>
 
 #pragma once
 
@@ -64,11 +65,11 @@ class NotificationCenter {
 
         NotificationCenter(const NotificationCenter&) = delete;  
         const NotificationCenter& operator = (const NotificationCenter&) = delete;
-        folly::ScopedEventBaseThread eventBaseThread_;
+        folly::ScopedEventBaseThread eventNotifierThread_;
     public:
-        NotificationCenter() {
+        NotificationCenter():eventNotifierThread_("FollyEventNotifierThread") {
             NotificationCenter::last_listener = 0;
-            eventBaseThread_.getEventBase()->waitUntilRunning();
+            eventNotifierThread_.getEventBase()->waitUntilRunning();
         }
 
         ~NotificationCenter() {}
@@ -119,9 +120,8 @@ unsigned int NotificationCenter::on(std::string eventName, std::function<void (A
 
 template <typename... Args>
 void NotificationCenter::emit(std::string eventName, Args... args) {
-    //Creating the dispatch Handler for dispach the event in the event base foly thread. 
-    auto dispatchHandler = [=](){
-      std::cout<<"*********** Dispatching from labda thread *************"<<"     eventName:"<< eventName<<std::endl;   
+    //Creating the dispatch Handler for dispach the event in the event base folly thread. 
+    auto dispatchHandler = [=](){   
       std::list<std::shared_ptr<Listener<Args...>>> handlers;
       {
         std::lock_guard<std::mutex> lock(mutex);     
@@ -138,6 +138,6 @@ void NotificationCenter::emit(std::string eventName, Args... args) {
     }   
     };//End of dispacthHandler
 
-    eventBaseThread_.getEventBase()->runInEventBaseThread(std::move(dispatchHandler));
+    eventNotifierThread_.getEventBase()->runInEventBaseThread(std::move(dispatchHandler));
      
 }
