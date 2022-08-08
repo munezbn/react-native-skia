@@ -133,11 +133,10 @@ void NotificationCenter::emit(std::string eventName, Args... args) {
               return l;
             });
       }
-    for (auto& h : handlers) {
+      for (auto& h : handlers) {
         h->cb(args...);
-    }   
+      }   
     };//End of dispacthHandler
 
-    eventNotifierThread_.getEventBase()->runInEventBaseThread(std::move(dispatchHandler));
-     
+    eventNotifierThread_.getEventBase()->runInEventBaseThread(std::move(dispatchHandler));  
 }
