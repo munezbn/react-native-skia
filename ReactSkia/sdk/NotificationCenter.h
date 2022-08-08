@@ -1,6 +1,6 @@
 //
 // Copyright (c) 2014 Sean Farrell
-// Copyright (C) 1994-2021 OpenTV, Inc. and Nagravision S.A.
+// Copyright (C) 1994-2022 OpenTV, Inc. and Nagravision S.A.
 //  
 // Permission is hereby granted, free of charge, to any person obtaining a copy 
 // of this software and associated documentation files (the "Software"), to deal
@@ -131,12 +131,11 @@ void NotificationCenter::emit(std::string eventName, Args... args) {
             [] (std::pair<const std::string, std::shared_ptr<ListenerBase>> p) {
               auto l = std::dynamic_pointer_cast<Listener<Args...>>(p.second);  
               return l;
-            });
+        });
       }
       for (auto& h : handlers) {
         h->cb(args...);
       }   
     };//End of dispacthHandler
-
     eventNotifierThread_.getEventBase()->runInEventBaseThread(std::move(dispatchHandler));  
 }
