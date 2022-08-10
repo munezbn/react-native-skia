@@ -425,7 +425,7 @@ void ScrollLayer::paintSelf(PaintContext& context) {
 
     SkBitmap scrollBitmapSubset;
     scrollBitmap_.extractSubset(&scrollBitmapSubset,drawSrcRect_);
-    context.canvas->drawImageRect(SkImage::MakeFromBitmap(scrollBitmapSubset),SkRect::Make(drawDestRect_),NULL);
+    context.canvas->drawImageRect(SkImage::MakeFromBitmap(scrollBitmapSubset),SkRect::Make(drawDestRect_),SkSamplingOptions(),NULL);
 #else
     if(backgroundColor != SK_ColorTRANSPARENT) {
       SkPaint paint;

@@ -11,7 +11,9 @@
 #include "include/gpu/GrDirectContext.h"
 #include "src/core/SkMathPriv.h"
 #include "src/gpu/GrCaps.h"
+#ifdef SK_LEGACY_SKIA_CODE // Dummy macro to disable this legace file. It can be removed for version >= m92
 #include "src/gpu/GrContextPriv.h"
+#endif
 #include "src/gpu/gl/GrGLDefines.h"
 #include "src/gpu/gl/GrGLUtil.h"
 #include "src/image/SkImage_Base.h"

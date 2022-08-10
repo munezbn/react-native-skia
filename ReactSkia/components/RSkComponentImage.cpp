@@ -83,7 +83,7 @@ void RSkComponentImage::OnPaint(SkCanvas *canvas) {
 
       if(!(isOpaque(layer()->shadowOpacity)))
         canvas->saveLayerAlpha(&frameRect,layer()->shadowOpacity);
-      canvas->drawImageRect(imageData, targetRect, &shadowPaint);
+      canvas->drawImageRect(imageData, targetRect, SkSamplingOptions(), &shadowPaint);
       if(!(isOpaque(layer()->shadowOpacity)))
         canvas->restore();
     }
@@ -105,7 +105,7 @@ void RSkComponentImage::OnPaint(SkCanvas *canvas) {
     if(imageFilter) {
       paint.setImageFilter(std::move(imageFilter));
     }
-    canvas->drawImageRect(imageData,targetRect,&paint);
+    canvas->drawImageRect(imageData,targetRect,SkSamplingOptions(),&paint);
     if(needClipAndRestore) {
       canvas->restore();
     }

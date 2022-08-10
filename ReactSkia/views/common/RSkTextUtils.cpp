@@ -65,7 +65,9 @@ void setTextLines(struct RSkSkTextLayout &textLayout,
                 textLayout.paraStyle.setEllipsis(u"\u2026");
         }
         textLayout.builder->setParagraphStyle(textLayout.paraStyle);
+#ifdef SK_LEGACY_SKIA_CODE // Dummy macro to disable this line. Build cannot be called twice on a builder from version >= m92
         textLayout.paragraph = textLayout.builder->Build();
+#endif
         textLayout.paragraph->layout(layout.getContentFrame().size.width);
     }
 }

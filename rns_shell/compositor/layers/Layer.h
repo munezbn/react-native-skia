@@ -126,7 +126,7 @@ public:
     const SkPoint& anchorPosition() const { return anchorPosition_; }
     void setAnchorPosition(const SkPoint& anchorPosition) { anchorPosition_ = anchorPosition; }
 
-    const bool masksToBounds() const { return masksToBounds_; }
+    bool masksToBounds() const { return masksToBounds_; }
     void setMasksTotBounds(bool masksToBounds) { masksToBounds_ = masksToBounds; }
 
 public:
