@@ -383,9 +383,12 @@ void ScrollLayer::paintSelf(PaintContext& context) {
     }
 
     RNS_LOG_INFO("Scroll Layer (" << layerId_ << ") Draw scroll bitmap offset X["<< scrollOffsetX_ << "] Y[" << scrollOffsetY_ << "]");
-    SkRect srcRect = SkRect::MakeXYWH(scrollOffsetX_,scrollOffsetY_,frame_.width(),frame_.height());
+    SkIRect srcRect = SkIRect::MakeXYWH(scrollOffsetX_,scrollOffsetY_,frame_.width(),frame_.height());
     SkRect dstRect = SkRect::Make(frame_);
-    context.canvas->drawBitmapRect(scrollBitmap_,srcRect,dstRect,NULL);
+
+    SkBitmap scrollBitmapSubset;
+    scrollBitmap_.extractSubset(&scrollBitmapSubset,srcRect);
+    context.canvas->drawImageRect(SkImage::MakeFromBitmap(scrollBitmapSubset),dstRect,SkSamplingOptions(),NULL);
 
 #if ENABLE(FEATURE_SCROLL_INDICATOR)
     scrollbar_.paint(context.canvas);

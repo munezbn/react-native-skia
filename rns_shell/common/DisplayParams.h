@@ -17,7 +17,11 @@ struct DisplayParams {
         : colorType_(kN32_SkColorType)
         , colorSpace_(nullptr)
         , msaaSampleCount_(1)
+#ifdef SK_LEGACY_SURFACE_PROPS
         , surfaceProps_(SkSurfaceProps::kLegacyFontHost_InitType)
+#else
+        , surfaceProps_(SkSurfaceProps::kUseDeviceIndependentFonts_Flag, kUnknown_SkPixelGeometry)
+#endif
         , disableVsync_(false)
     {}
 

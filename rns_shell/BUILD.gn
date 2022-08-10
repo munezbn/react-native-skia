@@ -124,8 +124,6 @@ source_set("rns_shell") {
     sources += [
       "platform/graphics/gl/GLWindowContext.h",
       "platform/graphics/gl/GLWindowContext.cpp",
-      "platform/graphics/gl/GrGLUtil.h",
-      "platform/graphics/gl/GrGLUtil.cpp",
     ]
   }
 
@@ -181,6 +179,10 @@ source_set("rns_shell") {
         sources += [
           "platform/graphics/gl/egl/GLWindowContextEGL.cpp",
           "platform/graphics/gl/egl/GrGLMakeNativeInterfaceEGL.cpp",
+        ]
+        sources += [
+          "//third_party/skia/src/gpu/gl/GrGLUtil.h",
+          "//third_party/skia/src/gpu/gl/GrGLUtil.cpp"
         ]
         if (gl_display_backend == "x11") {
           sources += [ "platform/graphics/gl/egl/GLWindowContextEGLX11.cpp"]
