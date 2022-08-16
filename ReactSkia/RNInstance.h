@@ -1,6 +1,7 @@
 #pragma once
 
 #include "cxxreact/Instance.h"
+#include "cxxreact/CxxModule.h"
 
 namespace RnsShell {
   class RendererDelegate;
@@ -26,11 +27,13 @@ class RNInstance {
 
   void Start(RSkSurfaceWindow *surface, RendererDelegate &rendererDelegate);
   void Stop(RSkSurfaceWindow *surface);
+  xplat::module::CxxModule* moduleForName(std::string moduleName);
 
  private:
   void InitializeJSCore();
   void InitializeFabric(RendererDelegate &rendererDelegate);
   void RegisterComponents();
+  void Invalidate();
 
  private:
   std::shared_ptr<Instance> instance_;

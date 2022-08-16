@@ -114,7 +114,11 @@ RNInstance::RNInstance(RendererDelegate &rendererDelegate) {
   InitializeFabric(rendererDelegate);
 }
 
-RNInstance::~RNInstance() {}
+RNInstance::~RNInstance() { Invalidate(); }
+
+void RNInstance::Invalidate() {
+  RNS_LOG_TODO("De initilize everything and emit RCTWillInvalidateModulesNotification on default notification center");
+}
 
 void RNInstance::Start(RSkSurfaceWindow *surface, RendererDelegate &rendererDelegate) {
   mountingManager_->BindSurface(surface);
@@ -143,6 +147,12 @@ void RNInstance::Start(RSkSurfaceWindow *surface, RendererDelegate &rendererDele
 
 void RNInstance::Stop(RSkSurfaceWindow *surface) {
   fabricScheduler_->stopSurface(surface->surfaceId);
+}
+
+xplat::module::CxxModule* RNInstance::moduleForName(std::string moduleName) {
+  RNS_LOG_TODO("Write similar function for turbo modules. Change this function so that, first look for module in turbo module registry."
+              "If not found then only check into legacy native module registry");
+  return std::static_pointer_cast<LegacyNativeModuleRegistry>(moduleRegistry_)->moduleForName(moduleName);
 }
 
 void RNInstance::InitializeJSCore() {
