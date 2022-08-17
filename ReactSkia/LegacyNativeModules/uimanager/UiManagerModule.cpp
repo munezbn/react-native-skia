@@ -24,6 +24,21 @@ namespace uimanager {
 dynamic Uimanager::getConstantsForThirdpartyViewManager(std::string viewManagerName) {
 
   RNS_LOG_WARN("getConstantsForViewManager viewManagerName : " << viewManagerName << " not found");
+
+  if (viewManagerName == "ReactNativeSkiaView") {
+    auto nativeProps = folly::dynamic::object(
+      "debug", true)(
+      "nativeID", true)(
+      "mode", true);
+    auto registry = folly::dynamic::object(
+        NATIVE_PROPS_KEY, std::move(nativeProps))(
+        BASE_MODULE_NAME_KEY, "RCTView")(
+        BUBBLING_EVENTS_KEY, folly::dynamic::object())(
+        DIRECT_EVENTS_KEY, folly::dynamic::object());
+    return {std::move(registry)};
+  }
+
+  // Default view config
   auto nativeProps = folly::dynamic::object();
   auto bubblingEventTypes = folly::dynamic::object();
   auto directEventTypes = folly::dynamic::object();

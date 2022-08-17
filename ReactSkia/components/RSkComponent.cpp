@@ -81,7 +81,7 @@ sk_sp<SkPicture> RSkComponent::getPicture(PictureType type) {
 void RSkComponent::requiresLayer(const ShadowView &shadowView, Layer::Client& layerClient) {
     // Need to come up with rules to decide wheather we need to create picture layer, texture layer etc"
     // Text components paragraph builder is not compatabile with Picture layer,so use default layer
-    if(strcmp(component_.componentName,"Paragraph") == 0) {
+    if(strcmp(component_.componentName,"Paragraph") == 0 || strcmp(component_.componentName,"ReactNativeSkiaView") == 0) {
         layer_ = this->shared_from_this();
         layer_->setClient(layerClient); // Need to set client for Default layer type.
     } else if (strcmp(component_.componentName,"ScrollView") == 0)

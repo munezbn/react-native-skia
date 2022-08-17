@@ -9,6 +9,8 @@
 extern "C" {
 #endif
 
+#include  "RSkComponentProviderSkiaDrawView.h"
+
 RSkComponentProviderProtocol RSkThirdPartyFabricComponentsProvider(const char *componentName);
 
 #ifdef __cplusplus

@@ -290,6 +290,11 @@ source_set("ReactSkia") {
     public_deps += ["//third_party/libcurl:libcurl"]
   }
 
+  # Manually added third party deps. Find a way to codgen this part
+  public_deps += [
+    "//ReactSkiaView/react-native-skia-view/package/skia:Rnskia",
+  ]
+
 }
 
 executable("ReactSkiaApp") {
