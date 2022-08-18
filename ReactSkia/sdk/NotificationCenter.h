@@ -67,9 +67,9 @@ class NotificationCenter {
         const NotificationCenter& operator = (const NotificationCenter&) = delete;
         folly::ScopedEventBaseThread eventNotifierThread_;
     public:
-        NotificationCenter():eventNotifierThread_("FollyEventNotifierThread") {
-            NotificationCenter::last_listener = 0;
-            eventNotifierThread_.getEventBase()->waitUntilRunning();
+        NotificationCenter():eventNotifierThread_("NotificationCenterThread") {
+          NotificationCenter::last_listener = 0;
+          eventNotifierThread_.getEventBase()->waitUntilRunning();
         }
 
         ~NotificationCenter() {}

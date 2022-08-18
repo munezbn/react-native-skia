@@ -10,6 +10,7 @@
 
 #include "ReactSkia/utils/RnsUtils.h"
 
+#include "ReactSkia/sdk/NotificationCenter.h"
 #include <X11/Xlib.h>
 #include <X11/X.h>
 #if USE(GLX)
@@ -23,7 +24,6 @@
 #include "PlatformDisplay.h"
 
 #include "ReactSkia/sdk/RNSKeyCodeMapping.h"
-#include "ReactSkia/sdk/NotificationCenter.h"
 typedef Window XWindow;
 
 namespace RnsShell {
