@@ -94,6 +94,7 @@ class NotificationCenter {
 
         template <typename... Args>
         void emit(std::string eventName, Args... args);
+
 };
 
 template <typename... Args>
