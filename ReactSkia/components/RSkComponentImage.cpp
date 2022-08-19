@@ -200,9 +200,11 @@ void RSkComponentImage::drawAndSubmit() {
 // callback for remoteImageData
 bool RSkComponentImage::processImageData(const char* path, char* response, int size) {
   decodedimageCacheData imageCacheData;
+  auto component = getComponentData();
+  auto const &imageProps = *std::static_pointer_cast<ImageProps const>(component.props);
   // Responce callback from network. Get image data, insert in Cache and call Onpaint
   sk_sp<SkImage> remoteImageData = RSkImageCacheManager::getImageCacheManagerInstance()->findImageDataInCache(path);
-  if(remoteImageData) {
+  if(remoteImageData && strcmp(path,imageProps.sources[0].uri.c_str()) == 0) {
     drawAndSubmit();
   } else {
     if(!response) return false;
@@ -220,8 +222,10 @@ bool RSkComponentImage::processImageData(const char* path, char* response, int s
       imageCacheData.expiryTime = (SkTime::GetMSecs() + cacheExpiryTime_);//convert sec to milisecond 60 *1000
       RSkImageCacheManager::getImageCacheManagerInstance()->imageDataInsertInCache(path, imageCacheData);
     }
-    networkImageData_ = remoteImageData;
-    drawAndSubmit();
+    if(strcmp(path,imageProps.sources[0].uri.c_str()) == 0){
+      networkImageData_ = remoteImageData;
+      drawAndSubmit();
+    }
   }
   return true;
 }
@@ -280,7 +284,7 @@ void RSkComponentImage::requestNetworkImageData(ImageSource source) {
     CurlResponse *responseData =  (CurlResponse *)curlresponseData;
     CurlRequest * curlRequest = (CurlRequest *) userdata;
     if((!responseData
-        || !processImageData(responseData->responseurl,responseData->responseBuffer,responseData->contentSize)) && (hasToTriggerEvent_)) {
+        || !processImageData(curlRequest->URL.c_str(),responseData->responseBuffer,responseData->contentSize)) && (hasToTriggerEvent_)) {
       sendErrorEvents();
     }
     //Reset the lamda callback so that curlRequest shared pointer dereffered from the lamda 
