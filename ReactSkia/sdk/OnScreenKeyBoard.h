@@ -105,7 +105,7 @@ class OnScreenKeyboard : public WindowDelegator{
     static OnScreenKeyboard& getInstance(); // Interface to get OSK singleton object
     static OSKErrorCode launch(OSKConfig& oskConfig=defaultOSKConfig);// Interface to launch OSK
     static void exit(); //Interface to quit OSK
-    static void updatePlaceHolderString(std::string displayString,int cursorPosition);
+    static void updatePlaceHolderString(std::string displayString,int cursorPosition, bool showCursor=true);
 
   private:
 
@@ -176,6 +176,7 @@ class OnScreenKeyboard : public WindowDelegator{
     SkPoint       lastFocussIndex_{};
     std::string   displayString_{}; // Text to be displayed on screen
     int           cursorPosition_{0};
+    bool          showCursor_{true};
     SkPoint       visibleDisplayStringRange_{0,0};/*x=start , Y-end*/
     OSKState      oskState_{OSK_STATE_INACTIVE};
     bool          autoActivateReturnKey_{false};

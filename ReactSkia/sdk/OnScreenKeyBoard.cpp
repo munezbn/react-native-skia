@@ -70,12 +70,14 @@ void OnScreenKeyboard::exit() {
   oskHandle.visibleDisplayStringRange_.set(-1,-1);//Setting to invalid
   oskHandle.lastFocussIndex_.set(0,0);
   oskHandle.currentFocussIndex_.set(0,0);
+  oskHandle.showCursor_=true;
 }
 
-void  OnScreenKeyboard::updatePlaceHolderString(std::string displayString,int cursorPosition) {
+void  OnScreenKeyboard::updatePlaceHolderString(std::string displayString,int cursorPosition, bool showCursor) {
   OnScreenKeyboard &oskHandle=OnScreenKeyboard::getInstance();
   oskHandle.displayString_=displayString;
   oskHandle.cursorPosition_=cursorPosition;
+  oskHandle.showCursor_ = showCursor;
   if(oskHandle.oskState_ != OSK_STATE_ACTIVE) {
     return;
   }
@@ -210,14 +212,15 @@ void OnScreenKeyboard::drawPlaceHolderDisplayString() {
   displayStrWidth_=((textWidth+OSK_PLACEHOLDER_RESERVED_LENGTH) < oskLayout_.placeHolderLength ) ? (textWidth +OSK_PLACEHOLDER_RESERVED_LENGTH) :oskLayout_.placeHolderLength;
 
 /* Display Cursor*/
+  if(showCursor_){
   textWidth=0;
-  int newcursorPosition = (cursorPosition_ >= (visibleDisplayStringRange_.x()+1)) ? ( cursorPosition_- visibleDisplayStringRange_.x()):0;
-  if(newcursorPosition) {
-    textWidth=getStringBound (displayString_,0,newcursorPosition-1,textFont_);
+    int newcursorPosition = (cursorPosition_ >= (visibleDisplayStringRange_.x()+1)) ? ( cursorPosition_- visibleDisplayStringRange_.x()):0;
+    if(newcursorPosition) {
+      textWidth=getStringBound (displayString_,0,newcursorPosition-1,textFont_);
+    }
+    textWidth +=(oskLayout_.horizontalStartOffset+OSK_PLACEHOLDER_LEFT_INSET);
+    windowDelegatorCanvas->drawLine(textWidth,oskLayout_.placeHolderTextVerticalStart,textWidth,oskLayout_.placeHolderTextVerticalStart-textFont_.getSize(),cursorPaint_);
   }
-  textWidth +=(oskLayout_.horizontalStartOffset+OSK_PLACEHOLDER_LEFT_INSET);
-  windowDelegatorCanvas->drawLine(textWidth,oskLayout_.placeHolderTextVerticalStart,textWidth,oskLayout_.placeHolderTextVerticalStart-textFont_.getSize(),cursorPaint_);
-
 #ifdef  DRAW_STRING_BOUNDING_BOX
   SkPaint paint;
   paint.setColor(SK_ColorGREEN);

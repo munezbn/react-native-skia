@@ -100,9 +100,9 @@ void RSkComponentTextInput::drawTextInput(SkCanvas *canvas,
   #if ENABLE(FEATURE_ONSCREEN_KEYBOARD)
   if (0 == displayString_.size()) {
     /*In case of Empty displayString,TextInput renders PlaceHolder Name in TI BOX. To avoid it, passing empty string here */
-    OnScreenKeyboard::updatePlaceHolderString(std::string(),0);
+    OnScreenKeyboard::updatePlaceHolderString(std::string(),0,!caretHidden_);
   } else {
-    OnScreenKeyboard::updatePlaceHolderString((static_cast<ParagraphImpl*>(paragraph_.get()))->text().data(),(cursor_.end - cursor_.locationFromEnd));
+    OnScreenKeyboard::updatePlaceHolderString((static_cast<ParagraphImpl*>(paragraph_.get()))->text().data(),(cursor_.end - cursor_.locationFromEnd), !caretHidden_);
   }
   #endif/*FEATURE_ONSCREEN_KEYBOARD*/
 }
@@ -539,10 +539,9 @@ void RSkComponentTextInput::requestForEditingMode(bool isFlushDisplay){
       cursor_.end = 0;
     }
     privateVarProtectorMutex.unlock();
-    if (!caretHidden_) {
-       drawAndSubmit(isFlushDisplay);
-    }
   }
+  drawAndSubmit(isFlushDisplay);
+
 #if ENABLE(FEATURE_ONSCREEN_KEYBOARD)
   if(showSoftInputOnFocus_){
     OnScreenKeyboard::launch(oskLaunchConfig_);
