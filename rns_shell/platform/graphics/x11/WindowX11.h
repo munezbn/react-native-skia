@@ -10,7 +10,7 @@
 
 #include "ReactSkia/utils/RnsUtils.h"
 
-#include "ReactSkia/sdk/NotificationCenter.h"
+#include "ReactSkia/sdk/NotificationCenter.h" //To avoid the None conflict with X11
 #include <X11/Xlib.h>
 #include <X11/X.h>
 #if USE(GLX)
