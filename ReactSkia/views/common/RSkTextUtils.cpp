@@ -6,7 +6,7 @@
  */
 
 #include "ReactSkia/views/common/RSkTextUtils.h"
-
+#include "include/core/SkPath.h"
 using namespace skia::textlayout;
 
 namespace facebook {
@@ -77,27 +77,34 @@ void drawText(std::shared_ptr<Paragraph>& paragraph,
             const ParagraphProps& props,
             bool isParent) {
     SkPaint paint;
+    SkPath clipPath;
     SkScalar yOffset = 0;
     Rect frame = layout.frame;
-    auto fontLineHeight = (!std::isnan(props.textAttributes.lineHeight)) && (props.textAttributes.lineHeight >= 0) ?
-                            props.textAttributes.lineHeight :
-                            true;
+    int textHeight=(std::isnan(props.textAttributes.lineHeight)) ? frame.size.height : props.textAttributes.lineHeight;
+    
+    canvas->save();
+    if(textHeight <= 0){
+        return;
+    }
 
-    if ((props.backgroundColor) || (props.textAttributes.lineHeight >= 0)) {
-        if (isParent)
-            canvas->clipRect(SkRect::MakeXYWH(0, 0, frame.size.width, frame.size.height));
-        else
-            canvas->clipRect(SkRect::MakeXYWH(frame.origin.x, frame.origin.y, frame.size.width, frame.size.height));
+    if (isParent){
+        clipPath.addRect(0, 0, frame.size.width, textHeight);
+    } else {
+        clipPath.addRect(frame.origin.x, frame.origin.y, frame.origin.x + frame.size.width, frame.origin.y + textHeight);
+    }
+    canvas->clipPath(clipPath, SkClipOp::kIntersect);
+
+    if (props.backgroundColor){
         canvas->drawColor(RSkColorFromSharedColor(props.backgroundColor, SK_ColorTRANSPARENT));
     }
-    if (fontLineHeight) {
+
 #if defined(TARGET_OS_TV) && TARGET_OS_TV
-        yOffset = yPosOffset(attributedString, paragraph->getHeight(), layout.getContentFrame().size.height);
+    yOffset = yPosOffset(attributedString, paragraph->getHeight(), layout.getContentFrame().size.height);
 #endif //TARGET_OS_TV
-        if (isParent)
-            paragraph->paint(canvas, layout.contentInsets.left, layout.contentInsets.top + yOffset);
-        else
-            paragraph->paint(canvas, frame.origin.x + layout.contentInsets.left, frame.origin.y + layout.contentInsets.top + yOffset);
+    if (isParent){
+        paragraph->paint(canvas, layout.contentInsets.left, layout.contentInsets.top + yOffset);
+    } else {
+        paragraph->paint(canvas, frame.origin.x + layout.contentInsets.left, frame.origin.y + layout.contentInsets.top + yOffset);
     }
 }
 } //RSkTextUtils
