@@ -204,8 +204,10 @@ bool RSkComponentImage::processImageData(const char* path, char* response, int s
   auto const &imageProps = *std::static_pointer_cast<ImageProps const>(component.props);
   // Responce callback from network. Get image data, insert in Cache and call Onpaint
   sk_sp<SkImage> remoteImageData = RSkImageCacheManager::getImageCacheManagerInstance()->findImageDataInCache(path);
-  if(remoteImageData && strcmp(path,imageProps.sources[0].uri.c_str()) == 0) {
-    drawAndSubmit();
+  if(remoteImageData ) {
+    if(strcmp(path,imageProps.sources[0].uri.c_str()) == 0) {
+      drawAndSubmit();
+    }
   } else {
     if(!response) return false;
     sk_sp<SkData> data = SkData::MakeWithCopy(response,size);
