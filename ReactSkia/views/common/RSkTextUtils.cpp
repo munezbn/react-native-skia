@@ -5,8 +5,9 @@
  * LICENSE file in the root directory of this source tree.
  */
 
-#include "ReactSkia/views/common/RSkTextUtils.h"
 #include "include/core/SkPath.h"
+#include "ReactSkia/views/common/RSkTextUtils.h"
+
 using namespace skia::textlayout;
 
 namespace facebook {
@@ -80,21 +81,22 @@ void drawText(std::shared_ptr<Paragraph>& paragraph,
     SkPath clipPath;
     SkScalar yOffset = 0;
     Rect frame = layout.frame;
-    int textHeight=(std::isnan(props.textAttributes.lineHeight)) ? frame.size.height : props.textAttributes.lineHeight;
+    int textFrameHeight=(std::isnan(props.textAttributes.lineHeight)) ? frame.size.height : props.textAttributes.lineHeight;
+    SkAutoCanvasRestore save(canvas, true);
     
-    canvas->save();
-    if(textHeight <= 0){
+    if(textFrameHeight <= 0){
+        RNS_LOG_DEBUG(" Text Drawing Failed Height[" << textFrameHeight<<"]");
         return;
     }
 
     if (isParent){
-        clipPath.addRect(0, 0, frame.size.width, textHeight);
+        clipPath.addRect(0, 0, frame.size.width, textFrameHeight);
     } else {
-        clipPath.addRect(frame.origin.x, frame.origin.y, frame.origin.x + frame.size.width, frame.origin.y + textHeight);
+        clipPath.addRect(frame.origin.x, frame.origin.y, frame.origin.x + frame.size.width, frame.origin.y + textFrameHeight);
     }
     canvas->clipPath(clipPath, SkClipOp::kIntersect);
 
-    if (props.backgroundColor){
+    if (props.backgroundColor && RSkColorFromSharedColor(props.backgroundColor, SK_ColorTRANSPARENT)){
         canvas->drawColor(RSkColorFromSharedColor(props.backgroundColor, SK_ColorTRANSPARENT));
     }
 
