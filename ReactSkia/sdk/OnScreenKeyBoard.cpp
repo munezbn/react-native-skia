@@ -25,8 +25,7 @@ OnScreenKeyboard& OnScreenKeyboard::getInstance() {
 }
 
 OSKErrorCode OnScreenKeyboard::launch(OSKConfig& oskConfig) {
-  RNS_LOG_TODO("Need to do emit , keyboardWillShow Event to APP");
-
+  
   OnScreenKeyboard &oskHandle=OnScreenKeyboard::getInstance();
 
   if((oskHandle.oskState_ == OSK_STATE_LAUNCH_INPROGRESS) || (oskHandle.oskState_ == OSK_STATE_ACTIVE)) {
@@ -35,6 +34,7 @@ OSKErrorCode OnScreenKeyboard::launch(OSKConfig& oskConfig) {
   std::scoped_lock lock(oskLaunchExitCtrlMutex);
   oskHandle.oskConfig_=oskConfig;
   oskHandle.oskState_=OSK_STATE_LAUNCH_INPROGRESS;
+  oskHandle.displayString_=oskHandle.oskConfig_.displayString;
   onScreenKeyboardEventEmit(std::string("keyboardWillShow"));
 
   oskHandle.launchOSKWindow();
@@ -70,14 +70,12 @@ void OnScreenKeyboard::exit() {
   oskHandle.visibleDisplayStringRange_.set(-1,-1);//Setting to invalid
   oskHandle.lastFocussIndex_.set(0,0);
   oskHandle.currentFocussIndex_.set(0,0);
-  oskHandle.showCursor_=true;
 }
 
-void  OnScreenKeyboard::updatePlaceHolderString(std::string displayString,int cursorPosition, bool showCursor) {
+void  OnScreenKeyboard::updatePlaceHolderString(std::string displayString,int cursorPosition) {
   OnScreenKeyboard &oskHandle=OnScreenKeyboard::getInstance();
   oskHandle.displayString_=displayString;
   oskHandle.cursorPosition_=cursorPosition;
-  oskHandle.showCursor_ = showCursor;
   if(oskHandle.oskState_ != OSK_STATE_ACTIVE) {
     return;
   }
@@ -212,8 +210,8 @@ void OnScreenKeyboard::drawPlaceHolderDisplayString() {
   displayStrWidth_=((textWidth+OSK_PLACEHOLDER_RESERVED_LENGTH) < oskLayout_.placeHolderLength ) ? (textWidth +OSK_PLACEHOLDER_RESERVED_LENGTH) :oskLayout_.placeHolderLength;
 
 /* Display Cursor*/
-  if(showCursor_){
-  textWidth=0;
+  if(oskConfig_.showCursor){
+    textWidth=0;
     int newcursorPosition = (cursorPosition_ >= (visibleDisplayStringRange_.x()+1)) ? ( cursorPosition_- visibleDisplayStringRange_.x()):0;
     if(newcursorPosition) {
       textWidth=getStringBound (displayString_,0,newcursorPosition-1,textFont_);

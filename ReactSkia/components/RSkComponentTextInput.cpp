@@ -100,9 +100,9 @@ void RSkComponentTextInput::drawTextInput(SkCanvas *canvas,
   #if ENABLE(FEATURE_ONSCREEN_KEYBOARD)
   if (0 == displayString_.size()) {
     /*In case of Empty displayString,TextInput renders PlaceHolder Name in TI BOX. To avoid it, passing empty string here */
-    OnScreenKeyboard::updatePlaceHolderString(std::string(),0,!caretHidden_);
+    OnScreenKeyboard::updatePlaceHolderString(std::string(),0);
   } else {
-    OnScreenKeyboard::updatePlaceHolderString((static_cast<ParagraphImpl*>(paragraph_.get()))->text().data(),(cursor_.end - cursor_.locationFromEnd), !caretHidden_);
+    OnScreenKeyboard::updatePlaceHolderString((static_cast<ParagraphImpl*>(paragraph_.get()))->text().data(),(cursor_.end - cursor_.locationFromEnd));
   }
   #endif/*FEATURE_ONSCREEN_KEYBOARD*/
 }
@@ -481,6 +481,9 @@ RnsShell::LayerInvalidateMask  RSkComponentTextInput::updateComponentProps(const
   oskLaunchConfig_.returnKeyLabel=RSkToSdkOSKReturnKeyType(textInputProps.traits.returnKeyType);
   oskLaunchConfig_.enablesReturnKeyAutomatically=textInputProps.traits.enablesReturnKeyAutomatically;
   oskLaunchConfig_.placeHolderName=textInputProps.placeholder;
+  oskLaunchConfig_.showCursor= !textInputProps.traits.caretHidden;
+  if(!textInputProps.traits.clearTextOnFocus)
+    oskLaunchConfig_.displayString=displayString_;
 #endif/*FEATURE_ONSCREEN_KEYBOARD*/
 
   return (RnsShell::LayerInvalidateMask)mask;
@@ -539,8 +542,11 @@ void RSkComponentTextInput::requestForEditingMode(bool isFlushDisplay){
       cursor_.end = 0;
     }
     privateVarProtectorMutex.unlock();
+    if (!caretHidden_) {
+      drawAndSubmit(isFlushDisplay);
+    }
   }
-  drawAndSubmit(isFlushDisplay);
+ 
 
 #if ENABLE(FEATURE_ONSCREEN_KEYBOARD)
   if(showSoftInputOnFocus_){
