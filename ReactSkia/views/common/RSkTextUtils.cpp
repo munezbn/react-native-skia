@@ -83,7 +83,6 @@ void drawText(std::shared_ptr<Paragraph>& paragraph,
     Rect frame = layout.frame;
     int textFrameHeight=(std::isnan(props.textAttributes.lineHeight)) ? frame.size.height : props.textAttributes.lineHeight;
     SkAutoCanvasRestore save(canvas, true);
-    SkColor bgColor=0;
     
     if(textFrameHeight <= 0){
         RNS_LOG_DEBUG(" Text Drawing Ignored, Height[" << textFrameHeight<<"]");
@@ -98,7 +97,7 @@ void drawText(std::shared_ptr<Paragraph>& paragraph,
     canvas->clipPath(clipPath, SkClipOp::kIntersect);
 
     if (props.backgroundColor ){
-        bgColor = RSkColorFromSharedColor(props.backgroundColor, SK_ColorTRANSPARENT);
+        SkColor bgColor = RSkColorFromSharedColor(props.backgroundColor, SK_ColorTRANSPARENT);
         if (bgColor){
             canvas->drawColor(bgColor);
         }
