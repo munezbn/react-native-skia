@@ -37,6 +37,9 @@ class TextInputProps final : public ViewProps, public BaseTextProps {
   better::optional<std::string> value{};
   std::string const placeholder{};
   SharedColor const placeholderTextColor{};
+  bool editable=true;
+  bool caretHidden=false;
+  bool secureTextEntry=false;
   int maxLength{};
 
   /*
@@ -54,6 +57,7 @@ class TextInputProps final : public ViewProps, public BaseTextProps {
   int const mostRecentEventCount{0};
 
   bool autoFocus{false};
+  bool clearTextOnFocus{false};
 
   std::string const inputAccessoryViewID{};
 
