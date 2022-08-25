@@ -34,7 +34,6 @@ OSKErrorCode OnScreenKeyboard::launch(OSKConfig& oskConfig) {
   std::scoped_lock lock(oskLaunchExitCtrlMutex);
   oskHandle.oskConfig_=oskConfig;
   oskHandle.oskState_=OSK_STATE_LAUNCH_INPROGRESS;
-  oskHandle.displayString_=oskHandle.oskConfig_.displayString;
   onScreenKeyboardEventEmit(std::string("keyboardWillShow"));
 
   oskHandle.launchOSKWindow();
