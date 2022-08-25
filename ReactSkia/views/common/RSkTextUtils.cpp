@@ -85,7 +85,7 @@ void drawText(std::shared_ptr<Paragraph>& paragraph,
     SkAutoCanvasRestore save(canvas, true);
     
     if(textFrameHeight <= 0){
-        RNS_LOG_DEBUG(" Text Drawing Ignored, Height[" << textFrameHeight<<"]");
+        RNS_LOG_WARN(" Text Drawing Ignored, Height[" << textFrameHeight<<"]");
         return;
     }
 
