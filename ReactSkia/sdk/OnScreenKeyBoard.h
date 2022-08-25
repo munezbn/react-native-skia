@@ -107,7 +107,7 @@ class OnScreenKeyboard : public WindowDelegator{
 
   public:
     static OnScreenKeyboard& getInstance(); // Interface to get OSK singleton object
-    static OSKErrorCode launch(OSKConfig oskConfig=defaultOSKConfig);// Interface to launch OSK
+    static OSKErrorCode launch(OSKConfig& oskConfig=defaultOSKConfig);// Interface to launch OSK
     static void exit(); //Interface to quit OSK
     static void updatePlaceHolderString(std::string displayString,int cursorPosition);
 
@@ -133,23 +133,24 @@ class OnScreenKeyboard : public WindowDelegator{
       SkScalar          placeHolderTitleVerticalStart;
       // Place Holder
       SkScalar          placeHolderLength;
+      SkScalar          placeHolderHeight;
       SkScalar          placeHolderVerticalStart;
       SkScalar          placeHolderTextVerticalStart;
       // Key Board
       SkScalar          kBVerticalStart;
     };
 
-    OnScreenKeyboard(){};
-    ~OnScreenKeyboard(){};
+    OnScreenKeyboard() = default;
+    ~OnScreenKeyboard() = default;
 
-    void launchOSKWindow(OSKConfig oskConfig);
+    void launchOSKWindow();
     void onHWkeyHandler(rnsKey key, rnsKeyAction eventKeyAction);
     void processKey(rnsKey keyValue);
 #if ENABLE(FEATURE_KEY_THROTTLING)
     void repeatKeyProcessingThread();
 #endif/*ENABLE_FEATURE_KEY_THROTTLING*/
     void createOSKLayout(OSKTypes KBtype );
-    void clearScreen(int32_t x,int32_t y,int32_t width,int32_t height,SkPaint & paintObj);
+    void clearScreen(SkScalar x,SkScalar y,SkScalar width,SkScalar height,SkPaint & paintObj);
     SkScalar getStringBound (const std::string & stringToMeasure,unsigned int startIndex,unsigned int endIndex,SkFont & stringFont);
 
     void emitOSKKeyEvent(rnsKey keyValue);
