@@ -7,6 +7,7 @@
 #include "version.h"
 #include "core_modules/RSkDeviceInfo.h"
 #include "core_modules/RSkImageLoader.h"
+#include "core_modules/RSkRadioPlayer.h"
 #include "core_modules/RSkTimingModule.h"
 #include "core_modules/RSkKeyboardObserver.h"
 #include "modules/platform/nopoll/RSkWebSocketModule.h"
@@ -164,6 +165,8 @@ JSITurboModuleManager::JSITurboModuleManager(Instance *bridgeInstance)
       std::make_shared<RSkDeviceInfoModule>("DeviceInfo", jsInvoker, bridgeInstance);
   modules_["ImageLoader"] =
       std::make_shared<RSkImageLoader>("ImageLoader", jsInvoker);
+  modules_["RadioPlayer"] =
+      std::make_shared<RSkRadioPlayer>("RadioPlayer", jsInvoker, bridgeInstance);
 
 #if defined(TARGET_OS_TV) && TARGET_OS_TV
   modules_["TVNavigationEventEmitter"] =
@@ -187,6 +190,7 @@ TurboModuleProviderFunctionType JSITurboModuleManager::GetProvider() {
     if (modules_.find(name) != modules_.end()) {
       return modules_[name];
     }
+    RNS_LOG_WARN("TurboModule "<< name << " not found !!");
     return nullptr;
   };
 }

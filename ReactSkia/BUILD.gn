@@ -134,6 +134,8 @@ source_set("ReactSkia") {
     "core_modules/RSkImageLoader.cpp",
     "core_modules/RSkImageLoader.h",
     "core_modules/RSkKeyboardObserver.h",
+    "core_modules/RSkRadioPlayer.cpp",
+    "core_modules/RSkRadioPlayer.h",
     "core_modules/RSkSpatialNavigator.cpp",
     "core_modules/RSkSpatialNavigator.h",
     "core_modules/RSkSpatialNavigatorContainer.cpp",
