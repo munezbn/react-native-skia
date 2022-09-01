@@ -31,7 +31,8 @@ namespace RSkDrawUtils{
                                BorderMetrics borderMetrics,
                                SharedColor bgColor,
                                Float shadowOpacity,
-                               sk_sp<SkImageFilter> shadowFilter);
+                               sk_sp<SkImageFilter> shadowFilter,
+                               int shadowRadius);
   void drawUnderline(SkCanvas *canvas,Rect frame,SharedColor underlineColor);
 
 }//namespace RSkDrawUtils

@@ -345,11 +345,13 @@ bool  drawShadow(SkCanvas *canvas,Rect frame,
                         BorderMetrics borderProps,
                         SharedColor backgroundColor,
                         Float shadowOpacity,
-                        sk_sp<SkImageFilter> shadowFilter) {
+                        sk_sp<SkImageFilter> shadowFilter,
+                        int shadowRadius) {
 
     if(shadowFilter == NULL) return false;
     SkPaint paint;
-    paint.setImageFilter( shadowFilter);
+    if(shadowRadius == 0||shadowFilter == NULL)
+      paint.setImageFilter( shadowFilter);
 
     DrawMethod shadowOn = None;
     /*Shadow on Background : If bg  visible */

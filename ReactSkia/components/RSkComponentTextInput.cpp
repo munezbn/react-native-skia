@@ -152,7 +152,7 @@ void RSkComponentTextInput::OnPaint(SkCanvas *canvas) {
       data.layoutManager->buildText(textLayout, textInputProps.backgroundColor, textInputProps.paragraphAttributes, textAttributes, displayString_, true);
     }
   }
-  drawShadow(canvas, frame, borderMetrics, textInputProps.backgroundColor, layer()->shadowOpacity, layer()->shadowFilter);
+  drawShadow(canvas, frame, borderMetrics, textInputProps.backgroundColor, layer()->shadowOpacity, layer()->shadowFilter,layer()->shadowRadius);
   drawTextInput(canvas, component.layoutMetrics, textInputProps, textLayout);
   if(hasToSetFocus_){
     requestForEditingMode(false);
