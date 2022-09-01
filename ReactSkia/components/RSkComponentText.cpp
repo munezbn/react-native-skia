@@ -124,7 +124,8 @@ void RSkComponentParagraph::OnPaint(SkCanvas *canvas) {
                           borderMetrics,
                           props.backgroundColor,
                           layer()->shadowOpacity,
-                          layer()->shadowFilter);
+                          layer()->shadowFilter,
+                          layer()->shadowRadius);
             }
 
             setTextLines(textLayout,

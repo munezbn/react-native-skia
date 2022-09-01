@@ -46,7 +46,7 @@ void RSkComponent::OnPaintShadow(SkCanvas *canvas) {
   /* apply view style props */
   auto borderMetrics= viewProps.resolveBorderMetrics(component_.layoutMetrics);
   if(layer_->shadowOpacity && layer_->shadowFilter){
-      drawShadow(canvas,component_.layoutMetrics.frame,borderMetrics,layer_->backgroundColor,layer_->shadowOpacity,layer_->shadowFilter);
+      drawShadow(canvas,component_.layoutMetrics.frame,borderMetrics,layer_->backgroundColor,layer_->shadowOpacity,layer_->shadowFilter,layer_->shadowRadius);
   }
 }
 
