@@ -221,6 +221,9 @@ void OnScreenKeyboard::drawPlaceHolderDisplayString() {
       }
       textWidth=getStringBound (displayString_,visibleRangeStart,visibleRangeEnd,textFont_);
     }
+    if(cursorPosition_ > displayString_.length()) {
+     cursorPosition_=displayString_.length();
+    }
     visibleDisplayStringRange_.set(visibleRangeStart,visibleRangeEnd);
     displayString_=displayString_.substr(visibleRangeStart,(visibleRangeEnd-visibleRangeStart)+1);
   }
