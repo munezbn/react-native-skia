@@ -113,7 +113,7 @@ void RSkImageLoaderModule::getImageSize(std::string uri, CxxModule::Callback res
 
     remoteCurlRequest->curldelegator.delegatorData = remoteCurlRequest.get();
     remoteCurlRequest->curldelegator.CURLNetworkingCompletionCallback=completionCallback;
-    RNS_LOG_INFO("Send Request to network");
+    RNS_LOG_DEBUG("Send Request to network");
     sharedCurlNetworking->sendRequest(remoteCurlRequest,folly::dynamic::object());
     imageRequestList_.insert(std::pair<std::string, std::shared_ptr<CurlRequest> >(uri,remoteCurlRequest));
   }
