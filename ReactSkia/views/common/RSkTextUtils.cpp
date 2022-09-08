@@ -78,7 +78,6 @@ void drawText(std::shared_ptr<Paragraph>& paragraph,
             const ParagraphProps& props,
             bool isParent) {
     SkPaint paint;
-    SkPath clipPath;
     SkScalar yOffset = 0;
     Rect frame = layout.frame;
     int textFrameHeight=(std::isnan(props.textAttributes.lineHeight)) ? frame.size.height : props.textAttributes.lineHeight;
@@ -90,11 +89,10 @@ void drawText(std::shared_ptr<Paragraph>& paragraph,
     }
 
     if (isParent){
-        clipPath.addRect(0, 0, frame.size.width, textFrameHeight);
+        canvas->clipRect(SkRect::MakeXYWH(0, 0, frame.size.width, frame.size.height), SkClipOp::kIntersect);
     } else {
-        clipPath.addRect(frame.origin.x, frame.origin.y, frame.origin.x + frame.size.width, frame.origin.y + textFrameHeight);
+        canvas->clipRect(SkRect::MakeXYWH(frame.origin.x, frame.origin.y, frame.size.width, frame.size.height), SkClipOp::kIntersect);
     }
-    canvas->clipPath(clipPath, SkClipOp::kIntersect);
 
     if (props.backgroundColor ){
         SkColor bgColor = RSkColorFromSharedColor(props.backgroundColor, SK_ColorTRANSPARENT);

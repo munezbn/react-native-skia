@@ -12,6 +12,9 @@ declare_args() {
 
   # Enable ScrollBar Feature
   rns_enable_scrollindicator = true
+
+  # Use fix for skia floating font size roundoff
+  rns_use_fix_skia_floating_font_size = true
 }
 
 import("//build/config/gclient_args.gni")
@@ -47,6 +50,10 @@ config("textlayoutmanager_config") {
     "//third_party/skia",
     "//skia/config",
   ]
+  defines = []
+  if(rns_use_fix_skia_floating_font_size) {
+    defines += ["USE_FIX_SKIA_FLOATING_FONT_SIZE"]
+  }
 }
 config("textinput_config") {
   include_dirs = [
