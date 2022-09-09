@@ -220,9 +220,9 @@ void Layer::paintSelf(PaintContext& context) {
 void Layer::paintChildren(PaintContext& context) {
     for (auto& layer : children_) {
         if(layer->needsPainting(context)) {
-            RNS_LOG_DEBUG("Paint Layer(ID:" << layerId_ << ", ParentID:" << (parent_ ? parent_->layerId() : -1) <<
-                ") Frame [" << frame_.x() << "," << frame_.y() << "," << frame_.width() << "," << frame_.height() <<
-                "], Bounds [" << bounds_.x() << "," << bounds_.y() << "," << bounds_.width() << "," << bounds_.height() << "]");
+            RNS_LOG_DEBUG("Paint Layer(ID:" << layer->layerId_ << ", ParentID:" << layerId_ <<
+                ") Frame [" << layer->frame_.x() << "," << layer->frame_.y() << "," << layer->frame_.width() << "," << layer->frame_.height() <<
+                "], Bounds [" << layer->bounds_.x() << "," << layer->bounds_.y() << "," << layer->bounds_.width() << "," << layer->bounds_.height() << "]");
             layer->paint(context);
         }
     }

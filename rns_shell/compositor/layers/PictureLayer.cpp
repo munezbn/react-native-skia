@@ -16,7 +16,7 @@ SharedPictureLayer PictureLayer::Create(Client& layerClient) {
 
 PictureLayer::PictureLayer(Client& layerClient)
     : INHERITED(layerClient, LAYER_TYPE_PICTURE) {
-    RNS_LOG_INFO("Picture Layer Constructed(" << this << ") with ID : " << layerId() << " and LayerClient : " << &layerClient);
+    RNS_LOG_DEBUG("Picture Layer Constructed(" << this << ") with ID : " << layerId() << " and LayerClient : " << &layerClient);
 }
 
 void PictureLayer::paintSelf(PaintContext& context) {
