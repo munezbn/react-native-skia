@@ -89,9 +89,9 @@ void drawText(std::shared_ptr<Paragraph>& paragraph,
     }
 
     if (isParent){
-        canvas->clipRect(SkRect::MakeXYWH(0, 0, frame.size.width, frame.size.height), SkClipOp::kIntersect);
+        canvas->clipRect(SkRect::MakeXYWH(0, 0, frame.size.width, textFrameHeight), SkClipOp::kIntersect);
     } else {
-        canvas->clipRect(SkRect::MakeXYWH(frame.origin.x, frame.origin.y, frame.size.width, frame.size.height), SkClipOp::kIntersect);
+        canvas->clipRect(SkRect::MakeXYWH(frame.origin.x, frame.origin.y, frame.size.width, textFrameHeight), SkClipOp::kIntersect);
     }
 
     if (props.backgroundColor ){
