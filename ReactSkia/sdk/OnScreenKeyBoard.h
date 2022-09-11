@@ -14,7 +14,7 @@
 #include "include/core/SkColor.h"
 
 #include "NotificationCenter.h"
-#include "RNSKeyCodeMapping.h"
+#include "KeyCodeMapping.h"
 #include "WindowDelegator.h"
 
 namespace rns {
