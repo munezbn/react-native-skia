@@ -35,7 +35,7 @@ using namespace skia::textlayout;
 #define FONTSIZE_MULTIPLIER     1
 #define CURSOR_WIDTH 2
 
-std::queue<key> inputQueue;
+std::queue<Inputkeyinfo> inputQueue;
 sem_t jsUpdateSem;
 std::mutex privateVarProtectorMutex;
 std::mutex inputQueueMutex;
@@ -173,11 +173,19 @@ void RSkComponentTextInput::OnPaint(SkCanvas *canvas) {
 */
 
 void RSkComponentTextInput::onHandleKey(Inputkeyinfo keyInfo, bool *stopPropagation) {
-  RNS_LOG_DEBUG(__func__<<" : ENTRY");
+  RNS_LOG_DEBUG(__func__<<" : Entry ");
   *stopPropagation = false;
   if (!editable_) {
     return;
   }
+  if((keyInfo.key >= KEY_Up) && (keyInfo.key <= KEY_Back) && isInEditingMode_) {
+    *stopPropagation = true;
+    if((!keyInfo.repeat) && (keyInfo.action == KEY_Release)) { return;}
+  }
+  if((keyInfo.key == KEY_Select) && (keyInfo.action == KEY_Press)){
+    *stopPropagation = true;
+    return;
+  };
   bool waitForupdateProps = false;
   privateVarProtectorMutex.lock();
   std::string textString = displayString_;
@@ -224,7 +232,7 @@ void RSkComponentTextInput::onHandleKey(Inputkeyinfo keyInfo, bool *stopPropagat
       if(keyInfo.repeat && !isKeyRepeateOn)
         keyRepeateStartIndex = inputQueue.size();
       if(isKeyRepeateOn && !keyInfo.repeat ){
-        std::queue<key> temp;
+        std::queue<Inputkeyinfo> temp;
         isKeyRepeateOn = false;
         RNS_LOG_DEBUG(__func__<<" : update the queue with temp Queue... ");
         while( keyRepeateStartIndex > 0 ){
@@ -244,12 +252,12 @@ void RSkComponentTextInput::onHandleKey(Inputkeyinfo keyInfo, bool *stopPropagat
       if ((keyInfo.key >= KEY_Up && keyInfo.key <= KEY_Back)) {
         *stopPropagation = true;
         inputQueueMutex.lock();
-        inputQueue.push(keyInfo.key);
+        inputQueue.push(keyInfo);
         inputQueueMutex.unlock();
       } else if (keyInfo.key ==  KEY_Select) {
         *stopPropagation = true;
         isTextInputInFocus_ = false;
-        std::queue<key> empty;
+        std::queue<Inputkeyinfo> empty;
         inputQueueMutex.lock();
         std::swap( inputQueue, empty );
         inputQueueMutex.unlock();
@@ -258,12 +266,12 @@ void RSkComponentTextInput::onHandleKey(Inputkeyinfo keyInfo, bool *stopPropagat
       }
       return;
     }
-    processEventKey(keyInfo.key,stopPropagation,&waitForupdateProps,true);
+    processEventKey(keyInfo,stopPropagation,&waitForupdateProps,true);
   }//else if (isInEditingMode_)
 }
 
-void RSkComponentTextInput::processEventKey (key eventKeyType,bool* stopPropagation,bool *waitForupdateProps, bool updateString) {
-  RNS_LOG_DEBUG(__func__<<" :  ENTRY");
+void RSkComponentTextInput::processEventKey (Inputkeyinfo keyInfo,bool* stopPropagation,bool *waitForupdateProps, bool updateString) {
+  RNS_LOG_DEBUG(__func__<<" : Entery : Key Repeat" << keyInfo.repeat<<"  key  " <<keyMap[keyInfo.key] << "  eventKeyAction  " << keyInfo.action);
   KeyPressMetrics keyPressMetrics;
   TextInputMetrics textInputMetrics;
   std::string textString = displayString_;
@@ -272,10 +280,10 @@ void RSkComponentTextInput::processEventKey (key eventKeyType,bool* stopPropagat
   Rect frame = component.layoutMetrics.frame;
   auto textInputEventEmitter = std::static_pointer_cast<TextInputEventEmitter const>(component.eventEmitter);
   auto const &textInputProps = *std::static_pointer_cast<TextInputProps const>(component.props);
-  keyPressMetrics.text = keyMap[eventKeyType];
+  keyPressMetrics.text = keyMap[keyInfo.key];
 
     //Displayable Charector Range
-    if ((eventKeyType >= KEY_1 && eventKeyType <= KEY_Less)) {
+    if ((keyInfo.key >= KEY_1 && keyInfo.key <= KEY_Less)) {
       if (cursor_.locationFromEnd != 0){
         textString.insert(cursor_.end-cursor_.locationFromEnd,keyPressMetrics.text);
       } else {
@@ -283,14 +291,14 @@ void RSkComponentTextInput::processEventKey (key eventKeyType,bool* stopPropagat
       }
       cursor_.end = textString.length();
     } else {
-      switch(eventKeyType){
+      switch(keyInfo.key){
         case KEY_Left:
         case KEY_Right:
           *stopPropagation = true;
           *waitForupdateProps = false;
           keyPressMetrics.eventCount = eventCount_;
           textInputEventEmitter->onKeyPress(keyPressMetrics);
-          if (KEY_Left == eventKeyType) {
+          if (KEY_Left == keyInfo.key) {
             if(cursor_.locationFromEnd < cursor_.end ) {
               RNS_LOG_DEBUG(__func__<<" :Left key pressed cursor_.locationFromEnd = "<<cursor_.locationFromEnd);
               cursor_.locationFromEnd++; // locationFromEnd
@@ -387,18 +395,19 @@ void RSkComponentTextInput::keyEventProcessingThread(){
   auto component = getComponentData();
   bool waitForupdateProps = true;
   auto textInputEventEmitter = std::static_pointer_cast<TextInputEventEmitter const>(component.eventEmitter);
+  Inputkeyinfo keyInfo;
   while(isTextInputInFocus_) {
     if(!inputQueue.empty()) {
       privateVarProtectorMutex.lock();
       textString = displayString_;
       privateVarProtectorMutex.unlock();
       inputQueueMutex.lock();
-      auto eventKeyType = inputQueue.front();
+      keyInfo = inputQueue.front();
       inputQueue.pop();
       if ( keyRepeateStartIndex >0 )
         keyRepeateStartIndex-- ;
       inputQueueMutex.unlock();
-      processEventKey(eventKeyType,&stopPropagation,&waitForupdateProps, false);
+      processEventKey(keyInfo,&stopPropagation,&waitForupdateProps, false);
       if (waitForupdateProps)
         sem_wait(&jsUpdateSem);
     }
@@ -563,7 +572,7 @@ void RSkComponentTextInput::resignFromEditingMode(bool isFlushDisplay) {
   auto component = this->getComponentData();
   if (this->isTextInputInFocus_){
     this->isTextInputInFocus_ = false;
-    std::queue<key> empty;
+    std::queue<Inputkeyinfo> empty;
     inputQueueMutex.lock();
     std::swap( inputQueue, empty );
     inputQueueMutex.unlock();

@@ -64,7 +64,7 @@ class RSkComponentTextInput final : public RSkComponent {
       LayoutMetrics layout,
       const TextInputProps& props,
       struct RSkSkTextLayout &textLayout);
-  void processEventKey(key eventKeyType,bool* stopPropagation,bool *waitForupdateProps, bool updateString);
+  void processEventKey(Inputkeyinfo keyInfo,bool* stopPropagation,bool *waitForupdateProps, bool updateString);
   void keyEventProcessingThread();
   void requestForEditingMode(bool isFlushDisplay = true);
   void resignFromEditingMode(bool isFlushDisplay = true);

@@ -7,8 +7,7 @@
 #include "RSkInputEventManager.h"
 #include "ReactSkia/components/RSkComponent.h"
 
-static bool keyRepeat;
-static key previousKeyType;
+static bool onKeyRepeatMode{false};
 
 namespace facebook{
 namespace react {
@@ -27,8 +26,6 @@ RSkInputEventManager::RSkInputEventManager(){
   subWindowEventId_ = NotificationCenter::subWindowCenter().addListener("onOSKKeyEvent", handler);
 #endif/*FEATURE_ONSCREEN_KEYBOARD*/
   spatialNavigator_ =  SpatialNavigator::RSkSpatialNavigator::sharedSpatialNavigator();
-  keyRepeat=false;
-  previousKeyType=KEY_UnKnown;
 #if ENABLE(FEATURE_KEY_THROTTLING)
   inputWorkerThread_ = std::thread(&RSkInputEventManager::inputWorkerThreadFunction, this);
   sem_init(&keyEventPost_, 0, 1);
@@ -81,37 +78,26 @@ void RSkInputEventManager::onEventComplete() {
 #endif
 
 void RSkInputEventManager::keyHandler(Inputkeyinfo keyInfo){
-  RNS_LOG_DEBUG("[keyHandler] Key Repeat" << keyRepeat<<"  eventKeyType  " <<keyInfo.key << " previousKeyType " <<previousKeyType <<"  eventKeyAction  " << keyInfo.action);
 
-  if(previousKeyType == keyInfo.key  && keyInfo.action == KEY_Press){
-    keyRepeat = true;
-  }
-
-  if(keyInfo.action == KEY_Release) {
-    previousKeyType = KEY_UnKnown;
-    if(keyRepeat == true) {
-      keyRepeat = false;
 #if ENABLE(FEATURE_KEY_THROTTLING)
-      if(!keyQueue_->isEmpty())
-        keyQueue_->clear(); // flush the queue
-#endif
-    } else{
-      return;// ignore key release 
-    }
-  } else {
-    previousKeyType = keyInfo.key;
-#if ENABLE(FEATURE_KEY_THROTTLING)
+  if(onKeyRepeatMode && !keyInfo.repeat) {
+    onKeyRepeatMode=false;
+    if(!keyQueue_->isEmpty()) {
+       keyQueue_->clear(); // flush the queue
+     }
+  } else if(keyInfo.repeat) {
+    onKeyRepeatMode=true;
     keyQueue_->push(keyInfo);
-#else
-    processKey(keyInfo);
-#endif
+    return;
   }
+#endif
+  processKey(keyInfo);
 }
 
 void RSkInputEventManager::processKey(Inputkeyinfo &keyInfo) {
   bool stopPropagate = false;
 
-  RNS_LOG_DEBUG("[Process Key] Key Repeat " << keyInfo.repeat << " eventKeyType  " << keyInfo.key << " previousKeyType " << previousKeyType);
+  RNS_LOG_DEBUG("[keyHandler] Key Repeat" << keyInfo.repeat<<"  key  " <<keyMap[keyInfo.key] << "  eventKeyAction  " << keyInfo.action);
   auto currentFocused = spatialNavigator_->getCurrentFocusElement();
   if(currentFocused){ // send key to Focused component.
     currentFocused->onHandleKey(keyInfo, &stopPropagate);
@@ -119,6 +105,9 @@ void RSkInputEventManager::processKey(Inputkeyinfo &keyInfo) {
       return;//don't propagate key further
     }
   }
+
+  if (keyInfo.action == KEY_Release) return;
+
 #if defined(TARGET_OS_TV) && TARGET_OS_TV
   sendNotificationWithEventType(
       keyMap[keyInfo.key],
