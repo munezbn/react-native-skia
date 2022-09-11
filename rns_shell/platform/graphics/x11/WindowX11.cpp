@@ -310,7 +310,7 @@ bool WindowX11::handleEvent(const XEvent& event) {
         case KeyRelease:
             RNS_LOG_DEBUG("[handleEvent] Actual KeyRelease");
         case KeyPress:
-            onKey( keyIdentifierForX11KeyCode(keysym), (event.type == KeyRelease ) ? RNS_KEY_Release : RNS_KEY_Press);
+            onKey( keyIdentifierForX11KeyCode(keysym), (event.type == KeyRelease ) ? KEY_Release : KEY_Press);
             break; 
         case ButtonPress:
             RNS_LOG_NOT_IMPL;
@@ -345,7 +345,7 @@ void WindowX11::onExpose() {
     NotificationCenter::defaultCenter().emit("windowExposed",(Window*)this);
 }
 
-void WindowX11::onKey(rnsKey eventKeyType, rnsKeyAction eventKeyAction){
+void WindowX11::onKey(key eventKeyType, keyAction eventKeyAction){
 #if ENABLE(FEATURE_ONSCREEN_KEYBOARD)
     if(winType == SubWindow)
         NotificationCenter::subWindowCenter().emit("onHWKeyEvent", eventKeyType, eventKeyAction);

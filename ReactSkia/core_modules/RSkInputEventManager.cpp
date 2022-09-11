@@ -8,7 +8,7 @@
 #include "ReactSkia/components/RSkComponent.h"
 
 static bool keyRepeat;
-static rnsKey previousKeyType;
+static key previousKeyType;
 
 namespace facebook{
 namespace react {
@@ -20,8 +20,8 @@ RSkInputEventManager::RSkInputEventManager(){
 #if ENABLE(FEATURE_KEY_THROTTLING)
   keyQueue_ =  std::make_unique<ThreadSafeQueue<RskKeyInput>>();
 #endif
-  std::function<void(rnsKey, rnsKeyAction)> handler = std::bind(&RSkInputEventManager::keyHandler, this,
-                                                              std::placeholders::_1, // rnsKey
+  std::function<void(key, keyAction)> handler = std::bind(&RSkInputEventManager::keyHandler, this,
+                                                              std::placeholders::_1, // key
                                                               std::placeholders::_2);
   eventId_ = NotificationCenter::defaultCenter().addListener("onHWKeyEvent", handler);
 #if ENABLE(FEATURE_ONSCREEN_KEYBOARD)
@@ -29,7 +29,7 @@ RSkInputEventManager::RSkInputEventManager(){
 #endif/*FEATURE_ONSCREEN_KEYBOARD*/
   spatialNavigator_ =  SpatialNavigator::RSkSpatialNavigator::sharedSpatialNavigator();
   keyRepeat=false;
-  previousKeyType=RNS_KEY_UnKnown;
+  previousKeyType=KEY_UnKnown;
 #if ENABLE(FEATURE_KEY_THROTTLING)
   inputWorkerThread_ = std::thread(&RSkInputEventManager::inputWorkerThreadFunction, this);
   sem_init(&keyEventPost_, 0, 1);
@@ -81,15 +81,15 @@ void RSkInputEventManager::onEventComplete() {
 }
 #endif
 
-void RSkInputEventManager::keyHandler(rnsKey eventKeyType, rnsKeyAction eventKeyAction){
+void RSkInputEventManager::keyHandler(key eventKeyType, keyAction eventKeyAction){
   RNS_LOG_DEBUG("[keyHandler] Key Repeat" << keyRepeat<<"  eventKeyType  " <<eventKeyType << " previousKeyType " <<previousKeyType <<"  eventKeyAction  " << eventKeyAction);
 
-  if(previousKeyType == eventKeyType  && eventKeyAction == RNS_KEY_Press){
+  if(previousKeyType == eventKeyType  && eventKeyAction == KEY_Press){
     keyRepeat = true;
   }
 
-  if(eventKeyAction == RNS_KEY_Release) {
-    previousKeyType = RNS_KEY_UnKnown;
+  if(eventKeyAction == KEY_Release) {
+    previousKeyType = KEY_UnKnown;
     if(keyRepeat == true) {
       keyRepeat = false;
 #if ENABLE(FEATURE_KEY_THROTTLING)
@@ -123,7 +123,7 @@ void RSkInputEventManager::processKey(RskKeyInput &keyInput) {
   }
 #if defined(TARGET_OS_TV) && TARGET_OS_TV
   sendNotificationWithEventType(
-      RNSKeyMap[keyInput.key_],
+      keyMap[keyInput.key_],
       currentFocused ? currentFocused->getComponentData().tag : -1,
       keyInput.action_, nullptr);
 #endif //TARGET_OS_TV
@@ -138,7 +138,7 @@ RSkInputEventManager* RSkInputEventManager::getInputKeyEventManager(){
 }
 
 #if defined(TARGET_OS_TV) && TARGET_OS_TV
-void RSkInputEventManager::sendNotificationWithEventType(std::string eventType, int tag, rnsKeyAction keyAction, NotificationCompleteVoidCallback completeCallback) {
+void RSkInputEventManager::sendNotificationWithEventType(std::string eventType, int tag, keyAction keyAction, NotificationCompleteVoidCallback completeCallback) {
   if(eventType.c_str() == nullptr)
     return;
   RNS_LOG_DEBUG("Send : " << eventType  << " To ComponentTag : " << tag );

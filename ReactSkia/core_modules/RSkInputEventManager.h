@@ -20,12 +20,12 @@ using namespace SpatialNavigator;
 struct RskKeyInput {
   RskKeyInput() = default;
   ~RskKeyInput() = default;
-  RskKeyInput(rnsKey key, rnsKeyAction keyAction, bool keyRepeat)
+  RskKeyInput(key key, keyAction keyAction, bool keyRepeat)
       : key_(key),
         action_(keyAction),
         repeat_(keyRepeat) { }
-  rnsKey key_;
-  rnsKeyAction action_ {RNS_KEY_UnknownAction};
+  key key_;
+  keyAction action_ {KEY_UnknownAction};
   bool repeat_ {false};
 };
 
@@ -47,14 +47,14 @@ class RSkInputEventManager {
  public:
   ~RSkInputEventManager();
   static RSkInputEventManager* getInputKeyEventManager();
-  void keyHandler(rnsKey key, rnsKeyAction eventKeyAction);
+  void keyHandler(key key, keyAction eventKeyAction);
 #if ENABLE(FEATURE_KEY_THROTTLING)
   void onEventEmit();
   void onEventComplete();
 #endif
 
 #if defined(TARGET_OS_TV) && TARGET_OS_TV
-  void sendNotificationWithEventType(std::string eventType, int tag, rnsKeyAction keyAction = RNS_KEY_UnknownAction, NotificationCompleteVoidCallback completeCallback = nullptr);
+  void sendNotificationWithEventType(std::string eventType, int tag, keyAction keyAction = KEY_UnknownAction, NotificationCompleteVoidCallback completeCallback = nullptr);
 #endif //TARGET_OS_TV
 
   NotificationCompleteVoidCallback completeCallback_ {nullptr};

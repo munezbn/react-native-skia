@@ -71,9 +71,9 @@ public:
     void setRequestedDisplayParams(const DisplayParams&, bool allowReattach) override;
 
 private:
-    void onKey(rnsKey eventKeyType, rnsKeyAction eventKeyAction);
+    void onKey(key eventKeyType, keyAction eventKeyAction);
     void onExpose();
-    rnsKey  keyIdentifierForX11KeyCode(KeySym keycode);
+    key  keyIdentifierForX11KeyCode(KeySym keycode);
 
     Display*     display_;
     XWindow      window_;

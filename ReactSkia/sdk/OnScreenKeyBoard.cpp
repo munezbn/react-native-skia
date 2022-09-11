@@ -396,7 +396,7 @@ inline void OnScreenKeyboard::drawKBKeyFont(SkPoint index,bool onHLTile) {
           keyName=(char*)"enter";
         }
       }
-      FunctionKeymap :: iterator keyFunction =functionKeyMap.find(keyName);
+      FunctionKeyMap :: iterator keyFunction =functionKeyMap.find(keyName);
       if(keyFunction != functionKeyMap.end()) {
         UnicharFontConfig_t uniCharConfig = keyFunction->second;
         sk_sp<SkFontMgr> mgr(SkFontMgr::RefDefault());
@@ -543,28 +543,28 @@ inline void OnScreenKeyboard::processKey(rnsKey keyValue) {
   SkPoint hlCandidate;
   bool drawCallPendingToRender{false};
   hlCandidate=lastFocussIndex_=currentFocussIndex_;
-  rnsKey OSKkeyValue{RNS_KEY_UnKnown};
+  key OSKkeyValue{KEY_UnKnown};
   unsigned int rowIndex=currentFocussIndex_.y(),keyIndex=currentFocussIndex_.x();
-  RNS_LOG_DEBUG("KEY RECEIVED : "<<RNSKeyMap[keyValue]);
+  RNS_LOG_DEBUG("KEY RECEIVED : "<<keyMap[keyValue]);
   switch( keyValue ) {
 /* Case  1: Process Navigation Keys*/
-    case RNS_KEY_Right:
+    case KEY_Right:
       hlCandidate= oskLayout_.siblingInfo->at(rowIndex).at(keyIndex).siblingRight;
     break;
-    case RNS_KEY_Left:
+    case KEY_Left:
       hlCandidate= oskLayout_.siblingInfo->at(rowIndex).at(keyIndex).siblingLeft;
     break;
-    case RNS_KEY_Up:
+    case KEY_Up:
       hlCandidate= oskLayout_.siblingInfo->at(rowIndex).at(keyIndex).siblingUp;
     break;
-    case RNS_KEY_Down:
+    case KEY_Down:
       hlCandidate= oskLayout_.siblingInfo->at(rowIndex).at(keyIndex).siblingDown;
     break;
 /*Case 2: handle Enter/selection key*/
-    case RNS_KEY_Select:
+    case KEY_Select:
     {
       bool proceedToKeyEmit=false;
-      if(oskLayout_.keyInfo->at(rowIndex).at(keyIndex).keyValue == RNS_KEY_Select) {
+      if(oskLayout_.keyInfo->at(rowIndex).at(keyIndex).keyValue == KEY_Select) {
         proceedToKeyEmit=true; /* If selection on select/return Key needs to be emitted to client*/
       } else if (oskLayout_.keyInfo->at(rowIndex).at(keyIndex).keyType == KEY_TYPE_TOGGLE){
         ToggleKeyMap :: iterator keyFunction =toggleKeyMap.find(oskLayout_.keyInfo->at(rowIndex).at(keyIndex).keyName);
@@ -578,7 +578,7 @@ inline void OnScreenKeyboard::processKey(rnsKey keyValue) {
         if(( oskLayout_.keyInfo->at(rowIndex).at(keyIndex).keyType == KEY_TYPE_TEXT ) &&
            (oskLayout_.kbLayoutType == ALPHA_UPPERCASE_LAYOUT) &&
            (isalpha(*oskLayout_.keyInfo->at(rowIndex).at(keyIndex).keyName))) {
-          OSKkeyValue = static_cast<rnsKey>(OSKkeyValue-26);
+          OSKkeyValue = static_cast<key>(OSKkeyValue-26);
         }
       }
       if(!proceedToKeyEmit)break;
@@ -588,16 +588,16 @@ inline void OnScreenKeyboard::processKey(rnsKey keyValue) {
     {
       bool keyFound=false;
       /*Process only KB keys*/
-      if(( keyValue == RNS_KEY_Select) ||
-         ((keyValue < RNS_KEY_UnKnown ) && (keyValue >= RNS_KEY_1))) {
-        rnsKey layoutKeyValue{RNS_KEY_UnKnown};
+      if(( keyValue == KEY_Select) ||
+         ((keyValue < KEY_UnKnown ) && (keyValue >= KEY_1))) {
+        key layoutKeyValue{KEY_UnKnown};
         for (unsigned int rowIndex=0; (rowIndex < oskLayout_.keyInfo->size()) && (!keyFound);rowIndex++) {
           for (unsigned int keyIndex=0; keyIndex<oskLayout_.keyInfo->at(rowIndex).size();keyIndex++) {
             layoutKeyValue=oskLayout_.keyInfo->at(rowIndex).at(keyIndex).keyValue;
             if(( oskLayout_.keyInfo->at(rowIndex).at(keyIndex).keyType == KEY_TYPE_TEXT ) &&
                (oskLayout_.kbLayoutType == ALPHA_UPPERCASE_LAYOUT) &&
                (isalpha(*oskLayout_.keyInfo->at(rowIndex).at(keyIndex).keyName))) {
-                  layoutKeyValue = static_cast<rnsKey>(layoutKeyValue-26);
+                  layoutKeyValue = static_cast<key>(layoutKeyValue-26);
             }
             if(layoutKeyValue == keyValue) {
               hlCandidate.set(keyIndex,rowIndex);
@@ -612,17 +612,17 @@ inline void OnScreenKeyboard::processKey(rnsKey keyValue) {
     break;
   }
 
-  RNS_LOG_DEBUG("OSK KEY VALUE RECEIVED : "<<RNSKeyMap[OSKkeyValue]);
+  RNS_LOG_DEBUG("OSK KEY VALUE RECEIVED : "<<keyMap[OSKkeyValue]);
 
   /* Enable Return Key on Valid Key Event if disabled*/
-  if((OSKkeyValue != RNS_KEY_UnKnown) && autoActivateReturnKey_) {
+  if((OSKkeyValue != KEY_UnKnown) && autoActivateReturnKey_) {
     autoActivateReturnKey_=false;
     drawKBKeyFont(oskLayout_.returnKeyIndex);
   }
   if((lastFocussIndex_ != hlCandidate)) {
     drawHighLightOnKey(hlCandidate);
     currentFocussIndex_=hlCandidate;
-    if(OSKkeyValue == RNS_KEY_UnKnown) {
+    if(OSKkeyValue == KEY_UnKnown) {
       drawCallPendingToRender=true;
     }
   }
@@ -633,7 +633,6 @@ inline void OnScreenKeyboard::processKey(rnsKey keyValue) {
   if( drawCallPendingToRender && (oskState_== OSK_STATE_ACTIVE)) {
     commitDrawCall();
   }
-  /* Emit only known keys to client*/
   if(OSKkeyValue != RNS_KEY_UnKnown) {
 #if ENABLE(FEATURE_KEY_THROTTLING)
     if(onKeyRepeatMode_) {
@@ -769,7 +768,7 @@ void OnScreenKeyboard::createOSKLayout(OSKTypes oskType) {
   //2.  Calculate text draw position
         /*Calculate Font dimenesion */
       if(keyInfo.keyType == KEY_TYPE_FUNCTION) {
-        FunctionKeymap :: iterator keyFunction =functionKeyMap.find(keyName);
+        FunctionKeyMap :: iterator keyFunction =functionKeyMap.find(keyName);
         keyName=(char*)DRAW_FONT_FAILURE_INDICATOR;
         if(keyFunction != functionKeyMap.end()) {
           UnicharFontConfig_t uniCharConfig = keyFunction->second;
@@ -912,7 +911,7 @@ void OnScreenKeyboard::windowReadyToDrawCB() {
 #endif
       /*Listen for  Key Press event */
       if(subWindowKeyEventId_ == -1) {
-        std::function<void(rnsKey, rnsKeyAction)> handler = std::bind(&OnScreenKeyboard::onHWkeyHandler,this,
+        std::function<void(key, keyAction)> handler = std::bind(&OnScreenKeyboard::onHWkeyHandler,this,
                                                                        std::placeholders::_1,
                                                                        std::placeholders::_2);
         subWindowKeyEventId_ = NotificationCenter::subWindowCenter().addListener("onHWKeyEvent", handler);

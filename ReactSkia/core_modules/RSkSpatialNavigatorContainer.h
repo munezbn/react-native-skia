@@ -35,8 +35,8 @@ public:
   Container() {};
   ~Container() {};
 
-  virtual bool canScrollInDirection(rnsKey direction) { return false;}
-  virtual ScrollStatus scrollInDirection(RSkComponent* candidate, rnsKey direction) { return noScroll;}
+  virtual bool canScrollInDirection(key direction) { return false;}
+  virtual ScrollStatus scrollInDirection(RSkComponent* candidate, key direction) { return noScroll;}
   virtual bool isVisible(RSkComponent* candidate) { return false;}
   virtual bool isScrollable() { return false;}
   virtual SkPoint getScrollOffset() {return SkPoint::Make(0,0);}

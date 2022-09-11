@@ -18,7 +18,7 @@ class RSkTVNavigationEventEmitter final: public RSkEventEmitter {
         std::string tvEventName_ = "RCTTVNavigationEventNotification";
         unsigned int navEventId_ = UINT_MAX; // Some undefined ID
 
-        void handleTVKeyEvent(rnsKey  eventKey, rnsKeyAction eventKeyAction);
+        void handleTVKeyEvent(key  eventKey, keyAction eventKeyAction);
         void handleTVNavigationEventNotification(folly::dynamic paramObject, NotificationCompleteVoidCallback completeCallback);
 
     public:

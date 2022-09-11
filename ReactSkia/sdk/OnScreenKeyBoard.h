@@ -89,7 +89,7 @@ typedef struct keyPosition {
 }keyPosition_t;
 typedef struct KeyInfo {
   const char *   keyName;
-  rnsKey         keyValue;
+  key         keyValue;
   keyType        keyType;
   unsigned int   kbPartitionId;
 }KeyInfo_t;
@@ -153,7 +153,7 @@ class OnScreenKeyboard : public WindowDelegator{
     void clearScreen(SkScalar x,SkScalar y,SkScalar width,SkScalar height,SkPaint & paintObj);
     SkScalar getStringBound (const std::string & stringToMeasure,unsigned int startIndex,unsigned int endIndex,SkFont & stringFont);
 
-    void emitOSKKeyEvent(rnsKey keyValue);
+    void emitOSKKeyEvent(key keyValue);
     void windowReadyToDrawCB();
 
     void drawHighLightOnKey(SkPoint index);

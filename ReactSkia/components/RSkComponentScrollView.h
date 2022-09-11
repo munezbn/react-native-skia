@@ -48,14 +48,14 @@ class RSkComponentScrollView final : public RSkComponent {
   bool isContainer() const override { return true; }
 
   //RSkSpatialNavigatorContainer override functions
-  bool canScrollInDirection(rnsKey direction) override;
+  bool canScrollInDirection(key direction) override;
   bool isVisible(RSkComponent* candidate) override;
   bool isScrollable() override { return true;}
   SkPoint getScrollOffset() override;
 
   ScrollStatus scrollInDirection(
     RSkComponent* candidate,
-    rnsKey direction) override;
+    key direction) override;
 
  protected:
   void OnPaint(SkCanvas *canvas) override;
@@ -84,11 +84,11 @@ class RSkComponentScrollView final : public RSkComponent {
     int frameLength,
     SkScalar &scrollOfffset);
 
-  SkPoint getNextScrollPosition(rnsKey direction);
+  SkPoint getNextScrollPosition(key direction);
   void updateScrollOffset(int x,int y);
 
-  ScrollStatus handleSnapToOffsetScroll(rnsKey direction,RSkComponent* candidate);
-  ScrollStatus handleScroll(rnsKey direction,SkIRect candidateFrame);
+  ScrollStatus handleSnapToOffsetScroll(key direction,RSkComponent* candidate);
+  ScrollStatus handleScroll(key direction,SkIRect candidateFrame);
   ScrollStatus handleScroll(int x,int y, bool isFlushDisplay=true);
   ScrollStatus handleScroll(SkPoint scrollPos, bool isFlushDisplay=true);
 

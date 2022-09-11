@@ -35,7 +35,7 @@ using namespace skia::textlayout;
 #define FONTSIZE_MULTIPLIER     1
 #define CURSOR_WIDTH 2
 
-std::queue<rnsKey> inputQueue;
+std::queue<key> inputQueue;
 sem_t jsUpdateSem;
 std::mutex privateVarProtectorMutex;
 std::mutex inputQueueMutex;
@@ -172,7 +172,7 @@ void RSkComponentTextInput::OnPaint(SkCanvas *canvas) {
 * @return      True if key is handled else false
 */
 
-void RSkComponentTextInput::onHandleKey(rnsKey eventKeyType, bool keyRepeat, bool *stopPropagation) {
+void RSkComponentTextInput::onHandleKey(key eventKeyType, bool keyRepeat, bool *stopPropagation) {
   RNS_LOG_DEBUG("[onHandleKey] ENTRY");
   *stopPropagation = false;
   if (!editable_) {
@@ -190,7 +190,7 @@ void RSkComponentTextInput::onHandleKey(rnsKey eventKeyType, bool keyRepeat, boo
   auto const &textInputProps = *std::static_pointer_cast<TextInputProps const>(component.props);
   textInputMetrics.contentOffset.x = frame.origin.x;
   textInputMetrics.contentOffset.y = frame.origin.y;
-  if (isInEditingMode_ == false && eventKeyType == RNS_KEY_Select ) {
+  if (isInEditingMode_ == false && eventKeyType == KEY_Select ) {
       requestForEditingMode();
   } else if (isInEditingMode_) {
     // Logic to update the textinput string.
@@ -224,7 +224,7 @@ void RSkComponentTextInput::onHandleKey(rnsKey eventKeyType, bool keyRepeat, boo
       if(keyRepeat && !isKeyRepeateOn)
         keyRepeateStartIndex = inputQueue.size();
       if(isKeyRepeateOn && !keyRepeat ){
-        std::queue<rnsKey> temp;
+        std::queue<key> temp;
         isKeyRepeateOn = false;
         RNS_LOG_DEBUG("[onHandleKey] update the queue with temp Queue... ");
         while( keyRepeateStartIndex > 0 ){
@@ -241,15 +241,15 @@ void RSkComponentTextInput::onHandleKey(rnsKey eventKeyType, bool keyRepeat, boo
       isKeyRepeateOn = keyRepeat;
       inputQueueMutex.unlock();
       //We need to Handle the StopPrpagation & select in the onHandle.
-      if ((eventKeyType >= RNS_KEY_Up && eventKeyType <= RNS_KEY_Back)) {
+      if ((eventKeyType >= KEY_Up && eventKeyType <= KEY_Back)) {
         *stopPropagation = true;
         inputQueueMutex.lock();
         inputQueue.push(eventKeyType);
         inputQueueMutex.unlock();
-      } else if (eventKeyType ==  RNS_KEY_Select) {
+      } else if (eventKeyType ==  KEY_Select) {
         *stopPropagation = true;
         isTextInputInFocus_ = false;
-        std::queue<rnsKey> empty;
+        std::queue<key> empty;
         inputQueueMutex.lock();
         std::swap( inputQueue, empty );
         inputQueueMutex.unlock();
@@ -262,7 +262,7 @@ void RSkComponentTextInput::onHandleKey(rnsKey eventKeyType, bool keyRepeat, boo
   }//else if (isInEditingMode_)
 }
 
-void RSkComponentTextInput::processEventKey (rnsKey eventKeyType,bool* stopPropagation,bool *waitForupdateProps, bool updateString) {
+void RSkComponentTextInput::processEventKey (key eventKeyType,bool* stopPropagation,bool *waitForupdateProps, bool updateString) {
   RNS_LOG_DEBUG("[processEventKey]  ENTRY");
   KeyPressMetrics keyPressMetrics;
   TextInputMetrics textInputMetrics;
@@ -272,10 +272,10 @@ void RSkComponentTextInput::processEventKey (rnsKey eventKeyType,bool* stopPropa
   Rect frame = component.layoutMetrics.frame;
   auto textInputEventEmitter = std::static_pointer_cast<TextInputEventEmitter const>(component.eventEmitter);
   auto const &textInputProps = *std::static_pointer_cast<TextInputProps const>(component.props);
-  keyPressMetrics.text = RNSKeyMap[eventKeyType];
+  keyPressMetrics.text = keyMap[eventKeyType];
 
     //Displayable Charector Range
-    if ((eventKeyType >= RNS_KEY_1 && eventKeyType <= RNS_KEY_Less)) {
+    if ((eventKeyType >= KEY_1 && eventKeyType <= KEY_Less)) {
       if (cursor_.locationFromEnd != 0){
         textString.insert(cursor_.end-cursor_.locationFromEnd,keyPressMetrics.text);
       } else {
@@ -284,13 +284,13 @@ void RSkComponentTextInput::processEventKey (rnsKey eventKeyType,bool* stopPropa
       cursor_.end = textString.length();
     } else {
       switch(eventKeyType){
-        case RNS_KEY_Left:
-        case RNS_KEY_Right:
+        case KEY_Left:
+        case KEY_Right:
           *stopPropagation = true;
           *waitForupdateProps = false;
           keyPressMetrics.eventCount = eventCount_;
           textInputEventEmitter->onKeyPress(keyPressMetrics);
-          if (RNS_KEY_Left == eventKeyType) {
+          if (KEY_Left == eventKeyType) {
             if(cursor_.locationFromEnd < cursor_.end ) {
               RNS_LOG_DEBUG("[processEventKey]Left key pressed cursor_.locationFromEnd = "<<cursor_.locationFromEnd);
               cursor_.locationFromEnd++; // locationFromEnd
@@ -316,13 +316,13 @@ void RSkComponentTextInput::processEventKey (rnsKey eventKeyType,bool* stopPropa
           textInputMetrics.selectionRange.length = 0;
           textInputEventEmitter->onSelectionChange(textInputMetrics);
           return;
-        case RNS_KEY_Up:
-        case RNS_KEY_Down:
+        case KEY_Up:
+        case KEY_Down:
           *stopPropagation = true;
           *waitForupdateProps = false;
           return;
-        case RNS_KEY_Back:
-        case RNS_KEY_Delete:
+        case KEY_Back:
+        case KEY_Delete:
           if (!textString.empty() && (cursor_.end!=cursor_.locationFromEnd)){
             textString.erase(textString.begin()+(cursor_.end-cursor_.locationFromEnd-1)); //acts like a backspace.
             cursor_.end = textString.length();
@@ -331,14 +331,14 @@ void RSkComponentTextInput::processEventKey (rnsKey eventKeyType,bool* stopPropa
             *waitForupdateProps = false;
           RNS_LOG_DEBUG("[processEventKey] After removing a charector in string = "<<textString);
           break;
-        case RNS_KEY_Select:
+        case KEY_Select:
           eventCount_++;
           *stopPropagation = true;
           resignFromEditingMode();
           return;
-        case RNS_KEY_Caps_Lock:
-        case RNS_KEY_Shift_L:
-        case RNS_KEY_Shift_R:
+        case KEY_Caps_Lock:
+        case KEY_Shift_L:
+        case KEY_Shift_R:
           //capslock and shift should be consumed by Textinput.
           *stopPropagation = true;
         default:
@@ -563,7 +563,7 @@ void RSkComponentTextInput::resignFromEditingMode(bool isFlushDisplay) {
   auto component = this->getComponentData();
   if (this->isTextInputInFocus_){
     this->isTextInputInFocus_ = false;
-    std::queue<rnsKey> empty;
+    std::queue<key> empty;
     inputQueueMutex.lock();
     std::swap( inputQueue, empty );
     inputQueueMutex.unlock();

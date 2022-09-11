@@ -51,7 +51,7 @@ void RSkSpatialNavigator::sendNotificationWithEventType(std::string eventType, i
 #endif
     NotificationCenter::defaultCenter().emit("RCTTVNavigationEventNotification",
                                                 folly::dynamic(folly::dynamic::object("eventType", eventType.c_str())
-                                                                              ("eventKeyAction", (int)RNS_KEY_UnknownAction)
+                                                                              ("eventKeyAction", (int)KEY_UnknownAction)
                                                                               ("tag", tag)
                                                                               ("target", tag)
                                                                               ), completeCallback);
@@ -131,10 +131,10 @@ struct sortDirectionComparator {
         // Rule 7. If both candidates have same value in Rule 6, then select the one with lower width for Left/Right direction and lower height for Up/Down
         // Rule 8. If both candidates have same value in Rule 7, then select the one with lower height for Left/Right direction and lower width for Up/Down
         switch(direction_) {
-            case RNS_KEY_Right:
-            case RNS_KEY_Left: {
+            case KEY_Right:
+            case KEY_Left: {
                 // Rule 5.
-                if(direction_ == RNS_KEY_Right) {
+                if(direction_ == KEY_Right) {
                     if(listCandidate.left() < newCandidate.left()) return true;
                     if(newCandidate.left()  < listCandidate.left()) return false;
                 }else {
@@ -153,10 +153,10 @@ struct sortDirectionComparator {
 
                 break;
             }
-            case RNS_KEY_Up:
-            case RNS_KEY_Down: {
+            case KEY_Up:
+            case KEY_Down: {
                 // Rule 5.
-                if(direction_ == RNS_KEY_Up) {
+                if(direction_ == KEY_Up) {
                     if(listCandidate.bottom() > newCandidate.bottom()) return true;
                     if(newCandidate.bottom()  > listCandidate.bottom()) return false;
                 } else {
@@ -183,7 +183,7 @@ struct sortDirectionComparator {
     int direction_ = 0;
 };
 
-RSkComponent* RSkSpatialNavigator::pickCandidateInDirection(rnsKey keyEvent,
+RSkComponent* RSkSpatialNavigator::pickCandidateInDirection(key keyEvent,
                                             SortedCandidateList<RSkComponent>& overLapping,
                                             SortedCandidateList<RSkComponent>& nonOverLapping) {
 
@@ -213,13 +213,13 @@ RSkComponent* RSkSpatialNavigator::pickCandidateInDirection(rnsKey keyEvent,
 
     // Rule 9. If moving in Up or Down navigation, then check if nonOevrLapping is empty. If not,
     // then choose the closest one between first candidate from both the list.
-    if((keyEvent == RNS_KEY_Up || keyEvent == RNS_KEY_Down) && nonOverLapping.size() != 0) {
+    if((keyEvent == KEY_Up || keyEvent == KEY_Down) && nonOverLapping.size() != 0) {
         auto front = nonOverLapping.begin();
         if(nextFocus) {
-            if(keyEvent == RNS_KEY_Up) {
+            if(keyEvent == KEY_Up) {
                 if(nextFocus->getScreenFrame().bottom() < (*front)->getScreenFrame().bottom())
                     nextFocus = *front;
-            } else if(keyEvent == RNS_KEY_Down) {
+            } else if(keyEvent == KEY_Down) {
                 if(nextFocus->getScreenFrame().top() > (*front)->getScreenFrame().top())
                     nextFocus = *front;
             }
@@ -234,7 +234,7 @@ RSkComponent* RSkSpatialNavigator::pickCandidateInDirection(rnsKey keyEvent,
     return nextFocus;
 }
 
-static inline bool isValidCandidate(rnsKey direction, RSkComponent *currentItem, RSkComponent *candidateItem) {
+static inline bool isValidCandidate(key direction, RSkComponent *currentItem, RSkComponent *candidateItem) {
 
     if(!currentItem || !candidateItem)
         return false;
@@ -262,16 +262,16 @@ static inline bool isValidCandidate(rnsKey direction, RSkComponent *currentItem,
 
     // Rule 2. Candidate must be in the direction of navigation.
     switch(direction) {
-        case RNS_KEY_Right:
+        case KEY_Right:
             return (candidate.left() > current.left()); // Must be on right side
-        case RNS_KEY_Left:
+        case KEY_Left:
             return(candidate.right() < current.right()); // Must be on left side
-        case RNS_KEY_Up:
+        case KEY_Up:
             return (candidate.bottom() < current.bottom()); // Must be on up side
-        case RNS_KEY_Down:
+        case KEY_Down:
             return(candidate.top() > current.top()); // Must be on down side
         default:
-            RNS_LOG_WARN("Inavlid diretion Navigation : " << RNSKeyMap[direction]);
+            RNS_LOG_WARN("Inavlid diretion Navigation : " << keyMap[direction]);
             break;
     }
     return false;
@@ -295,7 +295,7 @@ RSkComponent* RSkSpatialNavigator::findDefaultFocusInContainer(Container *contai
     return nextFocus;
 }
 
-RSkComponent* RSkSpatialNavigator::findFocusCandidateInContainer(Container *container, rnsKey keyEvent, bool visibleOnly) {
+RSkComponent* RSkSpatialNavigator::findFocusCandidateInContainer(Container *container, key keyEvent, bool visibleOnly) {
 
     // There is no currently focused element, select last TV Preffered component else first component
     if( currentFocus_ == nullptr ) {
@@ -334,31 +334,31 @@ RSkComponent* RSkSpatialNavigator::findFocusCandidateInContainer(Container *cont
             continue;
 
         switch(keyEvent) {
-            case RNS_KEY_Right:
-            case RNS_KEY_Left: {
+            case KEY_Right:
+            case KEY_Left: {
                 // Rule 3. Must have Projected overlap in Eastern/Western region
                 if(!( candidateRect.bottom() < currentRect.top()
                     || candidateRect.top() > currentRect.bottom())) {
-                        RNS_LOG_DEBUG("Add Tag[ " << canData.tag << " ] to overlaping list for " << RNSKeyMap[keyEvent] << " direction");
+                        RNS_LOG_DEBUG("Add Tag[ " << canData.tag << " ] to overlaping list for " << keyMap[keyEvent] << " direction");
                         overLapping.insert(*candidate); // Sorted using sortDirectionComparator
                 } // For Right and left navigation we consider only candiates which has projected overalp
                 break;
             }
-            case RNS_KEY_Up:
-            case RNS_KEY_Down: {
+            case KEY_Up:
+            case KEY_Down: {
                 // Rule 3. Has either Projected overlap or nonOverlap in Northern/Southern region
                 if(!( candidateRect.right() < currentRect.left()
                     || candidateRect.left() > currentRect.right())) {
-                        RNS_LOG_DEBUG("Add Tag[ " << canData.tag << " ] to overlaping list for " << RNSKeyMap[keyEvent] << " direction");
+                        RNS_LOG_DEBUG("Add Tag[ " << canData.tag << " ] to overlaping list for " << keyMap[keyEvent] << " direction");
                         overLapping.insert(*candidate); // Sorted using sortDirectionComparator
                 } else {
                     // Rule 3.a For non-overlap, for up direction, only consider the candidates which is completely above current focussed item and
                     // for down direction, only consider the candidates which is completely below current focussed item
-                    if(keyEvent == RNS_KEY_Up && candidateRect.bottom() <= currentRect.top()) {
-                        RNS_LOG_DEBUG("Add Tag[ " << canData.tag << " ] to nonOverlaping list for " << RNSKeyMap[keyEvent] << " direction");
+                    if(keyEvent == KEY_Up && candidateRect.bottom() <= currentRect.top()) {
+                        RNS_LOG_DEBUG("Add Tag[ " << canData.tag << " ] to nonOverlaping list for " << keyMap[keyEvent] << " direction");
                         nonOverLapping.insert(*candidate); // Sorted using sortDirectionComparator
-                    } else if(keyEvent == RNS_KEY_Down && candidateRect.top() >= currentRect.bottom()) {
-                        RNS_LOG_DEBUG("Add Tag[ " << canData.tag << " ] to nonOverlaping list for " << RNSKeyMap[keyEvent] << " direction");
+                    } else if(keyEvent == KEY_Down && candidateRect.top() >= currentRect.bottom()) {
+                        RNS_LOG_DEBUG("Add Tag[ " << canData.tag << " ] to nonOverlaping list for " << keyMap[keyEvent] << " direction");
                         nonOverLapping.insert(*candidate); // Sorted using sortDirectionComparator
                     }
                 }
@@ -374,7 +374,7 @@ RSkComponent* RSkSpatialNavigator::findFocusCandidateInContainer(Container *cont
     return pickCandidateInDirection(keyEvent, overLapping, nonOverLapping);
 }
 
-bool RSkSpatialNavigator::advanceFocusInDirection(Container *container, rnsKey keyEvent) {
+bool RSkSpatialNavigator::advanceFocusInDirection(Container *container, key keyEvent) {
 
   if(container == nullptr)
       return false;
@@ -439,7 +439,7 @@ void RSkSpatialNavigator::updateFocusCandidate(RSkComponent* focusCandidate){
   currentContainer_ = currentFocus_->isContainer() ? currentFocus_ : currentFocus_->nearestAncestorContainer(); 
 }
 
-void RSkSpatialNavigator::navigateInDirection(rnsKey keyEvent) {
+void RSkSpatialNavigator::navigateInDirection(key keyEvent) {
 
   if(currentContainer_ == nullptr)
       currentContainer_ = rootContainer_;
@@ -454,16 +454,16 @@ void RSkSpatialNavigator::navigateInDirection(rnsKey keyEvent) {
 
 }
 
-void RSkSpatialNavigator::handleKeyEvent(rnsKey  eventKeyType, rnsKeyAction eventKeyAction) {
+void RSkSpatialNavigator::handleKeyEvent(key  eventKeyType, keyAction eventKeyAction) {
 
-    if(eventKeyAction != RNS_KEY_Press) // Need to act on keyPress only
+    if(eventKeyAction != KEY_Press) // Need to act on keyPress only
         return;
     // Then based on spatial navigation alogirthm, send blur/focus
     switch(eventKeyType) {
-        case RNS_KEY_Up:
-        case RNS_KEY_Down:
-        case RNS_KEY_Left:
-        case RNS_KEY_Right:{
+        case KEY_Up:
+        case KEY_Down:
+        case KEY_Left:
+        case KEY_Right:{
             RNS_PROFILE_API_OFF("NavigateInDirection : ", navigateInDirection(eventKeyType));
             break;
         }

@@ -73,10 +73,10 @@ private:
     Container *rootContainer_{nullptr};
     Container *currentContainer_{nullptr};
 
-    void navigateInDirection(rnsKey keyEvent);
-    bool advanceFocusInDirection(Container *container, rnsKey keyEvent);
-    RSkComponent* findFocusCandidateInContainer(Container *container, rnsKey keyEvent, bool visibleOnly);
-    RSkComponent* pickCandidateInDirection(rnsKey keyEvent, SortedCandidateList<RSkComponent>& overLapping, SortedCandidateList<RSkComponent>& nonOverLapping);
+    void navigateInDirection(key keyEvent);
+    bool advanceFocusInDirection(Container *container, key keyEvent);
+    RSkComponent* findFocusCandidateInContainer(Container *container, key keyEvent, bool visibleOnly);
+    RSkComponent* pickCandidateInDirection(key keyEvent, SortedCandidateList<RSkComponent>& overLapping, SortedCandidateList<RSkComponent>& nonOverLapping);
     RSkComponent* findDefaultFocusInContainer(Container *container);
     void sendNotificationWithEventType(std::string eventType, int tag, NotificationCompleteVoidCallback completeCB = nullptr);
 #if ENABLE(FEATURE_KEY_THROTTLING)
@@ -90,7 +90,7 @@ public:
     void updateFocusCandidate(RSkComponent *focusCandidate);
     void updateSpatialNavigatorState(NavigatorStateOperation operation, RSkComponent *candidate);
 
-    void handleKeyEvent(rnsKey  eventType, rnsKeyAction eventKeyAction);
+    void handleKeyEvent(key  eventType, keyAction eventKeyAction);
     RSkComponent* getCurrentFocusElement();
 
     void setRootContainer(Container *container) { rootContainer_ = container; }

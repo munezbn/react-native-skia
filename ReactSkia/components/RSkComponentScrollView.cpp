@@ -222,7 +222,7 @@ void RSkComponentScrollView::handleCommand(std::string commandName,folly::dynami
 
 // RSkSpatialNavigatorContainer functions
 
-bool RSkComponentScrollView::canScrollInDirection(rnsKey direction){
+bool RSkComponentScrollView::canScrollInDirection(key direction){
   /* scrolling checks
    * 1: If scrolling not enabled,no
    * 2: If cannot scroll in the direction provided based on vertical/horizontal scroll,no
@@ -238,9 +238,9 @@ bool RSkComponentScrollView::canScrollInDirection(rnsKey direction){
 
   if(isHorizontalScroll_){
     switch(direction){
-      case RNS_KEY_Right:
+      case KEY_Right:
          return (contentSize.width() - scrollPos.fX) > frameSize.width();
-      case RNS_KEY_Left:
+      case KEY_Left:
          return (scrollPos.fX != 0);
       default : return false;
     }
@@ -249,9 +249,9 @@ bool RSkComponentScrollView::canScrollInDirection(rnsKey direction){
   if(contentSize.height() < frameSize.height()) return false;
 
   switch(direction){
-    case RNS_KEY_Down:
+    case KEY_Down:
       return (contentSize.height() - scrollPos.fY) > frameSize.height();
-    case RNS_KEY_Up:
+    case KEY_Up:
       return (scrollPos.fY != 0);
     default : return false;
   }
@@ -259,7 +259,7 @@ bool RSkComponentScrollView::canScrollInDirection(rnsKey direction){
   return false;
 }
 
-ScrollStatus RSkComponentScrollView::scrollInDirection(RSkComponent* candidate, rnsKey direction) {
+ScrollStatus RSkComponentScrollView::scrollInDirection(RSkComponent* candidate, key direction) {
   /* 1. Check if scrollable in direction
    * 2. If candidate is empty/self , scroll to next default offset
    * 3. If candidate is not self, scroll to candidate if falls in next scroll area
@@ -342,21 +342,21 @@ void RSkComponentScrollView::calculateNextScrollOffset(
 
 }
 
-SkPoint RSkComponentScrollView::getNextScrollPosition(rnsKey direction) {
+SkPoint RSkComponentScrollView::getNextScrollPosition(key direction) {
   RnsShell::ScrollLayer* scrollLayer= SCROLL_LAYER_HANDLE;
   SkPoint scrollPos = scrollLayer->getScrollPosition();
 
   switch(direction) {
-    case RNS_KEY_Right:
-    case RNS_KEY_Left:
-      calculateNextScrollOffset(direction==RNS_KEY_Right ? ScrollDirectionForward:ScrollDirectionBackward,
+    case KEY_Right:
+    case KEY_Left:
+      calculateNextScrollOffset(direction==KEY_Right ? ScrollDirectionForward:ScrollDirectionBackward,
                                 scrollLayer->getContentSize().width(),
                                 scrollLayer->getFrame().width(),
                                 scrollPos.fX);
       break;
-    case RNS_KEY_Down:
-    case RNS_KEY_Up:
-      calculateNextScrollOffset(direction==RNS_KEY_Down ? ScrollDirectionForward:ScrollDirectionBackward,
+    case KEY_Down:
+    case KEY_Up:
+      calculateNextScrollOffset(direction==KEY_Down ? ScrollDirectionForward:ScrollDirectionBackward,
                                 scrollLayer->getContentSize().height(),
                                 scrollLayer->getFrame().height(),
                                 scrollPos.fY);
@@ -371,7 +371,7 @@ inline void RSkComponentScrollView::updateScrollOffset(int x,int y) {
   handleScroll(x,y,false);
 }
 
-ScrollStatus RSkComponentScrollView::handleSnapToOffsetScroll(rnsKey direction,RSkComponent* candidate) {
+ScrollStatus RSkComponentScrollView::handleSnapToOffsetScroll(key direction,RSkComponent* candidate) {
   ScrollStatus status = scrollToFocus;
   RnsShell::ScrollLayer* scrollLayer= SCROLL_LAYER_HANDLE;
   int frameLength = isHorizontalScroll_ ? scrollLayer->getFrame().width() : scrollLayer->getFrame().height();
@@ -400,14 +400,14 @@ ScrollStatus RSkComponentScrollView::handleSnapToOffsetScroll(rnsKey direction,R
     prevOffset = *(lower-1);
   }
 
-  if((direction == RNS_KEY_Right) || (direction == RNS_KEY_Down)) {
+  if((direction == KEY_Right) || (direction == KEY_Down)) {
     if(nextOffset == currentOffset) {
       return noScroll;
     }
     if((contentLength - nextOffset) < frameLength) {
       nextOffset = contentLength-frameLength;
     }
-  } else if((direction == RNS_KEY_Left) || (direction == RNS_KEY_Up)) {
+  } else if((direction == KEY_Left) || (direction == KEY_Up)) {
     if(prevOffset == -1) {
       return noScroll;
     }
@@ -417,16 +417,16 @@ ScrollStatus RSkComponentScrollView::handleSnapToOffsetScroll(rnsKey direction,R
   /* If candidate is null/this : smooth scroll to nextOffset/prevOffset */
   /* If candidate available : smooth scroll between next & prev Offset */
   switch(direction) {
-     case RNS_KEY_Right:
+     case KEY_Right:
         nextScrollPos.fX = nextOffset;
         break;
-     case RNS_KEY_Left:
+     case KEY_Left:
         nextScrollPos.fX = prevOffset;
         break;
-     case RNS_KEY_Down:
+     case KEY_Down:
         nextScrollPos.fY = nextOffset;
         break;
-     case RNS_KEY_Up:
+     case KEY_Up:
         nextScrollPos.fY = prevOffset;
         break;
      default:
@@ -439,22 +439,22 @@ ScrollStatus RSkComponentScrollView::handleSnapToOffsetScroll(rnsKey direction,R
 
 }
 
-ScrollStatus RSkComponentScrollView::handleScroll(rnsKey direction,SkIRect candidateFrame) {
+ScrollStatus RSkComponentScrollView::handleScroll(key direction,SkIRect candidateFrame) {
   RnsShell::ScrollLayer* scrollLayer= SCROLL_LAYER_HANDLE;
   SkIRect frame = scrollLayer->getFrame();
   SkPoint nextScrollPos = scrollLayer->getScrollPosition();
 
   switch(direction) {
-     case RNS_KEY_Right:
+     case KEY_Right:
         nextScrollPos.fX = candidateFrame.right()-frame.width();
         break;
-     case RNS_KEY_Left:
+     case KEY_Left:
         nextScrollPos.fX = candidateFrame.left();
         break;
-     case RNS_KEY_Down:
+     case KEY_Down:
         nextScrollPos.fY = candidateFrame.bottom()-frame.height();
         break;
-     case RNS_KEY_Up:
+     case KEY_Up:
         nextScrollPos.fY = candidateFrame.top();
         break;
      default: RNS_LOG_WARN("Invalid key :" << direction);
