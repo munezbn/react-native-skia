@@ -114,7 +114,7 @@ void RSkInputEventManager::processKey(Inputkeyinfo &keyInfo) {
   RNS_LOG_DEBUG("[Process Key] Key Repeat " << keyInfo.repeat << " eventKeyType  " << keyInfo.key << " previousKeyType " << previousKeyType);
   auto currentFocused = spatialNavigator_->getCurrentFocusElement();
   if(currentFocused){ // send key to Focused component.
-    currentFocused->onHandleKey(keyInfo.key, keyInfo.repeat, &stopPropagate);
+    currentFocused->onHandleKey(keyInfo, &stopPropagate);
     if(stopPropagate){
       return;//don't propagate key further
     }

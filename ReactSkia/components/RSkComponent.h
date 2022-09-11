@@ -88,10 +88,10 @@ class RSkComponent : public RnsShell::Layer , public SpatialNavigator::Container
      return RnsShell::LayerInvalidateAll;
   };
   virtual void handleCommand(std::string commandName,folly::dynamic args){RNS_LOG_NOT_IMPL;};
-  virtual void onHandleKey(key  eventKeyType, bool keyRepeat, bool* stopPropagate){*stopPropagate=false;};
+  virtual void onHandleKey(Inputkeyinfo keyInfo, bool* stopPropagate){*stopPropagate=false;};
   virtual bool isContainer() const { return false; }
-  virtual void onHandleBlur() {RNS_LOG_DEBUG("[onHandleBlur] componentName "<<component_.componentName);};
-  virtual void onHandleFocus() {RNS_LOG_DEBUG("[onHandleFocus]componentName "<<component_.componentName);};
+  virtual void onHandleBlur() {RNS_LOG_DEBUG(__func__<<" : componentName "<<component_.componentName);};
+  virtual void onHandleFocus() {RNS_LOG_DEBUG(__func__<<" :componentName "<<component_.componentName);};
   Component getComponentData() { return component_;}
   std::shared_ptr<RnsShell::Layer> layer() { return layer_; }
   const SkIRect& getLayerAbsoluteFrame(){ return(layer_->absoluteFrame());}

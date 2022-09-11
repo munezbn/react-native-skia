@@ -49,7 +49,7 @@ RSkComponentTextInput::RSkComponentTextInput(const ShadowView &shadowView)
     ,eventCount_(0)
     ,cursor_({0,0})
     ,paragraph_(nullptr){
-  RNS_LOG_DEBUG("RSkComponentTextInput called constructor");
+  RNS_LOG_DEBUG(__func__<<" : called constructor");
   cursorPaint_.setColor(SK_ColorBLUE);
   cursorPaint_.setAntiAlias(true);
   cursorPaint_.setStyle(SkPaint::kStroke_Style);
@@ -172,8 +172,8 @@ void RSkComponentTextInput::OnPaint(SkCanvas *canvas) {
 * @return      True if key is handled else false
 */
 
-void RSkComponentTextInput::onHandleKey(key eventKeyType, bool keyRepeat, bool *stopPropagation) {
-  RNS_LOG_DEBUG("[onHandleKey] ENTRY");
+void RSkComponentTextInput::onHandleKey(Inputkeyinfo keyInfo, bool *stopPropagation) {
+  RNS_LOG_DEBUG(__func__<<" : ENTRY");
   *stopPropagation = false;
   if (!editable_) {
     return;
@@ -190,7 +190,7 @@ void RSkComponentTextInput::onHandleKey(key eventKeyType, bool keyRepeat, bool *
   auto const &textInputProps = *std::static_pointer_cast<TextInputProps const>(component.props);
   textInputMetrics.contentOffset.x = frame.origin.x;
   textInputMetrics.contentOffset.y = frame.origin.y;
-  if (isInEditingMode_ == false && eventKeyType == KEY_Select ) {
+  if (isInEditingMode_ == false && keyInfo.key == KEY_Select ) {
       requestForEditingMode();
   } else if (isInEditingMode_) {
     // Logic to update the textinput string.
@@ -221,32 +221,32 @@ void RSkComponentTextInput::onHandleKey(key eventKeyType, bool keyRepeat, bool *
       // push all the key to temp queue and update the
       // inputQueue with tempQueue.
       inputQueueMutex.lock();
-      if(keyRepeat && !isKeyRepeateOn)
+      if(keyInfo.repeat && !isKeyRepeateOn)
         keyRepeateStartIndex = inputQueue.size();
-      if(isKeyRepeateOn && !keyRepeat ){
+      if(isKeyRepeateOn && !keyInfo.repeat ){
         std::queue<key> temp;
         isKeyRepeateOn = false;
-        RNS_LOG_DEBUG("[onHandleKey] update the queue with temp Queue... ");
+        RNS_LOG_DEBUG(__func__<<" : update the queue with temp Queue... ");
         while( keyRepeateStartIndex > 0 ){
           temp.push(inputQueue.front());
           keyRepeateStartIndex--;
           inputQueue.pop();
         }
-        RNS_LOG_DEBUG("[onHandleKey] temp.size " << temp.size()<< " inputQueue.size "<< inputQueue.size());
+        RNS_LOG_DEBUG(__func__<<" : temp.size " << temp.size()<< " inputQueue.size "<< inputQueue.size());
         std::swap( inputQueue, temp );
-        RNS_LOG_DEBUG("[onHandleKey] temp.size " << temp.size()<< " inputQueue.size "<< inputQueue.size());
+        RNS_LOG_DEBUG(__func__<<" : temp.size " << temp.size()<< " inputQueue.size "<< inputQueue.size());
         inputQueueMutex.unlock();
         return;
       }
-      isKeyRepeateOn = keyRepeat;
+      isKeyRepeateOn = keyInfo.repeat;
       inputQueueMutex.unlock();
       //We need to Handle the StopPrpagation & select in the onHandle.
-      if ((eventKeyType >= KEY_Up && eventKeyType <= KEY_Back)) {
+      if ((keyInfo.key >= KEY_Up && keyInfo.key <= KEY_Back)) {
         *stopPropagation = true;
         inputQueueMutex.lock();
-        inputQueue.push(eventKeyType);
+        inputQueue.push(keyInfo.key);
         inputQueueMutex.unlock();
-      } else if (eventKeyType ==  KEY_Select) {
+      } else if (keyInfo.key ==  KEY_Select) {
         *stopPropagation = true;
         isTextInputInFocus_ = false;
         std::queue<key> empty;
@@ -258,12 +258,12 @@ void RSkComponentTextInput::onHandleKey(key eventKeyType, bool keyRepeat, bool *
       }
       return;
     }
-    processEventKey(eventKeyType,stopPropagation,&waitForupdateProps,true);
+    processEventKey(keyInfo.key,stopPropagation,&waitForupdateProps,true);
   }//else if (isInEditingMode_)
 }
 
 void RSkComponentTextInput::processEventKey (key eventKeyType,bool* stopPropagation,bool *waitForupdateProps, bool updateString) {
-  RNS_LOG_DEBUG("[processEventKey]  ENTRY");
+  RNS_LOG_DEBUG(__func__<<" :  ENTRY");
   KeyPressMetrics keyPressMetrics;
   TextInputMetrics textInputMetrics;
   std::string textString = displayString_;
@@ -292,7 +292,7 @@ void RSkComponentTextInput::processEventKey (key eventKeyType,bool* stopPropagat
           textInputEventEmitter->onKeyPress(keyPressMetrics);
           if (KEY_Left == eventKeyType) {
             if(cursor_.locationFromEnd < cursor_.end ) {
-              RNS_LOG_DEBUG("[processEventKey]Left key pressed cursor_.locationFromEnd = "<<cursor_.locationFromEnd);
+              RNS_LOG_DEBUG(__func__<<" :Left key pressed cursor_.locationFromEnd = "<<cursor_.locationFromEnd);
               cursor_.locationFromEnd++; // locationFromEnd
             } else {
               return;
@@ -300,7 +300,7 @@ void RSkComponentTextInput::processEventKey (key eventKeyType,bool* stopPropagat
           }
           else {
             if (cursor_.locationFromEnd>0) {
-              RNS_LOG_DEBUG("[processEventKey] Right key pressed cursor_.locationFromEnd = "<<cursor_.locationFromEnd);
+              RNS_LOG_DEBUG(__func__<<" : Right key pressed cursor_.locationFromEnd = "<<cursor_.locationFromEnd);
               cursor_.locationFromEnd--;
             } else {
               return;
@@ -329,7 +329,7 @@ void RSkComponentTextInput::processEventKey (key eventKeyType,bool* stopPropagat
           }
           else
             *waitForupdateProps = false;
-          RNS_LOG_DEBUG("[processEventKey] After removing a charector in string = "<<textString);
+          RNS_LOG_DEBUG(__func__<<" : After removing a charector in string = "<<textString);
           break;
         case KEY_Select:
           eventCount_++;
@@ -365,7 +365,7 @@ void RSkComponentTextInput::processEventKey (key eventKeyType,bool* stopPropagat
   }
   eventCount_++;
   *stopPropagation = true;
-  RNS_LOG_DEBUG("[processEventKey] TextInput text " << textString);
+  RNS_LOG_DEBUG(__func__<<" : TextInput text " << textString);
   textInputMetrics.contentSize.width = paragraph_->getMaxIntrinsicWidth();
   textInputMetrics.contentSize.height = paragraph_->getHeight();
   textInputMetrics.text = textString;
@@ -381,7 +381,7 @@ void RSkComponentTextInput::processEventKey (key eventKeyType,bool* stopPropagat
 void RSkComponentTextInput::keyEventProcessingThread(){
   std::string textString = {};
   bool stopPropagation = false;
-  RNS_LOG_DEBUG("[keyEventProcessingThread] Creating the thread worker thread");
+  RNS_LOG_DEBUG(__func__<<" : Creating the thread worker thread");
   KeyPressMetrics keyPressMetrics;
   TextInputMetrics textInputMetrics;
   auto component = getComponentData();
@@ -403,7 +403,7 @@ void RSkComponentTextInput::keyEventProcessingThread(){
         sem_wait(&jsUpdateSem);
     }
     else{
-      RNS_LOG_DEBUG("[keyEventProcessingThread] ThreadAlive ");
+      RNS_LOG_DEBUG(__func__<<" : ThreadAlive ");
       usleep(5000);
     }
   }
@@ -413,7 +413,7 @@ RnsShell::LayerInvalidateMask  RSkComponentTextInput::updateComponentProps(const
   auto const &textInputProps = *std::static_pointer_cast<TextInputProps const>(newShadowView.props);
   int mask = RnsShell::LayerInvalidateNone;
   std::string textString{};
-  RNS_LOG_DEBUG("[updateComponentProps] event count "<<textInputProps.mostRecentEventCount);
+  RNS_LOG_DEBUG(__func__<<" : event count "<<textInputProps.mostRecentEventCount);
   textString = textInputProps.text;
   caretHidden_ = textInputProps.traits.caretHidden;
   maxLength_ = textInputProps.maxLength;
@@ -487,9 +487,9 @@ RnsShell::LayerInvalidateMask  RSkComponentTextInput::updateComponentProps(const
 }
 
 void RSkComponentTextInput::handleCommand(std::string commandName,folly::dynamic args){
-  RNS_LOG_DEBUG("[handleCommand] commandName === "<< commandName);
+  RNS_LOG_DEBUG(__func__<<" : commandName === "<< commandName);
   if (commandName == "setTextAndSelection") {
-    RNS_LOG_DEBUG("[handleCommand] Calling Dyanic args"<<args[1].getString());
+    RNS_LOG_DEBUG(__func__<<" : Calling Dyanic args"<<args[1].getString());
     privateVarProtectorMutex.lock();
     displayString_ = args[1].getString();
     cursor_.end = displayString_.length();
@@ -507,7 +507,7 @@ void RSkComponentTextInput::handleCommand(std::string commandName,folly::dynamic
 }
 
 void RSkComponentTextInput::requestForEditingMode(bool isFlushDisplay){
-  RNS_LOG_DEBUG("[requestForEditingMode] ENTRY");
+  RNS_LOG_DEBUG(__func__<<" : ENTRY");
   // check if textinput is already in Editing
   if ( isInEditingMode_ )
     return;
@@ -552,11 +552,11 @@ void RSkComponentTextInput::requestForEditingMode(bool isFlushDisplay){
     isOSKActive_=true;
   }
 #endif/*FEATURE_ONSCREEN_KEYBOARD*/
-  RNS_LOG_DEBUG("[requestForEditingMode] END");
+  RNS_LOG_DEBUG(__func__<<" : END");
 }
 
 void RSkComponentTextInput::resignFromEditingMode(bool isFlushDisplay) {
-  RNS_LOG_DEBUG("[resignFromEditingMode] ENTER ");
+  RNS_LOG_DEBUG(__func__<<" : ENTER ");
   if (!this->isInEditingMode_)
     return;
   TextInputMetrics textInputMetrics;
@@ -584,14 +584,14 @@ void RSkComponentTextInput::resignFromEditingMode(bool isFlushDisplay) {
     isOSKActive_=false;
   }
 #endif/*FEATURE_ONSCREEN_KEYBOARD*/
-  RNS_LOG_DEBUG("[requestForEditingMode] *** END ***");
+  RNS_LOG_DEBUG(__func__<<" : *** END ***");
 }
 
 RSkComponentTextInput::~RSkComponentTextInput(){
   sem_destroy(&jsUpdateSem);
 }
  void RSkComponentTextInput::onHandleBlur(){
-   RNS_LOG_DEBUG("[onHandle] In TextInput");
+   RNS_LOG_DEBUG(__func__<<" : In TextInput");
    resignFromEditingMode(false);
  }
 } // namespace react
