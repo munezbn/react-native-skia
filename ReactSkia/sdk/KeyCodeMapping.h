@@ -334,4 +334,15 @@ static std::string keyMap[KEY_End]={
     "insert",
     "unKnown"
 };
+struct keyInput {
+  keyInput() = default;
+  ~keyInput() = default;
+  keyInput(key key, keyAction keyAction, bool keyRepeat)
+      : key_(key),
+        action_(keyAction),
+        repeat_(keyRepeat) { }
+  key key_;
+  keyAction action_ {KEY_UnknownAction};
+  bool repeat_ {false};
+};
 #endif// __KeyCodeMapping_h__

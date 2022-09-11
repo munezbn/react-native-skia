@@ -17,18 +17,6 @@ namespace react {
 
 using namespace SpatialNavigator;
 
-struct RskKeyInput {
-  RskKeyInput() = default;
-  ~RskKeyInput() = default;
-  RskKeyInput(key key, keyAction keyAction, bool keyRepeat)
-      : key_(key),
-        action_(keyAction),
-        repeat_(keyRepeat) { }
-  key key_;
-  keyAction action_ {KEY_UnknownAction};
-  bool repeat_ {false};
-};
-
 class RSkInputEventManager {
  private:
   static RSkInputEventManager *sharedInputEventManager_;
@@ -36,12 +24,12 @@ class RSkInputEventManager {
 
 #if ENABLE(FEATURE_KEY_THROTTLING)
   void inputWorkerThreadFunction();
-  std::unique_ptr<ThreadSafeQueue<RskKeyInput>> keyQueue_;
+  std::unique_ptr<ThreadSafeQueue<keyInput>> keyQueue_;
   sem_t keyEventPost_;
   std::thread inputWorkerThread_;
   std::atomic<int> activeInputClients_ {0};
 #endif
-  void processKey(RskKeyInput &keyInput);
+  void processKey(keyInput &keyInput);
   RSkSpatialNavigator* spatialNavigator_ {nullptr};
 
  public:
