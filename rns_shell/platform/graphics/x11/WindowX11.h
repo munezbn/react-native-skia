@@ -22,7 +22,7 @@
 #include "Window.h"
 #include "PlatformDisplay.h"
 
-#include "ReactSkia/sdk/KeyCodeMapping.h"
+#include "ReactSkia/sdk/RNSKeyCodeMapping.h"
 #include "ReactSkia/sdk/NotificationCenter.h"
 typedef Window XWindow;
 

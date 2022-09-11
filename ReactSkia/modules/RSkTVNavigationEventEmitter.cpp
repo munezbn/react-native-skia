@@ -7,6 +7,7 @@
 
 #include "RSkTVNavigationEventEmitter.h"
 #include "ReactSkia/utils/RnsLog.h"
+#include "ReactSkia/sdk/RNSKeyCodeMapping.h"
 
 using namespace std;
 

@@ -6,7 +6,7 @@
  */
 #pragma once
 
-#include "KeyCodeMapping.h"
+#include "RNSKeyCodeMapping.h"
 
 namespace rns {
 namespace sdk {
