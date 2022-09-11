@@ -15,6 +15,7 @@
 
 namespace RnsShell {
 
+static key previousKey{KEY_UnKnown};
 Window::Window() {}
 
 Window::~Window() {}
@@ -37,16 +38,24 @@ void Window::onResize(int w, int h) {
     RNS_LOG_NOT_IMPL;
 }
 
-void Window::onKey(key eventKeyType, keyAction eventKeyAction){
-	Inputkeyinfo keyInfo(eventKeyType,eventKeyAction);
+void Window::onKey(key eventKey, keyAction eventKeyAction){
+    Inputkeyinfo keyInfo(eventKey,eventKeyAction);
+    if(previousKey == eventKey  && eventKeyAction == KEY_Press){
+      keyInfo.repeat = true;
+    } else { keyInfo.repeat = false;}
+    if(eventKeyAction == KEY_Release) {
+      previousKey=KEY_UnKnown;
+    } else {previousKey=eventKey;}
+
 #if ENABLE(FEATURE_ONSCREEN_KEYBOARD)
     if(winType == SubWindow)
-       NotificationCenter::subWindowCenter().emit("onHWKeyEvent", keyInfo);
+        NotificationCenter::subWindowCenter().emit("onHWKeyEvent", keyInfo);
     else
 #endif/*FEATURE_ONSCREEN_KEYBOARD*/
         NotificationCenter::defaultCenter().emit("onHWKeyEvent", keyInfo);
     return;
 }
+
 GrDirectContext* Window::directContext() const {
     RNS_LOG_NOT_IMPL;
     return nullptr;

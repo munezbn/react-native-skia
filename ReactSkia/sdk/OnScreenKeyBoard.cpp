@@ -500,8 +500,8 @@ void OnScreenKeyboard ::drawHighLightOnKey(SkPoint index) {
   RNS_PROFILE_END(" Highlight Completion : ",HighlightOSKKey)
 }
 
-void OnScreenKeyboard::onHWkeyHandler(rnsKey keyValue, rnsKeyAction eventKeyAction) {
-  RNS_LOG_DEBUG("rnsKey: "<<RNSKeyMap[keyValue]<<" rnsKeyAction: "<<((eventKeyAction ==0) ? "RNS_KEY_Press ": "RNS_KEY_Release ") );
+void OnScreenKeyboard::onHWkeyHandler(Inputkeyinfo keyInfo) {
+  RNS_LOG_DEBUG(__func__<<"key: "<<keyMap[keyInfo.key]<<" keyAction: "<<((keyInfo.action ==0) ? "KEY_Press ": "KEY_Release ")<<"Repeat ?: "<<keyInfo.repeat);
 
   if(eventKeyAction == RNS_KEY_Release) {
 #if ENABLE(FEATURE_KEY_THROTTLING)

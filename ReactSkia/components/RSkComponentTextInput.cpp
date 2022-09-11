@@ -173,14 +173,14 @@ void RSkComponentTextInput::OnPaint(SkCanvas *canvas) {
 */
 
 void RSkComponentTextInput::onHandleKey(Inputkeyinfo keyInfo, bool *stopPropagation) {
-  RNS_LOG_DEBUG(__func__<<" : Entry ");
+  RNS_LOG_DEBUG(__func__<<" : Entry : Key Repeat" << keyInfo.repeat<<"  key  " <<keyMap[keyInfo.key] << "  eventKeyAction  " << keyInfo.action);
   *stopPropagation = false;
   if (!editable_) {
     return;
   }
   if((keyInfo.key >= KEY_Up) && (keyInfo.key <= KEY_Back) && isInEditingMode_) {
     *stopPropagation = true;
-    if((!keyInfo.repeat) && (keyInfo.action == KEY_Release)) { return;}
+    if((!isKeyRepeateOn) && (keyInfo.action == KEY_Release)) { return;}
   }
   if((keyInfo.key == KEY_Select) && (keyInfo.action == KEY_Press)){
     *stopPropagation = true;
@@ -229,8 +229,9 @@ void RSkComponentTextInput::onHandleKey(Inputkeyinfo keyInfo, bool *stopPropagat
       // push all the key to temp queue and update the
       // inputQueue with tempQueue.
       inputQueueMutex.lock();
-      if(keyInfo.repeat && !isKeyRepeateOn)
+      if(keyInfo.repeat && !isKeyRepeateOn) {
         keyRepeateStartIndex = inputQueue.size();
+      }
       if(isKeyRepeateOn && !keyInfo.repeat ){
         std::queue<Inputkeyinfo> temp;
         isKeyRepeateOn = false;
@@ -266,12 +267,12 @@ void RSkComponentTextInput::onHandleKey(Inputkeyinfo keyInfo, bool *stopPropagat
       }
       return;
     }
-    processEventKey(keyInfo,stopPropagation,&waitForupdateProps,true);
+    processEventKey(keyInfo.key,stopPropagation,&waitForupdateProps,true);
   }//else if (isInEditingMode_)
 }
 
-void RSkComponentTextInput::processEventKey (Inputkeyinfo keyInfo,bool* stopPropagation,bool *waitForupdateProps, bool updateString) {
-  RNS_LOG_DEBUG(__func__<<" : Entery : Key Repeat" << keyInfo.repeat<<"  key  " <<keyMap[keyInfo.key] << "  eventKeyAction  " << keyInfo.action);
+void RSkComponentTextInput::processEventKey (key keyValue,bool* stopPropagation,bool *waitForupdateProps, bool updateString) {
+  RNS_LOG_DEBUG(__func__<<" : Entry : Key  : " << keyValue);
   KeyPressMetrics keyPressMetrics;
   TextInputMetrics textInputMetrics;
   std::string textString = displayString_;
@@ -280,10 +281,10 @@ void RSkComponentTextInput::processEventKey (Inputkeyinfo keyInfo,bool* stopProp
   Rect frame = component.layoutMetrics.frame;
   auto textInputEventEmitter = std::static_pointer_cast<TextInputEventEmitter const>(component.eventEmitter);
   auto const &textInputProps = *std::static_pointer_cast<TextInputProps const>(component.props);
-  keyPressMetrics.text = keyMap[keyInfo.key];
+  keyPressMetrics.text = keyMap[keyValue];
 
     //Displayable Charector Range
-    if ((keyInfo.key >= KEY_1 && keyInfo.key <= KEY_Less)) {
+    if ((keyValue >= KEY_1 && keyValue <= KEY_Less)) {
       if (cursor_.locationFromEnd != 0){
         textString.insert(cursor_.end-cursor_.locationFromEnd,keyPressMetrics.text);
       } else {
@@ -291,14 +292,14 @@ void RSkComponentTextInput::processEventKey (Inputkeyinfo keyInfo,bool* stopProp
       }
       cursor_.end = textString.length();
     } else {
-      switch(keyInfo.key){
+      switch(keyValue){
         case KEY_Left:
         case KEY_Right:
           *stopPropagation = true;
           *waitForupdateProps = false;
           keyPressMetrics.eventCount = eventCount_;
           textInputEventEmitter->onKeyPress(keyPressMetrics);
-          if (KEY_Left == keyInfo.key) {
+          if (KEY_Left == keyValue) {
             if(cursor_.locationFromEnd < cursor_.end ) {
               RNS_LOG_DEBUG(__func__<<" :Left key pressed cursor_.locationFromEnd = "<<cursor_.locationFromEnd);
               cursor_.locationFromEnd++; // locationFromEnd
@@ -407,7 +408,7 @@ void RSkComponentTextInput::keyEventProcessingThread(){
       if ( keyRepeateStartIndex >0 )
         keyRepeateStartIndex-- ;
       inputQueueMutex.unlock();
-      processEventKey(keyInfo,&stopPropagation,&waitForupdateProps, false);
+      processEventKey(keyInfo.key,&stopPropagation,&waitForupdateProps, false);
       if (waitForupdateProps)
         sem_wait(&jsUpdateSem);
     }
