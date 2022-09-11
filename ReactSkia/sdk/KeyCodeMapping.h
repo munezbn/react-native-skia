@@ -334,4 +334,4 @@ static std::string RNSKeyMap[RNS_KEY_End]={
     "insert",
     "unKnown"
 };
-#endif// __RNSKeyCodeMapping_h__
+#endif// __KeyCodeMapping_h__

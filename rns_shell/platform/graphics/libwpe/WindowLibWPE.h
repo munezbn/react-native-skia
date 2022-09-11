@@ -10,8 +10,8 @@
 
 #include <glib.h>
 
+#include "ReactSkia/sdk/KeyCodeMapping.h"
 #include "ReactSkia/sdk/NotificationCenter.h"
-#include "ReactSkia/sdk/RNSKeyCodeMapping.h"
 
 #include "include/private/SkChecksum.h"
 #include "src/core/SkTDynamicHash.h"

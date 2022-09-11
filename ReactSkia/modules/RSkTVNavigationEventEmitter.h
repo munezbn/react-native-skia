@@ -5,8 +5,8 @@
 * found in the LICENSE file.
 */
 
+#include "sdk/KeyCodeMapping.h"
 #include "sdk/NotificationCenter.h"
-#include "sdk/RNSKeyCodeMapping.h"
 #include "core_modules/RSkEventEmitter.h"
 
 namespace facebook {

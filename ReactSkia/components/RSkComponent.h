@@ -5,10 +5,10 @@
 #include "react/renderer/components/view/ViewProps.h"
 
 #include "ReactSkia/core_modules/RSkSpatialNavigatorContainer.h"
+#include "ReactSkia/sdk/KeyCodeMapping.h"
 
 #include "ReactSkia/utils/RnsUtils.h"
 #include "ReactSkia/utils/RnsLog.h"
-#include "ReactSkia/sdk/RNSKeyCodeMapping.h"
 
 #include "rns_shell/compositor/layers/Layer.h"
 
