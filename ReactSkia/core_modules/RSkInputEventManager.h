@@ -24,18 +24,18 @@ class RSkInputEventManager {
 
 #if ENABLE(FEATURE_KEY_THROTTLING)
   void inputWorkerThreadFunction();
-  std::unique_ptr<ThreadSafeQueue<keyInput>> keyQueue_;
+  std::unique_ptr<ThreadSafeQueue<Inputkeyinfo>> keyQueue_;
   sem_t keyEventPost_;
   std::thread inputWorkerThread_;
   std::atomic<int> activeInputClients_ {0};
 #endif
-  void processKey(keyInput &keyInput);
+  void processKey(Inputkeyinfo &keyInfo);
   RSkSpatialNavigator* spatialNavigator_ {nullptr};
 
  public:
   ~RSkInputEventManager();
   static RSkInputEventManager* getInputKeyEventManager();
-  void keyHandler(key key, keyAction eventKeyAction);
+  void keyHandler(Inputkeyinfo keyInfo);
 #if ENABLE(FEATURE_KEY_THROTTLING)
   void onEventEmit();
   void onEventComplete();

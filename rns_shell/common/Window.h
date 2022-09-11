@@ -12,6 +12,7 @@
 #include "include/core/SkTypes.h"
 #include "include/private/SkTDArray.h"
 
+#include "ReactSkia/sdk/KeyCodeMapping.h"
 #include "Application.h"
 #include "DisplayParams.h"
 
@@ -66,6 +67,7 @@ public:
     int sampleCount() const;
     int stencilBits() const;
     void onResize(int w, int h);
+    void onKey(key eventKeyType, keyAction eventKeyAction);
 
     // Returns null if there is not a GPU backend or if the backend is not yet created.
     GrDirectContext* directContext() const;

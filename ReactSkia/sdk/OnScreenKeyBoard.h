@@ -144,11 +144,11 @@ class OnScreenKeyboard : public WindowDelegator{
     ~OnScreenKeyboard() = default;
 
     void launchOSKWindow();
-    void onHWkeyHandler(rnsKey key, rnsKeyAction eventKeyAction);
     void processKey(rnsKey keyValue);
 #if ENABLE(FEATURE_KEY_THROTTLING)
     void repeatKeyProcessingThread();
 #endif/*ENABLE_FEATURE_KEY_THROTTLING*/
+    void onHWkeyHandler(Inputkeyinfo keyInfo);
     void createOSKLayout(OSKTypes KBtype );
     void clearScreen(SkScalar x,SkScalar y,SkScalar width,SkScalar height,SkPaint & paintObj);
     SkScalar getStringBound (const std::string & stringToMeasure,unsigned int startIndex,unsigned int endIndex,SkFont & stringFont);

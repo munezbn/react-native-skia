@@ -545,8 +545,8 @@ inline void OnScreenKeyboard::processKey(rnsKey keyValue) {
   hlCandidate=lastFocussIndex_=currentFocussIndex_;
   key OSKkeyValue{KEY_UnKnown};
   unsigned int rowIndex=currentFocussIndex_.y(),keyIndex=currentFocussIndex_.x();
-  RNS_LOG_DEBUG("KEY RECEIVED : "<<keyMap[keyValue]);
-  switch( keyValue ) {
+  RNS_LOG_DEBUG("KEY RECEIVED : "<<keyMap[keyInfo.key]);
+  switch( keyInfo.key ) {
 /* Case  1: Process Navigation Keys*/
     case KEY_Right:
       hlCandidate= oskLayout_.siblingInfo->at(rowIndex).at(keyIndex).siblingRight;
@@ -588,8 +588,8 @@ inline void OnScreenKeyboard::processKey(rnsKey keyValue) {
     {
       bool keyFound=false;
       /*Process only KB keys*/
-      if(( keyValue == KEY_Select) ||
-         ((keyValue < KEY_UnKnown ) && (keyValue >= KEY_1))) {
+      if(( keyInfo.key == KEY_Select) ||
+         ((keyInfo.key < KEY_UnKnown ) && (keyInfo.key >= KEY_1))) {
         key layoutKeyValue{KEY_UnKnown};
         for (unsigned int rowIndex=0; (rowIndex < oskLayout_.keyInfo->size()) && (!keyFound);rowIndex++) {
           for (unsigned int keyIndex=0; keyIndex<oskLayout_.keyInfo->at(rowIndex).size();keyIndex++) {
@@ -599,10 +599,10 @@ inline void OnScreenKeyboard::processKey(rnsKey keyValue) {
                (isalpha(*oskLayout_.keyInfo->at(rowIndex).at(keyIndex).keyName))) {
                   layoutKeyValue = static_cast<key>(layoutKeyValue-26);
             }
-            if(layoutKeyValue == keyValue) {
+            if(layoutKeyValue == keyInfo.key) {
               hlCandidate.set(keyIndex,rowIndex);
               keyFound=true;
-              OSKkeyValue =keyValue;
+              OSKkeyValue =keyInfo.key;
               break;
             }
           }
@@ -911,9 +911,8 @@ void OnScreenKeyboard::windowReadyToDrawCB() {
 #endif
       /*Listen for  Key Press event */
       if(subWindowKeyEventId_ == -1) {
-        std::function<void(key, keyAction)> handler = std::bind(&OnScreenKeyboard::onHWkeyHandler,this,
-                                                                       std::placeholders::_1,
-                                                                       std::placeholders::_2);
+        std::function<void(Inputkeyinfo)> handler = std::bind(&OnScreenKeyboard::onHWkeyHandler,this,
+                                                                       std::placeholders::_1);
         subWindowKeyEventId_ = NotificationCenter::subWindowCenter().addListener("onHWKeyEvent", handler);
       }
       onScreenKeyboardEventEmit(std::string("keyboardDidShow"));

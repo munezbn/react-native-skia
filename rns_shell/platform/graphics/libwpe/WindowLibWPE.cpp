@@ -264,14 +264,5 @@ void WindowLibWPE::setRequestedDisplayParams(const DisplayParams& params, bool a
     INHERITED::setRequestedDisplayParams(params, allowReattach);
 }
 
-void WindowLibWPE::onKey(key eventKeyType, keyAction eventKeyAction){
-#if ENABLE(FEATURE_ONSCREEN_KEYBOARD)
-    if(winType == SubWindow)
-       NotificationCenter::subWindowCenter().emit("onHWKeyEvent", eventKeyType, eventKeyAction);
-    else
-#endif/*FEATURE_ONSCREEN_KEYBOARD*/
-        NotificationCenter::defaultCenter().emit("onHWKeyEvent", eventKeyType, eventKeyAction);
-    return;
-}
 
 }   // namespace RnsShell
