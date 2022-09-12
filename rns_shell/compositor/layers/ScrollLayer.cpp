@@ -319,6 +319,12 @@ void ScrollLayer::prePaint(PaintContext& context, bool forceLayout) {
         /*As childrens of this layer are painted on bitmap canvas,we do not need parent frame here*/
         layer->setSkipParentMatrix(true);
 
+#if USE(SCROLL_LAYER_BITMAP)
+        if(forceBitmapReset_){
+          layer->invalidate();
+        }
+#endif
+
         RNS_LOG_DEBUG("Layer needs prePaint [" << layer->getBounds().x() <<"," << layer->getBounds().y() << "," << layer->getBounds().width() <<"," << layer->getBounds().height() << "]");
         layer->prePaint(bitmapPaintContext,forceChildrenLayout);
         if(layer->invalidateMask_ & LayerRemoveInvalidate) {
@@ -353,7 +359,7 @@ void ScrollLayer::prePaint(PaintContext& context, bool forceLayout) {
        //Calculate the screen frame for the child dirty frame and add intersected area to parent damageRect list
        for(auto &rect : bitmapSurfaceDamage_) {
            SkIRect screenDirtyRect = rect.makeOffset(-scrollOffsetX_,-scrollOffsetY_).makeOffset(absFrame_.x(),absFrame_.y());
-           RNS_LOG_INFO("Scroll Layer (" << layerId_ << ") damage rect [" << rect.x() << "," << rect.y() << "," << rect.width() << "," << rect.height()
+           RNS_LOG_TRACE("Scroll Layer (" << layerId_ << ") damage rect [" << rect.x() << "," << rect.y() << "," << rect.width() << "," << rect.height()
                             << "] absFrame point [" << absFrame_.x() << "," << absFrame_.y()
                             << "] screenDirtyRect [" << screenDirtyRect.x() << "," << screenDirtyRect.y() << "," << screenDirtyRect.width()
                             << "," << screenDirtyRect.height() << "]");

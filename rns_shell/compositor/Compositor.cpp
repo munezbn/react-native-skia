@@ -88,7 +88,7 @@ SkRect Compositor::beginClip(PaintContext& context, ClipType type) {
     if(type == ClipTypePath) {
         SkPath clipPath = SkPath();
         for (auto& rect : context.damageRect) {
-            RNS_LOG_INFO("Add Damage " << rect.x() << " " << rect.y() << " " << rect.width() << " " << rect.height());
+            RNS_LOG_DEBUG("Add Damage " << rect.x() << " " << rect.y() << " " << rect.width() << " " << rect.height());
             clipPath.addRect(rect.left(), rect.top(), rect.right(), rect.bottom());
         }
 

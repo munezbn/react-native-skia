@@ -189,7 +189,7 @@ const SimpleViewApp = React.Node = () => {
             <TouchableHighlight underlayColor='darkseagreen' style={styles.controlButton} onPress={() => setScrollConfiguration("showSV")} >
               <Text style={styles.controlButtonText}>{'showSV:' + scrollConfigs["showSV"]}</Text>
             </TouchableHighlight>
-            <View style={[styles.controlButton,{width:50,height:50}]}>
+            <View style={[styles.controlButton,{width:100,height:50}]}>
               <Text style={styles.controlButtonText}>{scrollConfigs["childItemNum"]}</Text>
             </View>
             <View styles={{flexDirection:'column'}}>
