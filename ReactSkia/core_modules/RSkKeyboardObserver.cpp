@@ -29,7 +29,6 @@ void RSkKeyboardObserver::startObserving(){
 }
 
 void RSkKeyboardObserver::stopObserving(){
-  RNS_LOG_INFO("<<<<<<<<<<<<<<< I am in stop Absorver>>>>>>>>>>>>>>>>");
   NotificationCenter::subWindowCenter().removeListener(onscreenKeyboardEventId_);
 }
 

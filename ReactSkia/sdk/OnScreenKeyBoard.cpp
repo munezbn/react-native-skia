@@ -299,6 +299,7 @@ void OnScreenKeyboard::drawKBLayout(OSKTypes oskType) {
 }
 
 inline void OnScreenKeyboard::drawKBKeyFont(SkPoint index,bool onHLTile) {
+
   if(oskState_!= OSK_STATE_ACTIVE) return;
 
   KeyInfo_t &keyInfo=oskLayout_.keyInfo->at(index.y()).at(index.x());

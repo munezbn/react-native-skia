@@ -61,13 +61,12 @@ void  WindowDelegator::createNativeWindow() {
 }
 
 void WindowDelegator::closeWindow() {
-  RNS_LOG_TODO("@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@2Sync between rendering & Exit to be handled ");
+  RNS_LOG_TODO("Sync between rendering & Exit to be handled ");
   windowActive = false;
   std::scoped_lock lock(renderCtrlMutex);
   if(ownsTaskrunner_) windowTaskRunner_->stop();
 
   if(exposeEventID_) {
-
     NotificationCenter::defaultCenter().removeListener(exposeEventID_);
     exposeEventID_=-1;
   }
@@ -127,7 +126,6 @@ void WindowDelegator::onExposeHandler(RnsShell::Window* window) {
     sem_wait(&semReadyToDraw_);
     window_->show();
     if(exposeEventID_ != -1) {
-      RNS_LOG_TODO("@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@i");
       NotificationCenter::defaultCenter().removeListener(exposeEventID_);
       exposeEventID_=-1;
     }
