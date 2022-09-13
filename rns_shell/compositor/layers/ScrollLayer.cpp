@@ -394,14 +394,6 @@ void ScrollLayer::prePaint(PaintContext& context, bool forceLayout) {
 #endif
 }
 
-inline void ScrollLayer::paintShadow(PaintContext& context) {
-    if(shadowPicture()) {
-        RNS_LOG_DEBUG("SkPicture ( "  << shadowPicture_ << " )For " <<
-                shadowPicture()->approximateOpCount() << " operations and size : " << shadowPicture()->approximateBytesUsed());
-        shadowPicture()->playback(context.canvas);
-    }
-}
-
 inline void ScrollLayer::paintBorder(PaintContext& context) {
     if(borderPicture()) {
         RNS_LOG_DEBUG("Scroll Layer (" << layerId_ << ") SkPicture ( "  << borderPicture_ << " )For " <<
@@ -421,7 +413,14 @@ void ScrollLayer::paintSelf(PaintContext& context) {
     RNS_GET_TIME_STAMP_US(start);
 #endif
 
+    if(shadowPicture()) {
+        RNS_LOG_DEBUG("SkPicture ( "  << shadowPicture_ << " )For " <<
+                shadowPicture()->approximateOpCount() << " operations and size : " << shadowPicture()->approximateBytesUsed());
+        shadowPicture()->playback(context.canvas);
+    }
+
 #if USE(SCROLL_LAYER_BITMAP)
+
     if(drawDestRect_.isEmpty() || drawSrcRect_.isEmpty()) {
        drawDestRect_ = frame_;
        drawSrcRect_.setXYWH(scrollOffsetX_,scrollOffsetY_,frame_.width(),frame_.height());
@@ -433,12 +432,18 @@ void ScrollLayer::paintSelf(PaintContext& context) {
     SkBitmap scrollBitmapSubset;
     scrollBitmap_.extractSubset(&scrollBitmapSubset,drawSrcRect_);
     context.canvas->drawImageRect(SkImage::MakeFromBitmap(scrollBitmapSubset),SkRect::Make(drawDestRect_),NULL);
+
+    paintScrollBar(context);
+    paintBorder(context);
+
 #else
+
     if(backgroundColor != SK_ColorTRANSPARENT) {
       SkPaint paint;
       paint.setColor(backgroundColor);
       context.canvas->drawRect(SkRect::Make(frame_),paint);
     }
+
 #endif
 
 #if !defined(GOOGLE_STRIP_LOG) || (GOOGLE_STRIP_LOG <= INFO)
@@ -461,7 +466,6 @@ void ScrollLayer::paintSelfAndChildren(PaintContext& context) {
     //7. Paint border on parent's canvas
     //8. Revert back updated scroll offset in paint context
 
-    paintShadow(context);
     paintSelf(context);
 
     context.canvas->clipRect(SkRect::Make(frame_));
@@ -470,6 +474,7 @@ void ScrollLayer::paintSelfAndChildren(PaintContext& context) {
     context.offset.offset(absFrame_.x()-scrollOffsetX_, absFrame_.y()-scrollOffsetY_);
 
     paintChildren(context);
+
     paintScrollBar(context);
     paintBorder(context);
 
@@ -486,17 +491,17 @@ void ScrollLayer::paintChildrenAndSelf(PaintContext& context) {
 #if !defined(GOOGLE_STRIP_LOG) || (GOOGLE_STRIP_LOG <= INFO)
     RNS_GET_TIME_STAMP_US(start);
 #endif
-   //Paint sequence
-   //1. Create paint context for drawing on bitmap
-   //2. Clip path on bitmap based on damageRects on bitmap
-   //3. Draw background color
-   //4. Paint children on bitmap
-   //5. Paint border on parent's canvas
-   //6. Paint self on parent's canvas
-   //7. Paint scrollbar on parent's canvas
-   //8. Paint shadow on parent's canvas
+    //Paint sequence
+    //1. Create paint context for drawing on bitmap
+    //2. Clip path on bitmap based on damageRects on bitmap
+    //3. Draw background color
+    //4. Paint children on bitmap
+    //5. Paint border on parent's canvas
+    //6. Paint self on parent's canvas
+    //7. Paint scrollbar on parent's canvas
+    //8. Paint shadow on parent's canvas
 
-   PaintContext bitmapPaintContext = {
+    PaintContext bitmapPaintContext = {
             scrollCanvas_.get(),  // canvas
             bitmapSurfaceDamage_, // damage rects
 #if USE(RNS_SHELL_PARTIAL_UPDATES)
@@ -509,7 +514,7 @@ void ScrollLayer::paintChildrenAndSelf(PaintContext& context) {
 
     // Using default clipPath has internal limit of ~16k.
     // Since bitmap size can be more than 16k,we will use clipRegion for clipping
-    clipBound_ = Compositor::beginClip(bitmapPaintContext,ClipTypeRegion);
+    clipBound_ = Compositor::beginClip(bitmapPaintContext,true);
     if(bitmapSurfaceDamage_.size() != 0) {
        /* Clear clipped area with background color before painting the children*/
        scrollCanvas_->clear(backgroundColor);
@@ -517,10 +522,7 @@ void ScrollLayer::paintChildrenAndSelf(PaintContext& context) {
 
     paintChildren(bitmapPaintContext);
 
-    paintShadow(context);
     paintSelf(context);
-    paintScrollBar(context);
-    paintBorder(context);
 
 #if !defined(GOOGLE_STRIP_LOG) || (GOOGLE_STRIP_LOG <= INFO)
     RNS_GET_TIME_STAMP_US(end);

@@ -19,11 +19,6 @@ namespace RnsShell {
 
 typedef uint64_t PlatformDisplayID;
 
-enum ClipType {
-    ClipTypePath = 0, // Use clipPath for clipping.This method transform their arguments by current matrix
-    ClipTypeRegion,   // Use clipRegion for clipping.This method does not apply transform and assumes arguments are absolutes
-};
-
 class Compositor {
     RNS_MAKE_NONCOPYABLE(Compositor);
 public:
@@ -53,7 +48,7 @@ public:
 #ifdef RNS_SHELL_HAS_GPU_SUPPORT
     GrDirectContext* getDirectContext(); // interface to expose directcontext of gpu backend
 #endif
-    static SkRect beginClip(PaintContext& context, ClipType type=ClipTypePath);
+    static SkRect beginClip(PaintContext& context, bool useClipRegion=false);
 
 private:
 

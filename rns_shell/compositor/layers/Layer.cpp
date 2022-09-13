@@ -242,7 +242,7 @@ void Layer::paint(PaintContext& context) {
         if(!context.dirtyClipBound.isEmpty() && intRect.intersect(context.dirtyClipBound) == false) {
             RNS_LOG_WARN("We should not call paint if it doesnt intersect with non empty dirtyClipBound...");
         }
-        context.canvas->clipRect(intRect);
+        context.canvas->clipRect(intRect,SkClipOp::kIntersect);
     }
 
     paintChildren(context);

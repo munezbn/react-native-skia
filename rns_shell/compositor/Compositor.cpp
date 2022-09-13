@@ -79,28 +79,13 @@ void Compositor::invalidate() {
     backBuffer_ = nullptr;
 }
 
-SkRect Compositor::beginClip(PaintContext& context, ClipType type) {
+SkRect Compositor::beginClip(PaintContext& context, bool useClipRegion) {
     SkRect clipBound = SkRect::MakeEmpty();
     if(context.damageRect.size() == 0)
         return clipBound;
 
-    // Use clipPath for clipping
-    if(type == ClipTypePath) {
-        SkPath clipPath = SkPath();
-        for (auto& rect : context.damageRect) {
-            RNS_LOG_DEBUG("Add Damage " << rect.x() << " " << rect.y() << " " << rect.width() << " " << rect.height());
-            clipPath.addRect(rect.left(), rect.top(), rect.right(), rect.bottom());
-        }
-
-        if(clipPath.getBounds().isEmpty()) {
-            return clipBound;
-        }
-
-        context.canvas->clipPath(clipPath);
-        clipBound = clipPath.getBounds();
-
-    } else if(type == ClipTypeRegion) {
-        // Use clipRegion for clipping
+    // Use clipRegion for clipping
+    if(useClipRegion) {
         SkRegion clipRgn(SkIRect::MakeEmpty());
         clipRgn.setRects(context.damageRect.data(),context.damageRect.size());
 
@@ -109,9 +94,22 @@ SkRect Compositor::beginClip(PaintContext& context, ClipType type) {
         }
 
         context.canvas->clipRegion(clipRgn);
-        clipBound = SkRect::Make(clipRgn.getBounds());
+        return SkRect::Make(clipRgn.getBounds());
     }
 
+    // Use clipPath for clipping
+    SkPath clipPath = SkPath();
+    for (auto& rect : context.damageRect) {
+        RNS_LOG_DEBUG("Add Damage " << rect.x() << " " << rect.y() << " " << rect.width() << " " << rect.height());
+        clipPath.addRect(rect.left(), rect.top(), rect.right(), rect.bottom());
+    }
+
+    if(clipPath.getBounds().isEmpty()) {
+        return clipBound;
+    }
+
+    context.canvas->clipPath(clipPath);
+    clipBound = clipPath.getBounds();
     return clipBound;
 }
 
