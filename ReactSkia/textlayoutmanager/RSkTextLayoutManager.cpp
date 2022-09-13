@@ -106,17 +106,7 @@ TextMeasurement RSkTextLayoutManager::doMeasure (SharedColor backGroundColor,
     size.width = paragraph->getMaxIntrinsicWidth() < paragraph->getMaxWidth() ?
 	                                        paragraph->getMaxIntrinsicWidth() :
 								            paragraph->getMaxWidth();  
-    size.height = paragraph->getHeight(); 
-     
-#if USE(FIX_SKIA_FLOATING_FONT_SIZE)
-    /*TODO :  The root cause lies in skia skparagraph and we cannot fix it native layer. */
-    /*Reason: Skia is not calculating the paragraph height properly for floating and odd number(random) font sizes and */
-    /*        the calculated frame height is not enough to fit some particular characters(y,p,g,j) within the frame and */
-    /*        it is leaving some residue in the last line while clearing the dirty region. */
-    /*        To avoid the residue issue in text component drawing, we are adding extra 2 pixels to fit the characters within the frame. */
-    /*NOTE: Once skia skparagraph library fix the root cause, we have to remove the code under this macro */
-    size.height = size.height + 2;
-#endif
+    size.height = paragraph->getHeight();
 
     Point attachmentPoint = calculateFramePoint({0,0}, size, layoutConstraints.maximumSize.width);
     for (auto const &fragment : attributedString.getFragments()) {
