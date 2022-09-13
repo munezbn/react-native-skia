@@ -238,11 +238,7 @@ void Layer::paint(PaintContext& context) {
     paintSelf(context); // First paint self and then children if any
 
     if(masksToBounds_) { // Need to clip children.
-        SkRect intRect = SkRect::Make(absFrame_);
-        //If scrolling offset available,check intRect with offset value
-        if(!context.offset.isZero()){
-            intRect.offset(context.offset.x(),context.offset.y());
-        }
+        SkRect intRect = SkRect::Make(frame_);
         if(!context.dirtyClipBound.isEmpty() && intRect.intersect(context.dirtyClipBound) == false) {
             RNS_LOG_WARN("We should not call paint if it doesnt intersect with non empty dirtyClipBound...");
         }

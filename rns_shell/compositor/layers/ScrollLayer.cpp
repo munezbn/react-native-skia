@@ -290,10 +290,6 @@ void ScrollLayer::prePaint(PaintContext& context, bool forceLayout) {
 #endif
 
     preRoll(context, forceLayout);
-#if USE(SCROLL_LAYER_BITMAP)
-    bitmapConfigure();
-    scrollCanvas_->save();
-#endif
 
     PaintContext bitmapPaintContext = {
             nullptr,  // canvas
@@ -306,6 +302,16 @@ void ScrollLayer::prePaint(PaintContext& context, bool forceLayout) {
             {0,0} // bitmapContext has no scroll offset,so set to zero
     };
 
+#if USE(SCROLL_LAYER_BITMAP)
+    bitmapConfigure();
+    scrollCanvas_->save();
+#if USE(RNS_SHELL_PARTIAL_UPDATES)
+    //If bitmapReset,we have to draw all childrens.So add bitmap Rect as damageRect
+    if(forceBitmapReset_) {
+        addDamageRect(bitmapContext,{0,0,contentSize_.width(),contentSize_.height()});
+    }
+#endif
+#endif
     /* Prepaint child recursively and then paint self */
     /* Child for prepaint is selected based on below condition */
     /* 1. If bitmap is reset due to content size change,force child to prepaint */
@@ -318,12 +324,6 @@ void ScrollLayer::prePaint(PaintContext& context, bool forceLayout) {
         /*avoid adding parent abs frame to child frame*/
         /*As childrens of this layer are painted on bitmap canvas,we do not need parent frame here*/
         layer->setSkipParentMatrix(true);
-
-#if USE(SCROLL_LAYER_BITMAP)
-        if(forceBitmapReset_){
-          layer->invalidate();
-        }
-#endif
 
         RNS_LOG_DEBUG("Layer needs prePaint [" << layer->getBounds().x() <<"," << layer->getBounds().y() << "," << layer->getBounds().width() <<"," << layer->getBounds().height() << "]");
         layer->prePaint(bitmapPaintContext,forceChildrenLayout);
@@ -343,11 +343,13 @@ void ScrollLayer::prePaint(PaintContext& context, bool forceLayout) {
     //Update scroll bar with scroll layer layout info
     if((invalidateMask_ & LayerLayoutInvalidate) == LayerLayoutInvalidate) scrollbar_.updateScrollLayerLayout(contentSize_,getFrame());
 
+#if USE(RNS_SHELL_PARTIAL_UPDATES)
     //if scrollbar needs update(paint/remove),add its absframe to damage rect list
     if(context.supportPartialUpdate) {
         SkIRect scrollBarFrame = scrollbar_.getScrollBarAbsFrame(absoluteFrame(),invalidateMask_);
         if(scrollBarFrame != SkIRect::MakeEmpty()) addDamageRect(context,scrollBarFrame);
     }
+#endif
 #endif//ENABLE_FEATURE_SCROLL_INDICATOR
 
 
