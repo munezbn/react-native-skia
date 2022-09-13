@@ -34,7 +34,18 @@ namespace RSkDrawUtils{
                                sk_sp<SkImageFilter> shadowFilter,
                                int shadowRadius);
   void drawUnderline(SkCanvas *canvas,Rect frame,SharedColor underlineColor);
-
+  bool isDrawVisible(SharedColor Color,Float thickness=1.0);
+  void drawContentShadow(Rect frame,
+                              SkCanvas *canvas,
+                              SkPaint shadowPaint,
+                              SkRect targetRect,
+                              sk_sp<SkImage> imageData,
+                              BorderMetrics imageBorderMetrics,
+                              Float shadowOpacity,
+                              SkSize size);
+  bool isShadowTobedrawn(Float shadowOpacity,
+                  sk_sp<SkImageFilter> shadowFilter,
+                  int shadowRadius);
 }//namespace RSkDrawUtils
 } // namespace react
 } // namespace facebook
