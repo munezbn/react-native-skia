@@ -67,12 +67,12 @@ void RSkImageLoaderModule::getImageSize(std::string uri, CxxModule::Callback res
   sk_sp<SkImage> imageData{nullptr};
   if(uri.substr(0,4) != "http") {
     RNS_LOG_ERROR("Not supported URL to getSize");
-    getRejectBlock(rejectBlock);
+    rejectblock(rejectBlock);
     return;
   }
   imageData = RSkImageCacheManager::getImageCacheManagerInstance()->findImageDataInCache(uri.c_str());
   if(imageData) {
-    getResovleBlock(resolveBlock,imageData);
+    resovleblock(resolveBlock,imageData);
     return;
   } else { /*getting image data from network */
     auto sharedCurlNetworking = CurlNetworking::sharedCurlNetworking();
@@ -89,7 +89,7 @@ void RSkImageLoaderModule::getImageSize(std::string uri, CxxModule::Callback res
           sk_sp<SkImage> remoteImageData = SkImage::MakeFromEncoded(data);
           if(remoteImageData) {
             RNS_LOG_DEBUG("Network response received success");
-            getResovleBlock(resolveBlock,remoteImageData);
+            resovleblock(resolveBlock,remoteImageData);
             imageCacheData.imageData = remoteImageData;
             imageCacheData.expiryTime = (SkTime::GetMSecs() + DEFAULT_MAX_CACHE_EXPIRY_TIME);//convert sec to milisecond 60 *1000
             RSkImageCacheManager::getImageCacheManagerInstance()->imageDataInsertInCache(curlRequest->URL.c_str(), imageCacheData);
@@ -103,7 +103,7 @@ void RSkImageLoaderModule::getImageSize(std::string uri, CxxModule::Callback res
         }
       }
       RNS_LOG_ERROR("Network response received error");
-      getRejectBlock(rejectBlock);
+      rejectblock(rejectBlock);
       imageRequestList_.erase(curlRequest->URL.c_str());
       //Reset the lamda callback so that curlRequest shared pointer dereffered from the lamda
       // and gets auto destructored after the completion callback.
@@ -119,13 +119,13 @@ void RSkImageLoaderModule::getImageSize(std::string uri, CxxModule::Callback res
   }
 }
 
-inline void RSkImageLoaderModule::getResovleBlock(CxxModule::Callback resolveBlock,sk_sp<SkImage> remoteImageData) {
+inline void RSkImageLoaderModule::resovleblock(CxxModule::Callback resolveBlock,sk_sp<SkImage> remoteImageData) {
   std::vector<dynamic> imageDimensions;
   imageDimensions.push_back(folly::dynamic::array(remoteImageData->width(),remoteImageData->height()));
   resolveBlock(imageDimensions);
 }
 
-inline void RSkImageLoaderModule::getRejectBlock(CxxModule::Callback rejectBlock){
+inline void RSkImageLoaderModule::rejectblock(CxxModule::Callback rejectBlock){
   std::vector<dynamic> imageError;
   imageError.push_back(folly::dynamic::array("Image Load failed"));
   rejectBlock(imageError);
