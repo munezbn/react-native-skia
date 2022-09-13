@@ -308,7 +308,7 @@ void ScrollLayer::prePaint(PaintContext& context, bool forceLayout) {
 #if USE(RNS_SHELL_PARTIAL_UPDATES)
     //If bitmapReset,we have to draw all childrens.So add bitmap Rect as damageRect
     if(forceBitmapReset_) {
-        addDamageRect(bitmapContext,{0,0,contentSize_.width(),contentSize_.height()});
+        addDamageRect(bitmapPaintContext,{0,0,contentSize_.width(),contentSize_.height()});
     }
 #endif
 #endif
