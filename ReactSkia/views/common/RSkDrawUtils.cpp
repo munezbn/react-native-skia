@@ -14,7 +14,6 @@
 #include "ReactSkia/views/common/RSkDrawUtils.h"
 #include "ReactSkia/views/common/RSkConversion.h"
 
-
 #define DEFAULT_COLOUR   SK_ColorBLACK /*Black*/
 #define UNDERLINEWIDTH   1
 #define BOTTOMALIGNMENT 3
@@ -73,10 +72,6 @@ void setColor(SharedColor Color,SkPaint *paint)
 {
     paint->setAntiAlias(true);
     paint->setColor(RSkColorFromSharedColor(Color, DEFAULT_COLOUR));
-}
-bool isDrawVisible(SharedColor Color,Float thickness=1.0)
-{
-    return (Color !=clearColor() && thickness > 0.0)? true:false;
 }
 bool hasUniformBorderEdges(BorderMetrics borderProps)
 {
@@ -278,19 +273,19 @@ bool createshadowPath( SkCanvas *canvas,Rect frame,
     if(shadowPath == NULL)
         return false;
 
-    if(isDrawVisible(borderProps.borderColors.right,borderProps.borderWidths.right)){
+    if(RSkDrawUtils::isDrawVisible(borderProps.borderColors.right,borderProps.borderWidths.right)){
         pathExist=true;
         shadowPath->addPath(drawEdges(RightEdge,canvas,frame,borderProps,false));
     }
-    if(isDrawVisible(borderProps.borderColors.left,borderProps.borderWidths.left)){
+    if(RSkDrawUtils::isDrawVisible(borderProps.borderColors.left,borderProps.borderWidths.left)){
         shadowPath->addPath(drawEdges(LeftEdge,canvas,frame,borderProps,false));
         pathExist=true;
     }
-    if(isDrawVisible(borderProps.borderColors.top,borderProps.borderWidths.top)){
+    if(RSkDrawUtils::isDrawVisible(borderProps.borderColors.top,borderProps.borderWidths.top)){
         shadowPath->addPath(drawEdges(TopEdge,canvas,frame,borderProps,false));
         pathExist=true;
     }
-    if(isDrawVisible(borderProps.borderColors.bottom,borderProps.borderWidths.bottom)){
+    if(RSkDrawUtils::isDrawVisible(borderProps.borderColors.bottom,borderProps.borderWidths.bottom)){
         shadowPath->addPath(drawEdges(BottomEdge,canvas,frame,borderProps,false));
         pathExist=true;
     }
@@ -298,6 +293,10 @@ bool createshadowPath( SkCanvas *canvas,Rect frame,
 }
 } //namespace
 namespace RSkDrawUtils{
+bool isDrawVisible(SharedColor Color,Float thickness)
+{
+    return (Color !=clearColor() && thickness > 0.0)? true:false;
+}
 void  drawBackground(SkCanvas *canvas, 
                                Rect frame,
                                BorderMetrics borderProps,
@@ -350,7 +349,7 @@ bool  drawShadow(SkCanvas *canvas,Rect frame,
 
     if(shadowFilter == NULL) return false;
     SkPaint paint;
-    if(shadowRadius == 0||shadowFilter == NULL)
+    if(shadowRadius != 0)
       paint.setImageFilter( shadowFilter);
 
     DrawMethod shadowOn = None;
@@ -418,6 +417,51 @@ void drawUnderline(SkCanvas *canvas,Rect frame,SharedColor underlineColor){
     auto frameOrigin = frame.origin;
     auto frameSize = frame.size;
     canvas->drawLine(frameOrigin.x,frameOrigin.y+frameSize.height-BOTTOMALIGNMENT,frameOrigin.x+frameSize.width,frameOrigin.y+frameSize.height-BOTTOMALIGNMENT, paint);
+}
+bool isShadowTobedrawn(Float shadowOpacity,
+                  sk_sp<SkImageFilter> shadowFilter,
+                  int shadowRadius){
+  if(shadowOpacity && shadowFilter && shadowRadius){
+    return true;
+  }
+  return false;
+}
+void drawContentShadow(Rect frame,
+                            SkCanvas *canvas,
+                            SkPaint shadowPaint,
+                            SkRect targetRect,
+                            sk_sp<SkImage> imageData,
+                            BorderMetrics imageBorderMetrics,
+                            Float shadowOpacity,
+                            SkSize size){
+
+    bool SaveLAyerDone=false;
+      SkMatrix identityMatrix;
+      SkRect frameRect = SkRect::MakeXYWH(frame.origin.x, frame.origin.y, frame.size.width, frame.size.height);
+      //Calculate absolute frame bounds
+      SkIRect ShadowIRect = SkIRect::MakeXYWH(frame.origin.x + size.width(), frame.origin.y + size.height(), frame.size.width, frame.size.height);
+      SkIRect joinedRect = shadowPaint.getImageFilter()->filterBounds(
+                                               ShadowIRect,
+                                               identityMatrix,
+                                               SkImageFilter::kForward_MapDirection,
+                                               nullptr);
+      SkRect mapRect=SkRect::Make(joinedRect);
+      mapRect.join(frameRect);
+      if(!(isOpaque(shadowOpacity))) {
+        canvas->saveLayerAlpha(&mapRect,shadowOpacity);
+        SaveLAyerDone=true;
+      }
+      if(!imageData->isOpaque()) {
+        canvas->drawImageRect(imageData, targetRect, &shadowPaint);
+      } else if((imageBorderMetrics.borderColors.isUniform() && isDrawVisible(imageBorderMetrics.borderColors.left))) {
+        if(!SaveLAyerDone) {
+          canvas->saveLayer(&mapRect,&shadowPaint);
+        }
+        canvas->clipRect(frameRect,SkClipOp::kDifference);
+        canvas->drawIRect(ShadowIRect, shadowPaint);
+      }
+      if(SaveLAyerDone)
+        canvas->restore();
 }
 } // namespace RSkDrawUtils
 } // namespace react

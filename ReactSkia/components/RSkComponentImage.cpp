@@ -33,10 +33,6 @@ RSkComponentImage::RSkComponentImage(const ShadowView &shadowView)
       imageEventEmitter_ = std::static_pointer_cast<ImageEventEmitter const>(shadowView.eventEmitter);
 }
 
-bool isDrawVisible(SharedColor Color,Float thickness=1.0)
-{
-    return (Color !=clearColor() && thickness > 0.0)? true:false;
-}
 void RSkComponentImage::OnPaint(SkCanvas *canvas) {
   sk_sp<SkImage> imageData{nullptr};
   string path;
@@ -68,7 +64,8 @@ void RSkComponentImage::OnPaint(SkCanvas *canvas) {
   sk_sp<SkImageFilter> imageFilter;
 
   if(layer()->shadowFilter) {
-    contentShadow=drawShadow(canvas,frame,imageBorderMetrics,imageProps.backgroundColor,layer()->shadowOpacity,layer()->shadowFilter,layer()->shadowRadius);
+    if(isShadowTobedrawn(layer()->shadowOpacity,layer()->shadowFilter,layer()->shadowRadius))
+      contentShadow=drawShadow(canvas,frame,imageBorderMetrics,imageProps.backgroundColor,layer()->shadowOpacity,layer()->shadowFilter,layer()->shadowRadius);
   }
   drawBackground(canvas,frame,imageBorderMetrics,imageProps.backgroundColor);
 
@@ -84,33 +81,7 @@ void RSkComponentImage::OnPaint(SkCanvas *canvas) {
         imageFilter = SkImageFilters::Blur(imageProps.blurRadius, imageProps.blurRadius,(imageFilter ? imageFilter : layer()->shadowFilter));
       }
       imageFilter ? shadowPaint.setImageFilter(std::move(imageFilter)) : shadowPaint.setImageFilter(layer()->shadowFilter);
-
-      bool shadowflag=false;
-      SkMatrix identityMatrix;
-      //Calculate absolute frame bounds
-      SkIRect ShadowIRect = SkIRect::MakeXYWH(frame.origin.x + layer()->shadowOffset.width(), frame.origin.y + layer()->shadowOffset.height(), frame.size.width, frame.size.height);
-      SkIRect joinedRect = shadowPaint.getImageFilter()->filterBounds(
-                                               ShadowIRect,
-                                               identityMatrix,
-                                               SkImageFilter::kForward_MapDirection,
-                                               nullptr);
-      SkRect mapRect=SkRect::Make(joinedRect);
-      mapRect.join(frameRect);
-      if(!(isOpaque(layer()->shadowOpacity))) {
-        canvas->saveLayerAlpha(&mapRect,layer()->shadowOpacity);
-        shadowflag=true;
-      }
-      if(!imageData->isOpaque()) {
-        canvas->drawImageRect(imageData, targetRect, &shadowPaint);
-      } else if((imageBorderMetrics.borderColors.isUniform() && isDrawVisible(imageBorderMetrics.borderColors.left))) {
-        if(!shadowflag) {
-          canvas->save();
-        }
-        canvas->clipRect(frameRect,SkClipOp::kDifference);
-        canvas->drawIRect(ShadowIRect, shadowPaint);
-      }
-      if(shadowflag)
-        canvas->restore();
+      drawContentShadow(frame,canvas,shadowPaint,targetRect,imageData,imageBorderMetrics,layer()->shadowOpacity,layer()->shadowOffset);
     }
     /*Draw Image */
     if(( frameRect.width() < targetRect.width()) || ( frameRect.height() < targetRect.height()))
