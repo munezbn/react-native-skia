@@ -30,19 +30,46 @@ static std::unique_ptr<NotificationCenter> subWindowCenter_;//SubWindow Notifica
 
 void NotificationCenter::removeListener(unsigned int listener_id) {
     std::lock_guard<std::mutex> lock(mutex);
-
-    auto i = std::find_if(listeners.begin(), listeners.end(), [&] (std::pair<const std::string, std::shared_ptr<ListenerBase>> p) {
-        return p.second->id == listener_id;
-    });
-    if (i != listeners.end()) {
-        listeners.erase(i);
+    std::string first;
+    //std::vector<std::shared_ptr<ListenerBase>>::iterator;
+    int index;
+     for (auto it = listenersList.begin(); it != listenersList.end(); it++){
+      //for (auto& iter : listenersList) {
+      first=std::string("");
+      auto vhandle = it->second;
+      index=0;
+      for(auto itr = vhandle.begin(); itr != vhandle.end();itr++){
+        //std::cout<<"itr->id"<<itr->id<<"*************************listener_id **************************"<<listener_id<<std::endl;
+        
+        if((*itr)->id == listener_id){
+          std::cout<<"*************************(*itr) "<<(*itr)->id<<std::endl;
+          first = it->first;
+          std::cout<<"*************************(*itr) "<<(*itr)->id <<"first===========" <<first <<std::endl;
+          break;
+          //vhandle.erase(vhandle.begin()+index);
+        }
+        index++;
+      }
+    } 
+    if(first != ""){
+      std::cout<<"I am in erase condition first ======== "<<first<<"$$$$$$$$$$$$" <<std::endl;
+      std::cout<<"*************************vhandle "<<(listenersList[first].begin()+index)->use_count()<<"**********************"<<std::endl;
+      
+      listenersList[first].erase((listenersList[first].begin()+index));
     }
-    else {
-        // throw does not work as exception is disbaled with -fno-exceptions 
-        //throw std::invalid_argument("NotificationCenter::removeListener: Invalid listener id.");
+    // auto i = std::find_if(listeners.begin(), listeners.end(), [&] (std::pair<const std::string, std::shared_ptr<ListenerBase>> p) {
+    //     return p.second->id == listener_id;
+    // });
+    // if (i != listeners.end()) {
+    //     listeners.erase(i);
+    // }
 
-        std::cout << "NotificationCenter::removeListener: Invalid listener id.";
-    }
+    // else {
+    //     // throw does not work as exception is disbaled with -fno-exceptions 
+    //     //throw std::invalid_argument("NotificationCenter::removeListener: Invalid listener id.");
+
+    //     std::cout << "NotificationCenter::removeListener: Invalid listener id.";
+    // }
 }
 
 NotificationCenter& NotificationCenter::defaultCenter() {

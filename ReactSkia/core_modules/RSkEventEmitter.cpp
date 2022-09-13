@@ -29,6 +29,7 @@ jsi::Value RSkEventEmitter::addListenerWrapper(
       TurboModule &turboModule,
       const jsi::Value *args,
       size_t count) {
+    RNS_LOG_INFO("<<<<<<<<<<<<<<<<<<<<<<RSkEventEmitter::addListenerWrapper>>>>>>>>>>>>>>>>>>");
     if (count != 1) {
       return jsi::Value::undefined();
     }
@@ -42,6 +43,7 @@ jsi::Value RSkEventEmitter::addListenerWrapper(
 
 jsi::Value RSkEventEmitter::addListener(std::string eventName) {
     listenerCount_++;
+    RNS_LOG_INFO("<<<<<<<<<<<<<<<<<<<<<<RSkEventEmitter::addListener >>>>>>>>>>>>>>>>>> count ==  "<<listenerCount_);
     if (listenerCount_ == 1) {
         // TODO: It would be beneficial to pass on the eventName as a parameter as a Derived class may
         // be responsible to observing different types of events 
@@ -77,7 +79,7 @@ jsi::Value RSkEventEmitter::removeListenersWrapper(
     }
     auto &self = static_cast<RSkEventEmitter &>(turboModule);
     int removeCount = args[0].getNumber();
-
+    RNS_LOG_INFO("<<<<<<<<<<<<<<<<<<<<<<RSkEventEmitter::removeListenersWrapper>>>>>>>>>>>>>>>>>> count ");
     // Call the specific non-static Class object
     return self.removeListeners(removeCount);
 }
@@ -85,7 +87,7 @@ jsi::Value RSkEventEmitter::removeListenersWrapper(
 jsi::Value RSkEventEmitter::removeListeners(int removeCount) {
 
     listenerCount_ = std::max(listenerCount_ - removeCount, 0);
-
+     RNS_LOG_INFO("<<<<<<<<<<<<<<<<<<<<<<RSkEventEmitter::removeListeners>>>>>>>>>>>>>>>>>> count "<< removeCount);
     if (listenerCount_ == 0) {
         // TODO: It should be beneficial to pass on the eventName as a Derived class may
         // be responsible to observing different types of events 

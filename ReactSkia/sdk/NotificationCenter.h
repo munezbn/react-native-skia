@@ -30,6 +30,9 @@
 #include <mutex>
 #include <list>
 #include <algorithm>
+#include <vector>
+#include <iterator>
+
 #include <folly/io/async/ScopedEventBaseThread.h>
 
 #pragma once
@@ -61,7 +64,7 @@ class NotificationCenter {
 
         std::mutex mutex;
         unsigned int last_listener;
-        std::multimap<std::string, std::shared_ptr<ListenerBase>> listeners;
+        std::map<std::string, std::vector<std::shared_ptr<ListenerBase>>> listenersList;
 
         NotificationCenter(const NotificationCenter&) = delete;  
         const NotificationCenter& operator = (const NotificationCenter&) = delete;
@@ -104,11 +107,21 @@ unsigned int NotificationCenter::addListener(std::string eventName, std::functio
         //throw std::invalid_argument("NotificationCenter::addListener: No callbak provided.");
 
         std::cout << "NotificationCenter::addListener: No callback provided.";
+        return 0;
     }
     std::lock_guard<std::mutex> lock(mutex);
 
     unsigned int listener_id = ++last_listener;
-    listeners.insert(std::make_pair(eventName, std::make_shared<Listener<Args...>>(listener_id, cb)));
+    auto itr = listenersList.find(eventName);
+    std::cout<<"addListener in vec iterator"<<eventName<<"ID of listener" <<last_listener <<std::endl;
+    if( itr!=listenersList.end() ){
+      (itr->second).push_back(std::make_shared<Listener<Args...>>(listener_id, cb));
+    }
+    else{
+      std::vector<std::shared_ptr<ListenerBase>> vHandle;
+      vHandle.push_back(std::make_shared<Listener<Args...>>(listener_id, cb));
+      listenersList.insert({eventName,vHandle});
+    }
 
     return listener_id;        
 }
@@ -120,22 +133,19 @@ unsigned int NotificationCenter::on(std::string eventName, std::function<void (A
 
 template <typename... Args>
 void NotificationCenter::emit(std::string eventName, Args... args) {
-    //Creating the dispatch Handler for dispach the event in the event base folly thread. 
-    auto dispatchHandler = [=](){   
-      std::list<std::shared_ptr<Listener<Args...>>> handlers;
-      {
-        std::lock_guard<std::mutex> lock(mutex);     
-        auto range = listeners.equal_range(eventName);
-        handlers.resize(std::distance(range.first, range.second));
-        std::transform(range.first, range.second, handlers.begin(), 
-            [] (std::pair<const std::string, std::shared_ptr<ListenerBase>> p) {
-              auto l = std::dynamic_pointer_cast<Listener<Args...>>(p.second);  
-              return l;
-        });
-      }
-      for (auto& h : handlers) {
-        h->cb(args...);
-      }   
-    };//End of dispacthHandler
-    eventNotifierThread_.getEventBase()->runInEventBaseThread(std::move(dispatchHandler));  
+  //Creating the dispatch Handler for dispach the event in the event base folly thread. 
+  auto dispatchHandler = [=](){   
+    std::unique_lock<std::mutex> lock(mutex);
+    auto itr =listenersList.find(eventName);
+    if(itr == listenersList.end()){
+      return;
+    } 
+    auto handle = itr->second;
+    mutex.unlock();
+    for (auto& iter : handle) {
+      auto l =  std::dynamic_pointer_cast<Listener<Args...>>(iter);
+      l->cb(args...);
+    } 
+  };//End of dispacthHandler
+  eventNotifierThread_.getEventBase()->runInEventBaseThread(std::move(dispatchHandler));  
 }
