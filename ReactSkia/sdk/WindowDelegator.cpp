@@ -65,7 +65,9 @@ void WindowDelegator::closeWindow() {
   windowActive = false;
   std::scoped_lock lock(renderCtrlMutex);
 
-  if(ownsTaskrunner_) windowTaskRunner_->stop();
+  if(ownsTaskrunner_) {
+    windowTaskRunner_->stop();
+  }
   if (workerThread_.joinable() ) {
     workerThread_.join();
   }

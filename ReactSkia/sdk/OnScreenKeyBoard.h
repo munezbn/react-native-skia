@@ -140,7 +140,7 @@ class OnScreenKeyboard : public WindowDelegator{
       SkScalar          kBVerticalStart;
     };
 
-    OnScreenKeyboard();
+    OnScreenKeyboard() = default;
     ~OnScreenKeyboard() = default;
 
     void launchOSKWindow();
@@ -189,6 +189,7 @@ class OnScreenKeyboard : public WindowDelegator{
     bool          autoActivateReturnKey_{false};
     SkScalar      spaceWidth_{0};
     SkScalar      displayStrWidth_{0};
+    rnsKey        emittedOSKKey_{RNS_KEY_UnKnown};
 #if ENABLE(FEATURE_KEY_THROTTLING)
     std::unique_ptr<ThreadSafeQueue<rnsKey>> repeatKeyQueue_;
     std::thread   repeatKeyHandler_;
