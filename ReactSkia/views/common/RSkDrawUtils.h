@@ -10,7 +10,7 @@
 #include "include/core/SkCanvas.h"
 #include "include/effects/SkDashPathEffect.h"
 #include <react/renderer/components/view/ViewProps.h>
-
+#include "rns_shell/compositor/layers/Layer.h"
 
 namespace facebook {
 namespace react {
@@ -30,9 +30,7 @@ namespace RSkDrawUtils{
                                Rect frame,
                                BorderMetrics borderMetrics,
                                SharedColor bgColor,
-                               Float shadowOpacity,
-                               sk_sp<SkImageFilter> shadowFilter,
-                               int shadowRadius);
+                               struct RnsShell::shadowParams shadowParamsObj);
   void drawUnderline(SkCanvas *canvas,Rect frame,SharedColor underlineColor);
   bool isDrawVisible(SharedColor Color,Float thickness=1.0);
   void drawContentShadow(Rect frame,

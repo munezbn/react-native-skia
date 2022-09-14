@@ -42,7 +42,14 @@ enum LayerInvalidateMask {
     LayerRemoveInvalidate = 1 << 2,
     LayerInvalidateAll = LayerPaintInvalidate | LayerLayoutInvalidate
 };
+struct shadowParams {
+    float shadowOpacity{0};
+    float shadowRadius{3};
+    SkColor shadowColor=SK_ColorBLACK;
+    SkSize shadowOffset{0,-3};
+    sk_sp<SkImageFilter> shadowFilter;
 
+};
 typedef std::vector<std::shared_ptr<Layer> > LayerList;
 using SharedLayer = std::shared_ptr<Layer>;
 
@@ -75,13 +82,9 @@ public:
     SkColor backgroundColor;
     int  backfaceVisibility;
     float opacity{255.9999};
-
-    float shadowOpacity{0};
-    float shadowRadius{3};
-    SkColor shadowColor=SK_ColorBLACK;
-    SkSize shadowOffset{0,-3};
-    sk_sp<SkImageFilter> shadowFilter;
     SkMatrix transformMatrix;
+
+    struct shadowParams shadowParamsObj;
 
     static SharedLayer Create(Client& layerClient, LayerType type = LAYER_TYPE_DEFAULT);
     Layer(Client&, LayerType);

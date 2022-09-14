@@ -63,9 +63,9 @@ void RSkComponentImage::OnPaint(SkCanvas *canvas) {
   bool needClipAndRestore =false;
   sk_sp<SkImageFilter> imageFilter;
 
-  if(layer()->shadowFilter) {
-    if(isShadowTobedrawn(layer()->shadowOpacity,layer()->shadowFilter,layer()->shadowRadius))
-      contentShadow=drawShadow(canvas,frame,imageBorderMetrics,imageProps.backgroundColor,layer()->shadowOpacity,layer()->shadowFilter,layer()->shadowRadius);
+  if(layer()->shadowParamsObj.shadowFilter) {
+    if(isShadowTobedrawn(layer()->shadowParamsObj.shadowOpacity,layer()->shadowParamsObj.shadowFilter,layer()->shadowParamsObj.shadowRadius))
+      contentShadow=drawShadow(canvas,frame,imageBorderMetrics,imageProps.backgroundColor,layer()->shadowParamsObj);
   }
   drawBackground(canvas,frame,imageBorderMetrics,imageProps.backgroundColor);
 
@@ -75,13 +75,13 @@ void RSkComponentImage::OnPaint(SkCanvas *canvas) {
     /*Draw Image Shadow*/
     if(contentShadow) {
       if(imageProps.resizeMode == ImageResizeMode::Repeat) {
-        imageFilter = SkImageFilters::Tile(targetRect,frameRect,layer()->shadowFilter);
+        imageFilter = SkImageFilters::Tile(targetRect,frameRect,layer()->shadowParamsObj.shadowFilter);
       }
       if(imageProps.blurRadius > 0) {
-        imageFilter = SkImageFilters::Blur(imageProps.blurRadius, imageProps.blurRadius,(imageFilter ? imageFilter : layer()->shadowFilter));
+        imageFilter = SkImageFilters::Blur(imageProps.blurRadius, imageProps.blurRadius,(imageFilter ? imageFilter : layer()->shadowParamsObj.shadowFilter));
       }
-      imageFilter ? shadowPaint.setImageFilter(std::move(imageFilter)) : shadowPaint.setImageFilter(layer()->shadowFilter);
-      drawContentShadow(frame,canvas,shadowPaint,targetRect,imageData,imageBorderMetrics,layer()->shadowOpacity,layer()->shadowOffset);
+      imageFilter ? shadowPaint.setImageFilter(std::move(imageFilter)) : shadowPaint.setImageFilter(layer()->shadowParamsObj.shadowFilter);
+      drawContentShadow(frame,canvas,shadowPaint,targetRect,imageData,imageBorderMetrics,layer()->shadowParamsObj.shadowOpacity,layer()->shadowParamsObj.shadowOffset);
     }
     /*Draw Image */
     if(( frameRect.width() < targetRect.width()) || ( frameRect.height() < targetRect.height()))

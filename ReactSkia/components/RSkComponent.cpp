@@ -45,8 +45,8 @@ void RSkComponent::OnPaintShadow(SkCanvas *canvas) {
 
   /* apply view style props */
   auto borderMetrics= viewProps.resolveBorderMetrics(component_.layoutMetrics);
-  if(layer_->shadowOpacity && layer_->shadowFilter){
-      drawShadow(canvas,component_.layoutMetrics.frame,borderMetrics,layer_->backgroundColor,layer_->shadowOpacity,layer_->shadowFilter,layer_->shadowRadius);
+  if(layer_->shadowParamsObj.shadowOpacity && layer_->shadowParamsObj.shadowFilter){
+      drawShadow(canvas,component_.layoutMetrics.frame,borderMetrics,layer_->backgroundColor,layer_->shadowParamsObj);
   }
 }
 
@@ -106,28 +106,28 @@ RnsShell::LayerInvalidateMask RSkComponent::updateProps(const ShadowView &newSha
    }
   //ShadowOpacity
    if ((forceUpdate) || (oldviewProps.shadowOpacity != newviewProps.shadowOpacity)) {
-      layer_->shadowOpacity = ((newviewProps.shadowOpacity > 1.0) ? 1.0:newviewProps.shadowOpacity)*MAX_8BIT;
+      layer_->shadowParamsObj.shadowOpacity = ((newviewProps.shadowOpacity > 1.0) ? 1.0:newviewProps.shadowOpacity)*MAX_8BIT;
       /*TODO : To be tested and confirm updateMask need for this Prop*/
       updateMask =static_cast<RnsShell::LayerInvalidateMask>(updateMask | RnsShell::LayerInvalidateAll);
       createShadowFilter=true;
    }
   //shadowRadius
    if ((forceUpdate) || (oldviewProps.shadowRadius != newviewProps.shadowRadius)) {
-      layer_->shadowRadius = newviewProps.shadowRadius;
+      layer_->shadowParamsObj.shadowRadius = newviewProps.shadowRadius;
       /*TODO : To be tested and confirm updateMask need for this Prop*/
       updateMask =static_cast<RnsShell::LayerInvalidateMask>(updateMask | RnsShell::LayerInvalidateAll);
       createShadowFilter=true;
    }
   //shadowoffset
    if ((forceUpdate) || (oldviewProps.shadowOffset != newviewProps.shadowOffset)) {
-      layer_->shadowOffset = RSkSkSizeFromSize(newviewProps.shadowOffset);
+      layer_->shadowParamsObj.shadowOffset = RSkSkSizeFromSize(newviewProps.shadowOffset);
       /*TODO : To be tested and confirm updateMask need for this Prop*/
       updateMask =static_cast<RnsShell::LayerInvalidateMask>(updateMask | RnsShell::LayerInvalidateAll);
       createShadowFilter=true;
    }
   //shadowcolor
    if ((forceUpdate) || (oldviewProps.shadowColor != newviewProps.shadowColor)) {
-      layer_->shadowColor = RSkColorFromSharedColor(newviewProps.shadowColor,SK_ColorBLACK);
+      layer_->shadowParamsObj.shadowColor = RSkColorFromSharedColor(newviewProps.shadowColor,SK_ColorBLACK);
       /*TODO : To be tested and confirm updateMask need for this Prop*/
       updateMask =static_cast<RnsShell::LayerInvalidateMask>(updateMask | RnsShell::LayerInvalidateAll);
       createShadowFilter=true;
@@ -135,13 +135,13 @@ RnsShell::LayerInvalidateMask RSkComponent::updateProps(const ShadowView &newSha
 
    /* Reset shadow filter - if valid and shadow opacity is 0.0 */
    /* Create shadow filter - shadow opacity is not 0 and change in any props of shadow - opacity,offset,radius */
-   if(layer_->shadowOpacity && createShadowFilter) {
-       layer_->shadowFilter= SkImageFilters::DropShadowOnly(
-                              layer_->shadowOffset.width(), layer_->shadowOffset.height(),
-                              layer_->shadowRadius, layer_->shadowRadius,
-                              layer_->shadowColor, nullptr);
-   } else if ((layer_->shadowFilter != nullptr) && (layer_->shadowOpacity == 0.0)) {
-       layer_->shadowFilter.reset();
+   if(layer_->shadowParamsObj.shadowOpacity && createShadowFilter) {
+       layer_->shadowParamsObj.shadowFilter= SkImageFilters::DropShadowOnly(
+                              layer_->shadowParamsObj.shadowOffset.width(), layer_->shadowParamsObj.shadowOffset.height(),
+                              layer_->shadowParamsObj.shadowRadius, layer_->shadowParamsObj.shadowRadius,
+                              layer_->shadowParamsObj.shadowColor, nullptr);
+   } else if ((layer_->shadowParamsObj.shadowFilter != nullptr) && (layer_->shadowParamsObj.shadowOpacity == 0.0)) {
+       layer_->shadowParamsObj.shadowFilter.reset();
    }
   //backgroundColor
    if ((forceUpdate) || (oldviewProps.backgroundColor != newviewProps.backgroundColor)) {

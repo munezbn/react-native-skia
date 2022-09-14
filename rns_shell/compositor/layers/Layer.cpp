@@ -139,9 +139,9 @@ void Layer::preRoll(PaintContext& context, bool forceLayout) {
         absFrame_ = SkIRect::MakeXYWH(mapRect.x(), mapRect.y(), mapRect.width(), mapRect.height());
         SkIRect newBounds = absFrame_;
         frameBounds_ = frame_;
-        if(shadowFilter) {
+        if(shadowParamsObj.shadowFilter) {
             SkMatrix identityMatrix;
-            frameBounds_ = shadowFilter->filterBounds(
+            frameBounds_ = shadowParamsObj.shadowFilter->filterBounds(
                                                frame_,
                                                identityMatrix,
                                                SkImageFilter::kForward_MapDirection,

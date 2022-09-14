@@ -343,14 +343,12 @@ void drawBorder(SkCanvas *canvas,
 bool  drawShadow(SkCanvas *canvas,Rect frame,
                         BorderMetrics borderProps,
                         SharedColor backgroundColor,
-                        Float shadowOpacity,
-                        sk_sp<SkImageFilter> shadowFilter,
-                        int shadowRadius) {
+                        RnsShell::shadowParams shadowParamsObj) {
 
-    if(shadowFilter == NULL) return false;
+    if(shadowParamsObj.shadowFilter == NULL) return false;
     SkPaint paint;
-    if(shadowRadius != 0)
-      paint.setImageFilter( shadowFilter);
+    if(shadowParamsObj.shadowRadius != 0)
+      paint.setImageFilter(shadowParamsObj.shadowFilter);
 
     DrawMethod shadowOn = None;
     /*Shadow on Background : If bg  visible */
@@ -377,10 +375,10 @@ bool  drawShadow(SkCanvas *canvas,Rect frame,
         SkRRect clipRRect;
         clipRRect.setRectRadii(clipRect,radii);
 
-        bool needsSaveLayer =((!(isOpaque(shadowOpacity))) || (shadowOn == Background));
+        bool needsSaveLayer =((!(isOpaque(shadowParamsObj.shadowOpacity))) || (shadowOn == Background));
 
         if(needsSaveLayer)
-            canvas->saveLayerAlpha(NULL,shadowOpacity);
+            canvas->saveLayerAlpha(NULL,shadowParamsObj.shadowOpacity);
         if(shadowOn == Background)
             canvas->clipRRect(clipRRect,SkClipOp::kDifference);
         drawRect(shadowOn,canvas,frame,borderProps,backgroundColor,&paint);
@@ -396,11 +394,11 @@ bool  drawShadow(SkCanvas *canvas,Rect frame,
         bool pathExist=createshadowPath(canvas,frame,borderProps,&shadowPath);;
 
        if(pathExist) {
-           if(!(isOpaque(shadowOpacity)))
-               canvas->saveLayerAlpha(NULL,shadowOpacity);
+           if(!(isOpaque(shadowParamsObj.shadowOpacity)))
+               canvas->saveLayerAlpha(NULL,shadowParamsObj.shadowOpacity);
            canvas->clipPath(shadowPath,SkClipOp::kDifference);
            canvas->drawPath(shadowPath,paint);
-           if(!(isOpaque(shadowOpacity)))
+           if(!(isOpaque(shadowParamsObj.shadowOpacity)))
                canvas->restore();
         }
         return true;
