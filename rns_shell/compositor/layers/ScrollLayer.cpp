@@ -412,7 +412,11 @@ void ScrollLayer::paintSelf(PaintContext& context) {
 #if !defined(GOOGLE_STRIP_LOG) || (GOOGLE_STRIP_LOG <= INFO)
     RNS_GET_TIME_STAMP_US(start);
 #endif
-
+    /* Paint self algorithm */
+    /*  1. Draw shadow using shadow picture playback */
+    /*  2. Draw visible rect of bitmap (srcRect) to parent canvas frame (dstRect) */
+    /*  3. Draw scroll bar (in bitmap mode)*/
+    /*  4. Draw border using border picture playback (in bitmap mode)*/
     if(shadowPicture()) {
         RNS_LOG_DEBUG("SkPicture ( "  << shadowPicture_ << " )For " <<
                 shadowPicture()->approximateOpCount() << " operations and size : " << shadowPicture()->approximateBytesUsed());
@@ -420,7 +424,6 @@ void ScrollLayer::paintSelf(PaintContext& context) {
     }
 
 #if USE(SCROLL_LAYER_BITMAP)
-
     if(drawDestRect_.isEmpty() || drawSrcRect_.isEmpty()) {
        drawDestRect_ = frame_;
        drawSrcRect_.setXYWH(scrollOffsetX_,scrollOffsetY_,frame_.width(),frame_.height());
@@ -438,6 +441,7 @@ void ScrollLayer::paintSelf(PaintContext& context) {
 
 #else
 
+    // We will draw only frame rect here, scrollbar and border will be drawn after childrens are drawn
     if(backgroundColor != SK_ColorTRANSPARENT) {
       SkPaint paint;
       paint.setColor(backgroundColor);
@@ -457,14 +461,13 @@ void ScrollLayer::paintSelfAndChildren(PaintContext& context) {
     RNS_GET_TIME_STAMP_US(start);
 #endif
     //Paint sequence
-    //1. Paint shadow on parent's canvas
-    //2. Paint self on parent's canvas
-    //3. Clip frame rect to ensure children do not draw outside area
-    //4. Update self scrollOffset with parent's scroll offset in paint context
-    //5. Paint children on parent's canvas
-    //6. Paint scroll bar on parent's canvas
-    //7. Paint border on parent's canvas
-    //8. Revert back updated scroll offset in paint context
+    //1. Paint self on parent's canvas(without scrollbar and border)
+    //2. Clip frame rect to ensure children do not draw outside area
+    //3. Update self scrollOffset with parent's scroll offset in paint context
+    //4. Paint children on parent's canvas
+    //5. Paint scroll bar on parent's canvas
+    //6. Paint border on parent's canvas
+    //7. Revert back updated scroll offset in paint context
 
     paintSelf(context);
 
@@ -496,10 +499,7 @@ void ScrollLayer::paintChildrenAndSelf(PaintContext& context) {
     //2. Clip path on bitmap based on damageRects on bitmap
     //3. Draw background color
     //4. Paint children on bitmap
-    //5. Paint border on parent's canvas
-    //6. Paint self on parent's canvas
-    //7. Paint scrollbar on parent's canvas
-    //8. Paint shadow on parent's canvas
+    //5. Paint self on parent's canvas
 
     PaintContext bitmapPaintContext = {
             scrollCanvas_.get(),  // canvas

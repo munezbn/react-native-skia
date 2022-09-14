@@ -110,6 +110,7 @@ SkRect Compositor::beginClip(PaintContext& context, bool useClipRegion) {
 
     context.canvas->clipPath(clipPath);
     clipBound = clipPath.getBounds();
+
     return clipBound;
 }
 
