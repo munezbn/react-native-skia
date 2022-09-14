@@ -1,12 +1,15 @@
-import React, { useState, useRef} from "react";
+import React, { useState, useRef , Component} from "react";
 import { TouchableHighlight, TouchableOpacity, Pressable, Text, View, ImageBackground, Image, ScrollView } from "react-native";
 import { Dimensions , StyleSheet} from "react-native";
+import { RecyclerListView, DataProvider, LayoutProvider } from "recyclerlistview";
 
 const windowSize = Dimensions.get('window');
 let titleTextFontSize = windowSize.height/25;
 let titleTextContentSize = windowSize.height/45;
 let titleTextGenreSize = windowSize.height/35;
 let content = [];
+let hsvWidth = (windowSize.width/100)*90;
+let aheadOffset = windowSize.height*3;
 
 const thumbnailImagePath = [
       require('./images/thumbnail_300x160/1.jpg'),
@@ -113,6 +116,112 @@ const posterImagePath_512x288 = [
 
 var posterImagePath = windowSize.height > 720 ? posterImagePath_716x300 : posterImagePath_512x288 ;
 
+const ViewTypes = {
+    FULL: 0,
+    HALF_LEFT: 1,
+    HALF_RIGHT: 2
+};
+
+let containerCount = 0;
+let index = 0;
+
+class CellContainer extends React.Component {
+    constructor(args) {
+        super(args);
+        index +=8;
+        if(index > 24) index = 0;
+        this._indexId = index;
+        this.changeBackground = args.changeBackground;
+    }
+
+    addItems = () => {
+       var arr = [];
+       let n = this._indexId
+       for (var i=n; i<n+8; i++){
+          arr.push(<FocusableComponent count={i} change={this.changeBackground}></FocusableComponent>);
+       }
+       return arr;
+    }
+
+    render() {
+        return(
+          <ScrollView style={styles.horizontalScrollView} horizontal={true} >
+            {this.addItems()}
+          </ScrollView>
+        );
+    }
+}
+
+class RecycleTestComponent extends React.Component {
+    constructor(args) {
+        super(args);
+        let dataProvider = new DataProvider((r1, r2) => {
+            return r1 !== r2;
+        });
+        this._layoutProvider = new LayoutProvider(
+            index => {
+                    return ViewTypes.FULL;
+            },
+            (type, dim) => {
+                switch (type) {
+                    case ViewTypes.FULL:
+                        dim.width = hsvWidth-10;
+                        dim.height = 220;
+                        break;
+                    default:
+                        dim.width = 0;
+                        dim.height = 0;
+                }
+            }
+        );
+
+        this._rowRenderer = this._rowRenderer.bind(this);
+
+        //Since component should always render once data has changed, make data provider part of the state
+        this.state = {
+            dataProvider: dataProvider.cloneWithRows(this._generateArray(30)),
+            count : 30
+        };
+
+        this.changeBackground = args.changeBackground;
+
+    }
+
+    _generateArray(n) {
+        let arr = new Array(n);
+        for (let i = 0; i < n; i++) {
+            arr[i] = i;
+        }
+        return arr;
+    }
+
+    _rowRenderer(type, data) {
+        switch (type) {
+            case ViewTypes.FULL:
+                return (
+                 <>
+                   <Text style={styles.elementText}>{data}</Text>
+                   <CellContainer changeBackground={this.changeBackground}>
+                   </CellContainer>
+                 </>
+                );
+            default:
+                return null;
+        }
+    }
+
+    handleEnd() {
+           this.setState({dataProvider:this.state.dataProvider.cloneWithRows(this._generateArray(this.state.count+30)),
+                          count:this.state.count+30});
+    }
+
+    render() {
+        return <RecyclerListView style={styles.verticalScrollView} layoutProvider={this._layoutProvider}
+                         dataProvider={this.state.dataProvider} rowRenderer={this._rowRenderer}
+                         onEndReached={this.handleEnd.bind(this)} renderAheadOffset={aheadOffset}/>;
+    }
+}
+
 const FocusableComponent = (props) =>  {
    let [state, setState] = useState({imgscale: 1,bw:0});
    const onPress = () => {}
@@ -128,37 +237,12 @@ const FocusableComponent = (props) =>  {
        props.change((props.count));
    }
 
-   if(props.count >= 24) {
-       return(
-          <TouchableOpacity isTVSelectable='true' activeOpacity={0.75} onBlur={onBlur} onFocus={onFocus} style={[styles.elementView]} >
-             <Image style={{transform:[{scale: state.imgscale}],width:300,height:160,marginLeft:30,marginTop:16}} source={thumbnailImagePath[props.count]}>
-             </Image>
-          </TouchableOpacity>
-      );
-   } else if((props.count >= 16)) {
-       return (
-          <TouchableHighlight isTVSelectable='true'  onPress={onPress} activeOpacity={0.9} underlayColor='transparent'
-                             onBlur={onBlur} onFocus={onFocus}
-                             style={[styles.elementView]} >
-             <Image style={{transform:[{scale: state.imgscale}],width:300,height:160,marginLeft:30,marginTop:16}} source={thumbnailImagePath[props.count]} resizeMode="cover">
-             </Image>
-          </TouchableHighlight>
-       );
-   } else if((props.count >= 8)) {
        return (
           <Pressable isTVSelectable='true' onBlur={onBlur} onFocus={onFocus} style={[styles.elementView]} >
              <Image style={{transform:[{scale: state.imgscale}],width:300,height:160,marginLeft:30,marginTop:16}} source={thumbnailImagePath[props.count]}>
              </Image>
           </Pressable>
        );
-   } else {
-       return (
-          <Pressable isTVSelectable='true' onBlur={onBlur} onFocus={onFocus} style={[styles.elementView]} >
-             <Image style={{borderWidth:state.bw,borderColor:'lightcyan',width:300,height:160,marginLeft:25,marginTop:10}} source={thumbnailImagePath[props.count]}>
-             </Image>
-          </Pressable>
-       );
-   }
 }
 
 const PosterView = (pvProps) => {
@@ -192,51 +276,10 @@ const SampleVODPage = (props) => {
        pvRef.current(count);
     }
 
-    const addItems = (n) => {
-       var arr = [];
-       for (var i=n; i<n+8; i++){
-          arr.push(<FocusableComponent count={i} change={changeBackground}></FocusableComponent>);
-       }
-       return arr;
-    }
-
-    const horizontalScrollView = (x) => {
-       return (
-          <ScrollView style={styles.horizontalScrollView} horizontal={true}>
-             {addItems(x)}
-          </ScrollView>
-       );
-    }
-
-    const horizontalScrollViewHeader = (text) => {
-       return (
-          <View style={{margin:10}}>
-             <Text style={styles.elementText}>
-              {text}
-             </Text>
-          </View> 
-       );
-    }
-
-    const verticalScrollView = () => {
-        return (    
-          <ScrollView style={styles.verticalScrollView}>
-             {horizontalScrollViewHeader('Continue Watching')}
-             {horizontalScrollView(0)}
-             {horizontalScrollViewHeader('Favorites')}
-             {horizontalScrollView(8)}
-             {horizontalScrollViewHeader('Recommendations')}
-             {horizontalScrollView(16)}
-             {horizontalScrollViewHeader('My List')}
-             {horizontalScrollView(24)}
-          </ScrollView>
-       );
-    }
-
     return (
         <ImageBackground style={styles.backgroundimage} source={require('./images/bg.jpg')}>
            <PosterView pvRef={pvRef} contentData={props.contentData}></PosterView>
-           {verticalScrollView()}
+           <RecycleTestComponent changeBackground={changeBackground}></RecycleTestComponent>
         </ImageBackground>
     );
 }
@@ -256,7 +299,7 @@ const styles = StyleSheet.create({
        height : '40%',
        shadowColor: 'black',
        shadowRadius: 10,
-       shadowOpacity: 1,
+       shadowOpacity: 0,
        shadowOffset: {width:5 , height:30},
     },
     posterContentView: {
@@ -284,7 +327,7 @@ const styles = StyleSheet.create({
        top : windowSize.height/2,
        left : 30,
        width : '90%',
-       height : '40%', 
+       height : '40%',
     },
     horizontalScrollView: {
        margin : 5,
@@ -297,7 +340,7 @@ const styles = StyleSheet.create({
     elementText: {
        color : 'white',
        fontWeight : 'bold',
-       fontSize : titleTextGenreSize
+       fontSize : 10
     }
 
 });
