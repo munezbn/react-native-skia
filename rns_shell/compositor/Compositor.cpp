@@ -94,22 +94,23 @@ SkRect Compositor::beginClip(PaintContext& context, bool useClipRegion) {
         }
 
         context.canvas->clipRegion(clipRgn);
-        return SkRect::Make(clipRgn.getBounds());
-    }
+        clipBound = SkRect::Make(clipRgn.getBounds());
 
-    // Use clipPath for clipping
-    SkPath clipPath = SkPath();
-    for (auto& rect : context.damageRect) {
-        RNS_LOG_DEBUG("Add Damage " << rect.x() << " " << rect.y() << " " << rect.width() << " " << rect.height());
-        clipPath.addRect(rect.left(), rect.top(), rect.right(), rect.bottom());
-    }
+    } else {
+        // Use clipPath for clipping
+        SkPath clipPath = SkPath();
+        for (auto& rect : context.damageRect) {
+            RNS_LOG_DEBUG("Add Damage " << rect.x() << " " << rect.y() << " " << rect.width() << " " << rect.height());
+            clipPath.addRect(rect.left(), rect.top(), rect.right(), rect.bottom());
+        }
 
-    if(clipPath.getBounds().isEmpty()) {
-        return clipBound;
-    }
+        if(clipPath.getBounds().isEmpty()) {
+            return clipBound;
+        }
 
-    context.canvas->clipPath(clipPath);
-    clipBound = clipPath.getBounds();
+        context.canvas->clipPath(clipPath);
+        clipBound = clipPath.getBounds();
+    }
 
     return clipBound;
 }

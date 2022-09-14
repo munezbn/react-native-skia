@@ -387,6 +387,7 @@ void ScrollLayer::prePaint(PaintContext& context, bool forceLayout) {
     RNS_LOG_TRACE("====================================");
 #endif
 
+    //Need to retain RemoveInvalidate mask,since parent requires it for removal from its list
     invalidateMask_ = static_cast<LayerInvalidateMask>(invalidateMask_ & LayerRemoveInvalidate);
     recycleChildList.clear();
 #if USE(SCROLL_LAYER_BITMAP)
