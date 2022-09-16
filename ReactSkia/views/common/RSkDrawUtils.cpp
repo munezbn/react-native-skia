@@ -345,7 +345,7 @@ bool  drawShadow(SkCanvas *canvas,Rect frame,
                         SharedColor backgroundColor,
                         RnsShell::shadowParams shadowParamsObj) {
 
-    if(shadowParamsObj.shadowFilter == NULL) return false;
+    if(!shadowParamsObj.isShadowVisible()) return false;
     SkPaint paint;
     if(shadowParamsObj.shadowRadius != 0)
       paint.setImageFilter(shadowParamsObj.shadowFilter);
@@ -416,28 +416,20 @@ void drawUnderline(SkCanvas *canvas,Rect frame,SharedColor underlineColor){
     auto frameSize = frame.size;
     canvas->drawLine(frameOrigin.x,frameOrigin.y+frameSize.height-BOTTOMALIGNMENT,frameOrigin.x+frameSize.width,frameOrigin.y+frameSize.height-BOTTOMALIGNMENT, paint);
 }
-bool isShadowTobedrawn(Float shadowOpacity,
-                  sk_sp<SkImageFilter> shadowFilter,
-                  int shadowRadius){
-  if(shadowOpacity && shadowFilter && shadowRadius){
-    return true;
-  }
-  return false;
-}
+
 void drawContentShadow(Rect frame,
                             SkCanvas *canvas,
                             SkPaint shadowPaint,
                             SkRect targetRect,
                             sk_sp<SkImage> imageData,
                             BorderMetrics imageBorderMetrics,
-                            Float shadowOpacity,
-                            SkSize size){
-
+                            RnsShell::shadowParams shadowParamsObj){
+printf("@@@@@@@@@@@@@@@@@@@@@ drawContentShadow\n");
     bool SaveLAyerDone=false;
       SkMatrix identityMatrix;
       SkRect frameRect = SkRect::MakeXYWH(frame.origin.x, frame.origin.y, frame.size.width, frame.size.height);
       //Calculate absolute frame bounds
-      SkIRect ShadowIRect = SkIRect::MakeXYWH(frame.origin.x + size.width(), frame.origin.y + size.height(), frame.size.width, frame.size.height);
+      SkIRect ShadowIRect = SkIRect::MakeXYWH(frame.origin.x + shadowParamsObj.shadowOffset.width(), frame.origin.y + shadowParamsObj.shadowOffset.height(), frame.size.width, frame.size.height);
       SkIRect joinedRect = shadowPaint.getImageFilter()->filterBounds(
                                                ShadowIRect,
                                                identityMatrix,
@@ -445,18 +437,23 @@ void drawContentShadow(Rect frame,
                                                nullptr);
       SkRect mapRect=SkRect::Make(joinedRect);
       mapRect.join(frameRect);
-      if(!(isOpaque(shadowOpacity))) {
-        canvas->saveLayerAlpha(&mapRect,shadowOpacity);
+      if(!(isOpaque(shadowParamsObj.shadowOpacity))) {
+        canvas->saveLayerAlpha(&mapRect,shadowParamsObj.shadowOpacity);
         SaveLAyerDone=true;
       }
       if(!imageData->isOpaque()) {
+        printf("@@@@@@@@@@@@@@@@@@@@@ image is png\n");
         canvas->drawImageRect(imageData, targetRect, &shadowPaint);
       } else if((imageBorderMetrics.borderColors.isUniform() && isDrawVisible(imageBorderMetrics.borderColors.left))) {
         if(!SaveLAyerDone) {
           canvas->saveLayer(&mapRect,&shadowPaint);
         }
+        printf("@@@@@@@@@@@@@@@@@@@@@ image is  not png\n");
+        SkPaint paint;
         canvas->clipRect(frameRect,SkClipOp::kDifference);
-        canvas->drawIRect(ShadowIRect, shadowPaint);
+        paint.setMaskFilter(shadowParamsObj.createMaskFilter());
+        paint.setColor(shadowParamsObj.shadowColor);
+        canvas->drawIRect(ShadowIRect, paint);
       }
       if(SaveLAyerDone)
         canvas->restore();

@@ -21,6 +21,8 @@
 #include "include/core/SkCanvas.h"
 #include "include/core/SkSurface.h"
 #include "include/core/SkImageFilter.h"
+#include "include/core/SkMaskFilter.h"
+#include "include/effects/SkImageFilters.h"
 #include "ReactSkia/utils/RnsLog.h"
 #include "ReactSkia/utils/RnsUtils.h"
 
@@ -42,14 +44,41 @@ enum LayerInvalidateMask {
     LayerRemoveInvalidate = 1 << 2,
     LayerInvalidateAll = LayerPaintInvalidate | LayerLayoutInvalidate
 };
+
 struct shadowParams {
+    ~shadowParams () = default;
+    shadowParams (float shadowOpacity=0, float shadowRadius=3, SkColor shadowColor=SK_ColorBLACK, SkSize  shadowOffset={0,-3}, sk_sp<SkImageFilter> shadowFilter=nullptr)
+      : shadowOpacity(shadowOpacity),
+        shadowRadius(shadowRadius),
+        shadowColor(shadowColor),
+        shadowOffset(shadowOffset),
+        shadowFilter(nullptr) {}
+
+    sk_sp<SkMaskFilter> maskFilter{nullptr};   
     float shadowOpacity{0};
     float shadowRadius{3};
     SkColor shadowColor=SK_ColorBLACK;
     SkSize shadowOffset{0,-3};
-    sk_sp<SkImageFilter> shadowFilter;
+    sk_sp<SkImageFilter> shadowFilter{nullptr};
 
+    bool isShadowVisible(){
+        if(shadowFilter || (shadowRadius && shadowOpacity && !shadowOffset.isEmpty())){
+            return true;
+        }
+        return false;
+    }
+    sk_sp<SkImageFilter> createImageFilter() {
+      return  SkImageFilters::DropShadowOnly(shadowOffset.width(), 
+                                       shadowOffset.height(),
+                                       shadowRadius, shadowRadius,
+                                       shadowColor, nullptr);
+    }
+    sk_sp<SkMaskFilter> createMaskFilter() {
+
+        return SkMaskFilter::MakeBlur(kNormal_SkBlurStyle, shadowRadius);
+    }
 };
+
 typedef std::vector<std::shared_ptr<Layer> > LayerList;
 using SharedLayer = std::shared_ptr<Layer>;
 

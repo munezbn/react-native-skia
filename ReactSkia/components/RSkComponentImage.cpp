@@ -64,8 +64,7 @@ void RSkComponentImage::OnPaint(SkCanvas *canvas) {
   sk_sp<SkImageFilter> imageFilter;
 
   if(layer()->shadowParamsObj.shadowFilter) {
-    if(isShadowTobedrawn(layer()->shadowParamsObj.shadowOpacity,layer()->shadowParamsObj.shadowFilter,layer()->shadowParamsObj.shadowRadius))
-      contentShadow=drawShadow(canvas,frame,imageBorderMetrics,imageProps.backgroundColor,layer()->shadowParamsObj);
+    contentShadow=drawShadow(canvas,frame,imageBorderMetrics,imageProps.backgroundColor,layer()->shadowParamsObj);
   }
   drawBackground(canvas,frame,imageBorderMetrics,imageProps.backgroundColor);
 
@@ -81,7 +80,7 @@ void RSkComponentImage::OnPaint(SkCanvas *canvas) {
         imageFilter = SkImageFilters::Blur(imageProps.blurRadius, imageProps.blurRadius,(imageFilter ? imageFilter : layer()->shadowParamsObj.shadowFilter));
       }
       imageFilter ? shadowPaint.setImageFilter(std::move(imageFilter)) : shadowPaint.setImageFilter(layer()->shadowParamsObj.shadowFilter);
-      drawContentShadow(frame,canvas,shadowPaint,targetRect,imageData,imageBorderMetrics,layer()->shadowParamsObj.shadowOpacity,layer()->shadowParamsObj.shadowOffset);
+      drawContentShadow(frame,canvas,shadowPaint,targetRect,imageData,imageBorderMetrics,layer()->shadowParamsObj);
     }
     /*Draw Image */
     if(( frameRect.width() < targetRect.width()) || ( frameRect.height() < targetRect.height()))

@@ -39,11 +39,7 @@ namespace RSkDrawUtils{
                               SkRect targetRect,
                               sk_sp<SkImage> imageData,
                               BorderMetrics imageBorderMetrics,
-                              Float shadowOpacity,
-                              SkSize size);
-  bool isShadowTobedrawn(Float shadowOpacity,
-                  sk_sp<SkImageFilter> shadowFilter,
-                  int shadowRadius);
+                              struct RnsShell::shadowParams shadowParamsObj);
 }//namespace RSkDrawUtils
 } // namespace react
 } // namespace facebook
