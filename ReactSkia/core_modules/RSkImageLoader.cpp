@@ -64,10 +64,10 @@ std::string RSkImageLoaderModule::getName() {
 }
 
 void RSkImageLoaderModule::getImageSize(std::string uri, CxxModule::Callback resolveBlock, CxxModule::Callback rejectBlock) {
-  std::string supprtedScheme = "http";
+  //TODO :currently supporting only http and https, in future if we want to support more schema, implement as inline function.
   sk_sp<SkImage> imageData{nullptr};
-  if(uri.substr(0,4) != supprtedScheme) {
-    RNS_LOG_ERROR("Not supported URL to getSize");
+  if(uri.substr(0,4) != "http") {
+    RNS_LOG_ERROR("Not supported URL to getSize :"<<uri.c_str());
     handleRejectBlock(rejectBlock);
     return;
   }
@@ -103,7 +103,7 @@ void RSkImageLoaderModule::getImageSize(std::string uri, CxxModule::Callback res
           }
         }
       }
-      RNS_LOG_ERROR("Network response received error");
+      RNS_LOG_ERROR("Network response received error :"<<curlRequest->URL.c_str());
       handleRejectBlock(rejectBlock);
       imageRequestList_.erase(curlRequest->URL.c_str());
       //Reset the lamda callback so that curlRequest shared pointer dereffered from the lamda
