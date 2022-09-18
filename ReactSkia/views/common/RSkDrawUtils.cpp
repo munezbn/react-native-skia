@@ -348,8 +348,9 @@ bool  drawShadow(SkCanvas *canvas,Rect frame,
 
     if(!shadowParamsObj.isShadowVisible()) return false;
     SkPaint paint;
-    if(shadowParamsObj.shadowRadius != 0)
-      paint.setImageFilter(shadowParamsObj.shadowFilter);
+    if(shadowParamsObj.shadowRadius != 0) {
+      paint.setMaskFilter(shadowParamsObj.maskFilter);
+   }
 
     DrawMethod shadowOn = None;
     /*Shadow on Background : If bg  visible */
@@ -376,15 +377,20 @@ bool  drawShadow(SkCanvas *canvas,Rect frame,
         SkRRect clipRRect;
         clipRRect.setRectRadii(clipRect,radii);
 
-        bool needsSaveLayer =((!(isOpaque(shadowParamsObj.shadowOpacity))) || (shadowOn == Background));
+        bool needsSaveLayer{false};
 
-        if(needsSaveLayer)
+        if(shadowParamsObj.shadowOpacity) {
             canvas->saveLayerAlpha(NULL,shadowParamsObj.shadowOpacity);
-        if(shadowOn == Background)
+            needsSaveLayer=true;
+        }
+        if(shadowOn == Background) {
             canvas->clipRRect(clipRRect,SkClipOp::kDifference);
+            needsSaveLayer=true;
+        }
         drawRect(shadowOn,canvas,frame,borderProps,backgroundColor,&paint);
-        if(needsSaveLayer)
+        if(needsSaveLayer) {
             canvas->restore();
+        }
     /* Return true only for shadow on Border Case , to update components to handle shadowOnContent.*/
         return (shadowOn == Background) ? false : true;
     }

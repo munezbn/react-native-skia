@@ -47,22 +47,22 @@ enum LayerInvalidateMask {
 
 struct shadowParams {
     ~shadowParams () = default;
-    shadowParams (float shadowOpacity=0, float shadowRadius=3, SkColor shadowColor=SK_ColorBLACK, SkSize  shadowOffset={0,-3}, sk_sp<SkImageFilter> shadowFilter=nullptr)
+    shadowParams (float shadowOpacity=0, float shadowRadius=3, SkColor shadowColor=SK_ColorBLACK, SkSize  shadowOffset={0,-3})
       : shadowOpacity(shadowOpacity),
         shadowRadius(shadowRadius),
         shadowColor(shadowColor),
         shadowOffset(shadowOffset),
         shadowFilter(nullptr) {}
 
-    sk_sp<SkMaskFilter> maskFilter{nullptr};   
-    float shadowOpacity{0};
-    float shadowRadius{3};
-    SkColor shadowColor=SK_ColorBLACK;
-    SkSize shadowOffset{0,-3};
+    float shadowOpacity;
+    float shadowRadius;
+    SkColor shadowColor;
+    SkSize shadowOffset;
     sk_sp<SkImageFilter> shadowFilter{nullptr};
+    sk_sp<SkMaskFilter> maskFilter{nullptr};
 
     bool isShadowVisible(){
-        if(shadowFilter || (shadowRadius && shadowOpacity && !shadowOffset.isEmpty())){
+        if(shadowOpacity){
             return true;
         }
         return false;

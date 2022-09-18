@@ -132,17 +132,26 @@ RnsShell::LayerInvalidateMask RSkComponent::updateProps(const ShadowView &newSha
       updateMask =static_cast<RnsShell::LayerInvalidateMask>(updateMask | RnsShell::LayerInvalidateAll);
       createShadowFilter=true;
    }
-
+  //Reset Show Create flasg, if Shadow won't not be visible
+   if(layer_->shadowParamsObj.shadowOffset.isEmpty() && (!layer_->opacity)) {
+      createShadowFilter=true;
+   }
    /* Reset shadow filter - if valid and shadow opacity is 0.0 */
    /* Create shadow filter - shadow opacity is not 0 and change in any props of shadow - opacity,offset,radius */
-   if(layer_->shadowParamsObj.shadowOpacity && createShadowFilter) {
-       layer_->shadowParamsObj.shadowFilter= SkImageFilters::DropShadowOnly(
-                              layer_->shadowParamsObj.shadowOffset.width(), layer_->shadowParamsObj.shadowOffset.height(),
-                              layer_->shadowParamsObj.shadowRadius, layer_->shadowParamsObj.shadowRadius,
-                              layer_->shadowParamsObj.shadowColor, nullptr);
-   } else if ((layer_->shadowParamsObj.shadowFilter != nullptr) && (layer_->shadowParamsObj.shadowOpacity == 0.0)) {
-       layer_->shadowParamsObj.shadowFilter.reset();
-   }
+   if(layer_->shadowParamsObj.isShadowVisible() && createShadowFilter) {
+       layer_->shadowParamsObj.maskFilter= layer_->shadowParamsObj.createMaskFilter();
+       //Shadow Filter will be Image component for Content Shadow of Image with transparent pixel
+       if(layer_->shadowParamsObj.shadowFilter) {
+          layer_->shadowParamsObj.shadowFilter.reset();
+       }
+   } else if ((!layer_->shadowParamsObj.isShadowVisible()) ||(!createShadowFilter)){
+       if((layer_->shadowParamsObj.shadowFilter != nullptr)) {
+          layer_->shadowParamsObj.shadowFilter.reset();
+       }
+       if((layer_->shadowParamsObj.maskFilter != nullptr)) {
+          layer_->shadowParamsObj.maskFilter.reset();
+       }
+    }
   //backgroundColor
    if ((forceUpdate) || (oldviewProps.backgroundColor != newviewProps.backgroundColor)) {
       layer_->backgroundColor = RSkColorFromSharedColor(newviewProps.backgroundColor,SK_ColorTRANSPARENT);
