@@ -45,6 +45,13 @@ class RSkComponentImage final : public RSkComponent {
   inline string generateUriPath(string path);
   void drawAndSubmit();
   bool processImageData(const char* path, char* response, int size);
+  inline void drawContentShadow(Rect frame,
+                              SkCanvas *canvas,
+                              SkPaint shadowPaint,
+                              SkRect targetRect,
+                              sk_sp<SkImage> imageData,
+                              BorderMetrics imageBorderMetrics,
+                              struct RnsShell::shadowParams shadowParamsObj);
   inline void sendErrorEvents();
   inline void sendSuccessEvents();
  protected:

@@ -77,6 +77,10 @@ bool hasUniformBorderEdges(BorderMetrics borderProps)
 {
     return  ( borderProps.borderColors.isUniform() &&  borderProps.borderWidths.isUniform());
 }
+bool isDrawVisible(SharedColor Color,Float thickness=1.0)
+{
+    return (Color !=clearColor() && thickness > 0.0)? true:false;
+}
 void createEdge(PathMetrics pathMetrics,BorderEdges borderEdge,SkPath* path)
 {
 /*Considered the Path construct requested needs to be constructed in clockwise direction*/
@@ -273,19 +277,19 @@ bool createshadowPath( SkCanvas *canvas,Rect frame,
     if(shadowPath == NULL)
         return false;
 
-    if(RSkDrawUtils::isDrawVisible(borderProps.borderColors.right,borderProps.borderWidths.right)){
+    if(isDrawVisible(borderProps.borderColors.right,borderProps.borderWidths.right)){
         pathExist=true;
         shadowPath->addPath(drawEdges(RightEdge,canvas,frame,borderProps,false));
     }
-    if(RSkDrawUtils::isDrawVisible(borderProps.borderColors.left,borderProps.borderWidths.left)){
+    if(isDrawVisible(borderProps.borderColors.left,borderProps.borderWidths.left)){
         shadowPath->addPath(drawEdges(LeftEdge,canvas,frame,borderProps,false));
         pathExist=true;
     }
-    if(RSkDrawUtils::isDrawVisible(borderProps.borderColors.top,borderProps.borderWidths.top)){
+    if(isDrawVisible(borderProps.borderColors.top,borderProps.borderWidths.top)){
         shadowPath->addPath(drawEdges(TopEdge,canvas,frame,borderProps,false));
         pathExist=true;
     }
-    if(RSkDrawUtils::isDrawVisible(borderProps.borderColors.bottom,borderProps.borderWidths.bottom)){
+    if(isDrawVisible(borderProps.borderColors.bottom,borderProps.borderWidths.bottom)){
         shadowPath->addPath(drawEdges(BottomEdge,canvas,frame,borderProps,false));
         pathExist=true;
     }
@@ -293,10 +297,7 @@ bool createshadowPath( SkCanvas *canvas,Rect frame,
 }
 } //namespace
 namespace RSkDrawUtils{
-bool isDrawVisible(SharedColor Color,Float thickness)
-{
-    return (Color !=clearColor() && thickness > 0.0)? true:false;
-}
+
 void  drawBackground(SkCanvas *canvas, 
                                Rect frame,
                                BorderMetrics borderProps,
@@ -417,47 +418,6 @@ void drawUnderline(SkCanvas *canvas,Rect frame,SharedColor underlineColor){
     canvas->drawLine(frameOrigin.x,frameOrigin.y+frameSize.height-BOTTOMALIGNMENT,frameOrigin.x+frameSize.width,frameOrigin.y+frameSize.height-BOTTOMALIGNMENT, paint);
 }
 
-void drawContentShadow(Rect frame,
-                            SkCanvas *canvas,
-                            SkPaint shadowPaint,
-                            SkRect targetRect,
-                            sk_sp<SkImage> imageData,
-                            BorderMetrics imageBorderMetrics,
-                            RnsShell::shadowParams shadowParamsObj){
-printf("@@@@@@@@@@@@@@@@@@@@@ drawContentShadow\n");
-    bool SaveLAyerDone=false;
-      SkMatrix identityMatrix;
-      SkRect frameRect = SkRect::MakeXYWH(frame.origin.x, frame.origin.y, frame.size.width, frame.size.height);
-      //Calculate absolute frame bounds
-      SkIRect ShadowIRect = SkIRect::MakeXYWH(frame.origin.x + shadowParamsObj.shadowOffset.width(), frame.origin.y + shadowParamsObj.shadowOffset.height(), frame.size.width, frame.size.height);
-      SkIRect joinedRect = shadowPaint.getImageFilter()->filterBounds(
-                                               ShadowIRect,
-                                               identityMatrix,
-                                               SkImageFilter::kForward_MapDirection,
-                                               nullptr);
-      SkRect mapRect=SkRect::Make(joinedRect);
-      mapRect.join(frameRect);
-      if(!(isOpaque(shadowParamsObj.shadowOpacity))) {
-        canvas->saveLayerAlpha(&mapRect,shadowParamsObj.shadowOpacity);
-        SaveLAyerDone=true;
-      }
-      if(!imageData->isOpaque()) {
-        printf("@@@@@@@@@@@@@@@@@@@@@ image is png\n");
-        canvas->drawImageRect(imageData, targetRect, &shadowPaint);
-      } else if((imageBorderMetrics.borderColors.isUniform() && isDrawVisible(imageBorderMetrics.borderColors.left))) {
-        if(!SaveLAyerDone) {
-          canvas->saveLayer(&mapRect,&shadowPaint);
-        }
-        printf("@@@@@@@@@@@@@@@@@@@@@ image is  not png\n");
-        SkPaint paint;
-        canvas->clipRect(frameRect,SkClipOp::kDifference);
-        paint.setMaskFilter(shadowParamsObj.createMaskFilter());
-        paint.setColor(shadowParamsObj.shadowColor);
-        canvas->drawIRect(ShadowIRect, paint);
-      }
-      if(SaveLAyerDone)
-        canvas->restore();
-}
 } // namespace RSkDrawUtils
 } // namespace react
 } // namespace facebook

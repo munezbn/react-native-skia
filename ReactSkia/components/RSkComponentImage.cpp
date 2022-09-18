@@ -228,6 +228,47 @@ bool RSkComponentImage::processImageData(const char* path, char* response, int s
   return true;
 }
 
+inline void RSkComponentImage::drawContentShadow(Rect frame,
+                            SkCanvas *canvas,
+                            SkPaint shadowPaint,
+                            SkRect targetRect,
+                            sk_sp<SkImage> imageData,
+                            BorderMetrics imageBorderMetrics,
+                            RnsShell::shadowParams shadowParamsObj){
+    bool SaveLAyerDone=false;
+      SkMatrix identityMatrix;
+      SkRect frameRect = SkRect::MakeXYWH(frame.origin.x, frame.origin.y, frame.size.width, frame.size.height);
+      //Calculate absolute frame bounds
+      SkIRect ShadowIRect = SkIRect::MakeXYWH(frame.origin.x + shadowParamsObj.shadowOffset.width(), frame.origin.y + shadowParamsObj.shadowOffset.height(), frame.size.width, frame.size.height);
+      SkIRect joinedRect = shadowPaint.getImageFilter()->filterBounds(
+                                               ShadowIRect,
+                                               identityMatrix,
+                                               SkImageFilter::kForward_MapDirection,
+                                               nullptr);
+      SkRect mapRect=SkRect::Make(joinedRect);
+      mapRect.join(frameRect);
+      if(!(isOpaque(shadowParamsObj.shadowOpacity))) {
+        canvas->saveLayerAlpha(&mapRect,shadowParamsObj.shadowOpacity);
+        SaveLAyerDone=true;
+      }
+      if(!imageData->isOpaque()) {
+        printf("@@@@@@@@@@@@@@@@@@@@@ image is png\n");
+        canvas->drawImageRect(imageData, targetRect, &shadowPaint);
+      } else if((imageBorderMetrics.borderColors.isUniform() /* && isDrawVisible(imageBorderMetrics.borderColors.left)*/)) {
+        if(!SaveLAyerDone) {
+          canvas->saveLayer(&mapRect,&shadowPaint);
+        }
+        printf("@@@@@@@@@@@@@@@@@@@@@ image is  not png\n");
+        SkPaint paint;
+        canvas->clipRect(frameRect,SkClipOp::kDifference);
+        paint.setMaskFilter(shadowParamsObj.createMaskFilter());
+        paint.setColor(shadowParamsObj.shadowColor);
+        canvas->drawIRect(ShadowIRect, paint);
+      }
+      if(SaveLAyerDone)
+        canvas->restore();
+}
+
 inline bool shouldCacheData(std::string cacheControlData) {
   if(cacheControlData.find(RNS_NO_CACHE_STR) != std::string::npos) return false;
   else if(cacheControlData.find(RNS_NO_STORE_STR) != std::string::npos) return false;
