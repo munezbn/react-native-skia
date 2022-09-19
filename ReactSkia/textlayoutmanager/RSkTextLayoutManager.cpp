@@ -6,7 +6,6 @@
  */
 
 #include "RSkTextLayoutManager.h"
-#include "ReactSkia/utils/RnsUtils.h"
 
 using namespace skia::textlayout;
 
@@ -151,19 +150,6 @@ void RSkTextLayoutManager::buildText (struct RSkSkTextLayout &textLayout,
     fontSize = (!std::isnan(textAttributes.fontSize)) && (textAttributes.fontSize > 0) ? 
                             textAttributes.fontSize :
                             TextAttributes::defaultTextAttributes().fontSize;
-
-#if USE(FIX_SKIA_FLOATING_FONT_SIZE)
-    if( fontSize > 0 )
-    {
-        int lowerBound = static_cast<int>(fontSize),
-            upperBound = static_cast<int>(fontSize + 0.5);
-        if( upperBound > lowerBound ){
-            fontSize = upperBound;
-        } else {
-            fontSize = lowerBound;
-        } 
-    }
-#endif
 
     fontSizeMultiplier = !std::isnan(textAttributes.fontSizeMultiplier) ?
                             textAttributes.fontSizeMultiplier :
