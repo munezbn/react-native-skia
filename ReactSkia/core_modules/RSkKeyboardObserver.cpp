@@ -31,7 +31,9 @@ void RSkKeyboardObserver::startObserving(){
 }
 
 void RSkKeyboardObserver::stopObserving(){
+#if ENABLE(FEATURE_ONSCREEN_KEYBOARD)
   NotificationCenter::subWindowCenter().removeListener(onscreenKeyboardEventId_);
+#endif 
 }
 
 } //namespace react
