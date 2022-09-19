@@ -7,7 +7,6 @@
 
 #include "RSkKeyboardObserver.h"
 #include "ReactSkia/sdk/NotificationCenter.h"
-#include "ReactSkia/utils/RnsUtils.h"
 namespace facebook {
 namespace react {
 using namespace std;
