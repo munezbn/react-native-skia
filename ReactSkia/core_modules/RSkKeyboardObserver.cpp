@@ -7,6 +7,7 @@
 
 #include "RSkKeyboardObserver.h"
 #include "ReactSkia/sdk/NotificationCenter.h"
+#include "ReactSkia/utils/RnsUtils.h"
 namespace facebook {
 namespace react {
 using namespace std;
@@ -23,9 +24,10 @@ void RSkKeyboardObserver::handleOnScreenKeyboardEventNotification(string eventTy
 
 void RSkKeyboardObserver::startObserving(){
     //Add listerners
+#if ENABLE(FEATURE_ONSCREEN_KEYBOARD)
   std::function<void (std::string)> onScreenKeyboardNotification  = std::bind(&RSkKeyboardObserver::handleOnScreenKeyboardEventNotification, this,std::placeholders::_1);
   onscreenKeyboardEventId_ = NotificationCenter::subWindowCenter().addListener("onScreenKeyboardEvent", onScreenKeyboardNotification);
-
+#endif 
 }
 
 void RSkKeyboardObserver::stopObserving(){
