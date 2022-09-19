@@ -7,7 +7,7 @@
 
 #include "core_modules/RSkEventEmitter.h"
 #include "utils/RnsLog.h"
-#include "ReactSkia/utils/RnsUtils.h"
+#include "utils/RnsUtils.h"
 
 namespace facebook {
 namespace react {
