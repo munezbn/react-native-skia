@@ -12,11 +12,10 @@ namespace rns {
 namespace sdk {
 
 #define MAX_HISTORY_BIN_SIZE 4
-void WindowDelegator::createWindow(SkSize windowSize,std::function<void ()> windowReadyCB,std::function<void ()>forceFullScreenDraw,bool runOnTaskRunner) {
+void WindowDelegator::createWindow(SkSize windowSize,std::function<void ()> windowReadyCB,bool runOnTaskRunner) {
 
   windowSize_=windowSize;
   windowReadyTodrawCB_=windowReadyCB;
-  forceFullScreenDraw_=forceFullScreenDraw;
 
   if(runOnTaskRunner) {
     ownsTaskrunner_ = runOnTaskRunner;
