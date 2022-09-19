@@ -149,7 +149,7 @@ void RSkTextLayoutManager::buildText (struct RSkSkTextLayout &textLayout,
 
     fontSize = (!std::isnan(textAttributes.fontSize)) && (textAttributes.fontSize > 0) ? 
                             textAttributes.fontSize :
-                            TextAttributes::defaultTextAttributes().fontSize;
+                            TextAttributes::defaultTextAttributes().fontSize;textAttributes.
 
     fontSizeMultiplier = !std::isnan(textAttributes.fontSizeMultiplier) ?
                             textAttributes.fontSizeMultiplier :
