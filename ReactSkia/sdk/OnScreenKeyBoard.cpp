@@ -500,7 +500,10 @@ void OnScreenKeyboard ::drawHighLightOnKey(SkPoint index) {
   RNS_PROFILE_END(" Highlight Completion : ",HighlightOSKKey)
 }
 
-void OnScreenKeyboard::onHWkeyHandler(Inputkeyinfo keyInfo) {
+void OnScreenKeyboard::onHWkeyHandler(Inputkeyinfo keyInfo,RnsShell::Window* windowInstance) {
+  if(!isOwnedWindow(windowInstance)) {
+    return;
+  }
   RNS_LOG_DEBUG(__func__<<"key: "<<keyMap[keyInfo.key]<<" keyAction: "<<((keyInfo.action ==0) ? "KEY_Press ": "KEY_Release ")<<"Repeat ?: "<<keyInfo.repeat);
 
   if(eventKeyAction == RNS_KEY_Release) {
@@ -911,8 +914,10 @@ void OnScreenKeyboard::windowReadyToDrawCB() {
 #endif
       /*Listen for  Key Press event */
       if(subWindowKeyEventId_ == -1) {
-        std::function<void(Inputkeyinfo)> handler = std::bind(&OnScreenKeyboard::onHWkeyHandler,this,
-                                                                       std::placeholders::_1);
+        std::function<void(Inputkeyinfo,RnsShell::Window*)> handler = std::bind(&OnScreenKeyboard::onHWkeyHandler,this,
+                                                                        std::placeholders::_1, // KeyInfo object,
+                                                                        std::placeholders::_2 // Window object
+                                                                      );
         subWindowKeyEventId_ = NotificationCenter::subWindowCenter().addListener("onHWKeyEvent", handler);
       }
       onScreenKeyboardEventEmit(std::string("keyboardDidShow"));

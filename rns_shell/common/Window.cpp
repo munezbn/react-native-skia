@@ -49,7 +49,7 @@ void Window::onKey(key eventKey, keyAction eventKeyAction){
 
 #if ENABLE(FEATURE_ONSCREEN_KEYBOARD)
     if(winType == SubWindow)
-        NotificationCenter::subWindowCenter().emit("onHWKeyEvent", keyInfo);
+        NotificationCenter::subWindowCenter().emit("onHWKeyEvent", keyInfo,this);
     else
 #endif/*FEATURE_ONSCREEN_KEYBOARD*/
         NotificationCenter::defaultCenter().emit("onHWKeyEvent", keyInfo);

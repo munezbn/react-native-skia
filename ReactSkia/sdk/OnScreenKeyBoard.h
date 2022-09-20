@@ -148,7 +148,7 @@ class OnScreenKeyboard : public WindowDelegator{
 #if ENABLE(FEATURE_KEY_THROTTLING)
     void repeatKeyProcessingThread();
 #endif/*ENABLE_FEATURE_KEY_THROTTLING*/
-    void onHWkeyHandler(Inputkeyinfo keyInfo);
+    void onHWkeyHandler(Inputkeyinfo keyInfo,RnsShell::Window* windowInstance);
     void createOSKLayout(OSKTypes KBtype );
     void clearScreen(SkScalar x,SkScalar y,SkScalar width,SkScalar height,SkPaint & paintObj);
     SkScalar getStringBound (const std::string & stringToMeasure,unsigned int startIndex,unsigned int endIndex,SkFont & stringFont);

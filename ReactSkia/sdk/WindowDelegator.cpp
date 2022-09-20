@@ -135,6 +135,13 @@ void WindowDelegator::onExposeHandler(RnsShell::Window* window) {
   }
 }
 
+bool WindowDelegator::isOwnedWindow(RnsShell::Window* window){
+  if(window == window_){
+    return true;
+  }
+  return false;
+}
+
  void WindowDelegator::windowWorkerThread() {
   windowTaskRunner_->run();
 }
