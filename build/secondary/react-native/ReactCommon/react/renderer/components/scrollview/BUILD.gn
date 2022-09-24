@@ -15,6 +15,7 @@ rn_cxx_component("scrollview") {
   deps = [
     "//folly",
     "//react-native/ReactCommon/react/renderer/components/view:view",
+    "//react-native/ReactCommon/react/renderer/componentregistry:componentregistry",
     "//react-native/ReactCommon/react/renderer/core:core",
     "//react-native/ReactCommon/react/renderer/debug:debug",
     "//react-native/ReactCommon/react/renderer/graphics:graphics",

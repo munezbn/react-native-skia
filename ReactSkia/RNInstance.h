@@ -1,6 +1,9 @@
 #pragma once
 
 #include "cxxreact/Instance.h"
+#include "react/renderer/scheduler/SurfaceHandler.h"
+
+#include "rns_shell/platform/linux/TaskLoop.h"
 
 namespace RnsShell {
   class RendererDelegate;
@@ -37,6 +40,9 @@ class RNInstance {
   std::shared_ptr<Scheduler> fabricScheduler_;
   std::unique_ptr<MountingManager> mountingManager_;
   std::unique_ptr<ComponentViewRegistry> componentViewRegistry_;
+  std::map<SurfaceId,SurfaceHandler> surfaceHandlerList_;
+  std::unique_ptr<RnsShell::TaskLoop> backgroundTaskRunner_{nullptr};
+  std::thread backgroundThread_;
 };
 
 } // namespace react

@@ -47,15 +47,21 @@ void MountingManager::schedulerDidFinishTransaction(
 
 void MountingManager::schedulerDidRequestPreliminaryViewAllocation(
     SurfaceId surfaceId,
-    const ShadowView &shadowView) {
+    const ShadowNode &shadowNode) {
   /* TODO : Needs implementation*/
-  RNS_LOG_DEBUG("surfaceId:" << surfaceId << " shadowView tag[" << shadowView.tag <<  "] name["<< shadowView.componentName << "]");
+}
+
+void MountingManager::schedulerDidCloneShadowNode(
+      SurfaceId surfaceId,
+      const ShadowNode &oldShadowNode,
+      const ShadowNode &newShadowNode) {
+  RNS_LOG_NOT_IMPL;
 }
 
 void MountingManager::schedulerDidDispatchCommand(
     const ShadowView &shadowView,
     const std::string &commandName,
-    const folly::dynamic args) {
+    const folly::dynamic &args) {
 
   RNS_LOG_DEBUG("dispatch command shadowView tag[" << shadowView.tag <<  "] name["<< shadowView.componentName << "] commandName [" << commandName <<"]");
 
@@ -67,17 +73,19 @@ void MountingManager::schedulerDidDispatchCommand(
   });
 }
 
-void MountingManager::schedulerDidSetJSResponder(
-    SurfaceId surfaceId,
-    const ShadowView &shadowView,
-    const ShadowView &initialShadowView,
-    bool blockNativeResponder) {
+void MountingManager::schedulerDidSetIsJSResponder(
+      const ShadowView &shadowView,
+      bool isJSResponder,
+      bool blockNativeResponder){
   RNS_LOG_NOT_IMPL;
-  RNS_LOG_TODO("surfaceId:" << surfaceId << "shadowView tag[" << shadowView.tag <<  "] name["<< shadowView.componentName << "] blockNativeResponder: " << blockNativeResponder);
+  RNS_LOG_TODO("shadowView tag[" << shadowView.tag <<  "] name["<< shadowView.componentName << "] blockNativeResponder: " << blockNativeResponder);
 }
 
-void MountingManager::schedulerDidClearJSResponder() {
+void MountingManager::schedulerDidSendAccessibilityEvent(
+    const ShadowView &shadowView,
+    std::string const &eventType) {
   RNS_LOG_NOT_IMPL;
+  RNS_LOG_TODO("shadowView tag[" << shadowView.tag <<  "] name["<< shadowView.componentName << "] eventType: " << eventType);
 }
 
 void MountingManager::performTransaction(

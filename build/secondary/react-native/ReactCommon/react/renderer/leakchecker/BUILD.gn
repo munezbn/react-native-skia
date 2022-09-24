@@ -1,10 +1,9 @@
 import("//react-native/common.gni")
 
-rn_cxx_component("componentregistry") {
+rn_cxx_component("leakchecker") {
   sources = [
-    "ComponentDescriptorProviderRegistry.cpp",
-    "ComponentDescriptorRegistry.cpp",
-    "componentNameByReactViewName.cpp",
+    "LeakChecker.cpp",
+    "WeakFamilyRegistry.cpp",
   ]
 
   defines = [
@@ -13,11 +12,11 @@ rn_cxx_component("componentregistry") {
 
   deps = [
     "//folly",
-    "//react-native/ReactCommon/jsi:JSIDynamic",
-    "//react-native/ReactCommon/jsi:jsi",
+    "//react-native/ReactCommon/react/config:config",
     "//react-native/ReactCommon/react/renderer/core:core",
     "//react-native/ReactCommon/react/renderer/debug:debug",
     "//react-native/ReactCommon/react/utils:utils",
+    "//react-native/ReactCommon/runtimeexecutor:runtimeexecutor",
     "//third_party/glog:glog",
   ]
 

@@ -1,0 +1,33 @@
+import("//react-native/common.gni")
+
+config("cxxreact_config") {
+  include_dirs = [
+    "//react-native/ReactCommon",
+  ]
+}
+
+
+rn_cxx_component("logger") {
+  sources = [
+    "react_native_log.cpp",
+  ]
+
+  defines = [
+    "LOG_TAG=ReactNative",
+  ]
+
+  deps = [
+    "//third_party/glog:glog",
+  ]
+
+  with_exceptions = true
+  with_rtti = true
+
+  extra_configs = [ ":cxxreact_config" ]
+
+  cflags_cc = [
+    "-Wno-header-hygiene",
+    "-Wno-sign-compare",
+  ]
+}
+

@@ -15,7 +15,7 @@ gclient_gn_args = [
 
 vars = {
   'react_native_default_revision': 'deb66012fe550d536420931e47f5573e798e048a',
-  'react_native_tvos_revision': 'tvos-v0.64.2',
+  'react_native_tvos_revision': 'tvos-v0.68.2',
   'skia_revision': 'chrome/m86',
 
   # Note this revision should be updated with
@@ -31,7 +31,7 @@ vars = {
   'libunwind_revision':    'd999d54f4bca789543a2eb6c995af2d9b5a1f3ed',
 
   'react_native_default_git': 'https://github.com/Kudo/react-native.git',
-  'react_native_tvos_git': 'https://github.com/nagra-opentv/react-native-tvos.git',
+  'react_native_tvos_git': 'https://github.com/react-native-tvos/react-native-tvos.git',
   'chromium_git': 'https://chromium.googlesource.com',
   'skia_git': 'https://skia.googlesource.com',
   'fuchsia_git': 'https://fuchsia.googlesource.com',

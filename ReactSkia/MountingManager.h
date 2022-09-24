@@ -26,25 +26,31 @@ class MountingManager : public SchedulerDelegate {
 
  private:
   // SchedulerDelegate implementations
-  void schedulerDidFinishTransaction(
-      MountingCoordinator::Shared const &mountingCoordinator) override;
+  virtual void schedulerDidFinishTransaction(
+      MountingCoordinator::Shared const &mountingCoordinator);
 
-  void schedulerDidRequestPreliminaryViewAllocation(
+  virtual void schedulerDidRequestPreliminaryViewAllocation(
       SurfaceId surfaceId,
-      const ShadowView &shadowView) override;
+      const ShadowNode &shadowNode);
 
-  void schedulerDidDispatchCommand(
+  virtual void schedulerDidCloneShadowNode(
+      SurfaceId surfaceId,
+      const ShadowNode &oldShadowNode,
+      const ShadowNode &newShadowNode);
+
+  virtual void schedulerDidDispatchCommand(
       const ShadowView &shadowView,
       const std::string &commandName,
-      const folly::dynamic args) override;
+      const folly::dynamic &args);
 
-  void schedulerDidSetJSResponder(
-      SurfaceId surfaceId,
+  virtual void schedulerDidSetIsJSResponder(
       const ShadowView &shadowView,
-      const ShadowView &initialShadowView,
-      bool blockNativeResponder) override;
+      bool isJSResponder,
+      bool blockNativeResponder);
 
-  void schedulerDidClearJSResponder() override;
+  virtual void schedulerDidSendAccessibilityEvent(
+      const ShadowView &shadowView,
+      std::string const &eventType);
 
  private:
   void performTransaction(

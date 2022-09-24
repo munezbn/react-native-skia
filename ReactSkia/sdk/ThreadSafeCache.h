@@ -5,8 +5,8 @@
 * LICENSE file in the root directory of this source tree.
 */
 #include <mutex>
-#include <better/map.h>
-#include <better/optional.h>
+#include <butter/map.h>
+#include <butter/optional.h>
 #include "ReactSkia/utils/RnsLog.h"
 
 using namespace std;
@@ -25,7 +25,7 @@ class ThreadSafeCache {
   int currentSize_;
   int maxSize_;
   KeyT key_;
-  better::map <KeyT,ValueT> cacheMap_;
+  butter::map <KeyT,ValueT> cacheMap_;
  public:
   bool isAvailableInCache(const KeyT &key){
     auto it = cacheMap_.find(key);
@@ -33,7 +33,7 @@ class ThreadSafeCache {
       return true;
     return false;
   };
-  better::optional<ValueT> getCacheData(const KeyT &key) {
+  butter::optional<ValueT> getCacheData(const KeyT &key) {
     std::scoped_lock lock(cacheLock_);
     auto it = cacheMap_.find(key);
     if(it == cacheMap_.end()) {

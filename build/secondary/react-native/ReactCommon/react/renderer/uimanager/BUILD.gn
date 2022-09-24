@@ -2,6 +2,8 @@ import("//react-native/common.gni")
 
 rn_cxx_component("uimanager") {
   sources = [
+    "SurfaceRegistryBinding.cpp",
+    "bindingUtils.cpp",
     "UIManager.cpp",
     "UIManagerBinding.cpp",
   ]
@@ -19,6 +21,7 @@ rn_cxx_component("uimanager") {
     "//react-native/ReactCommon/react/renderer/components/view:view",
     "//react-native/ReactCommon/react/renderer/core:core",
     "//react-native/ReactCommon/react/renderer/debug:debug",
+    "//react-native/ReactCommon/react/renderer/leakchecker:leakchecker",
     "//react-native/ReactCommon/runtimeexecutor:runtimeexecutor",
     "//third_party/glog:glog",
   ]

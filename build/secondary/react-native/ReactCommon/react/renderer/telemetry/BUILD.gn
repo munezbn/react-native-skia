@@ -1,13 +1,9 @@
 import("//react-native/common.gni")
 
-rn_cxx_component("scheduler") {
+rn_cxx_component("telemetry") {
   sources = [
-    "AsynchronousEventBeat.cpp",
-    "Scheduler.cpp",
-    "SchedulerToolbox.cpp",
-    "SurfaceHandler.cpp",
-    "SurfaceManager.cpp",
-    "SynchronousEventBeat.cpp",
+    "SurfaceTelemetry.cpp",
+    "TransactionTelemetry.cpp",
   ]
 
   defines = [
@@ -24,10 +20,8 @@ rn_cxx_component("scheduler") {
     "//react-native/ReactCommon/react/renderer/core:core",
     "//react-native/ReactCommon/react/renderer/debug:debug",
     "//react-native/ReactCommon/react/renderer/mounting:mounting",
-    "//react-native/ReactCommon/react/renderer/runtimescheduler:runtimescheduler",
     "//react-native/ReactCommon/react/renderer/templateprocessor:templateprocessor",
     "//react-native/ReactCommon/react/renderer/uimanager:uimanager",
-    "//react-native/ReactCommon/react/renderer/telemetry:telemetry",
     "//react-native/ReactCommon/react/utils:utils",
     "//react-native/ReactCommon/runtimeexecutor:runtimeexecutor",
     "//third_party/glog:glog",

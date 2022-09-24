@@ -1,10 +1,11 @@
 import("//react-native/common.gni")
 
-rn_cxx_component("componentregistry") {
+rn_cxx_component("runtimescheduler") {
   sources = [
-    "ComponentDescriptorProviderRegistry.cpp",
-    "ComponentDescriptorRegistry.cpp",
-    "componentNameByReactViewName.cpp",
+    "RuntimeScheduler.cpp",
+    "RuntimeSchedulerBinding.cpp",
+    "RuntimeSchedulerCallInvoker.cpp",
+    "Task.cpp",
   ]
 
   defines = [
@@ -13,11 +14,11 @@ rn_cxx_component("componentregistry") {
 
   deps = [
     "//folly",
-    "//react-native/ReactCommon/jsi:JSIDynamic",
-    "//react-native/ReactCommon/jsi:jsi",
     "//react-native/ReactCommon/react/renderer/core:core",
     "//react-native/ReactCommon/react/renderer/debug:debug",
     "//react-native/ReactCommon/react/utils:utils",
+    "//react-native/ReactCommon/callinvoker:callinvoker",
+    "//react-native/ReactCommon/runtimeexecutor:runtimeexecutor",
     "//third_party/glog:glog",
   ]
 

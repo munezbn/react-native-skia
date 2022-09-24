@@ -2,6 +2,8 @@
 *  * This source code is licensed under the MIT license found in the  
 * LICENSE file in the root directory of this source tree.  */
 
+#include <butter/map.h>
+
 #include "ReactSkia/modules/RSkWebSocketModuleBase.h"
 #include "ReactSkia/sdk/NopollWebsocket.h"
 
@@ -52,7 +54,7 @@ class RSkWebSocketModule:  public RSkWebSocketModuleBase {
             int) override;
 
     std::thread wsMessageThread_;
-    better::map <int , WebsocketRequest*> connectionList_;
+    butter::map <int , WebsocketRequest*> connectionList_;
     std::vector<std::string> events_ = {"websocketOpen","websocketClosed",
                                     "websocketMessage","websocketFailed"};
   private:

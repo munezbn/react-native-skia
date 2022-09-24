@@ -121,6 +121,15 @@ void RNInstance::Start(RSkSurfaceWindow *surface, RendererDelegate &rendererDele
   LayoutContext layoutContext = RSkGetLayoutContext(surface->viewportOffset);
   LayoutConstraints layoutConstraints = RSkGetLayoutConstraintsForSize(surface->minimumSize, surface->maximumSize);
 
+  SurfaceHandler surfaceHandler = SurfaceHandler{surface->moduleName, surface->surfaceId};
+  surfaceHandler.setContextContainer(fabricScheduler_->getContextContainer());
+  surfaceHandler.setProps(surface->properties);
+  surfaceHandler.constraintLayout(layoutConstraints, layoutContext);
+  fabricScheduler_->registerSurface(surfaceHandler);
+  surfaceHandler.start();
+  surfaceHandlerList_.emplace(surface->surfaceId , std::move(surfaceHandler));
+
+#if 0
   fabricScheduler_->startSurface(
       surface->surfaceId,
       surface->moduleName,
@@ -129,6 +138,7 @@ void RNInstance::Start(RSkSurfaceWindow *surface, RendererDelegate &rendererDele
       layoutContext,
       {} // mountingOverrideDelegate
   );
+#endif
   fabricScheduler_->renderTemplateToSurface(surface->surfaceId, {});
 
   // NOTE(kudo): Does adding RootView here make sense !?
@@ -141,7 +151,18 @@ void RNInstance::Start(RSkSurfaceWindow *surface, RendererDelegate &rendererDele
 }
 
 void RNInstance::Stop(RSkSurfaceWindow *surface) {
+#if 0
   fabricScheduler_->stopSurface(surface->surfaceId);
+#else
+  auto it = surfaceHandlerList_.find(surface->surfaceId);
+  if(it != surfaceHandlerList_.end()) {
+     auto surfaceHandler = std::move(it->second);
+     surfaceHandlerList_.erase(it);
+     surfaceHandler.stop();
+     fabricScheduler_->unregisterSurface(surfaceHandler);
+  }
+#endif
+
 }
 
 void RNInstance::InitializeJSCore() {
@@ -173,6 +194,7 @@ void RNInstance::InitializeJSCore() {
   }
 }
 
+
 void RNInstance::InitializeFabric(RendererDelegate &rendererDelegate) {
   facebook::react::ContextContainer::Shared contextContainer =
       std::make_shared<facebook::react::ContextContainer const>();
@@ -180,8 +202,16 @@ void RNInstance::InitializeFabric(RendererDelegate &rendererDelegate) {
       std::make_shared<facebook::react::EmptyReactNativeConfig const>();
 
   contextContainer->insert("ReactNativeConfig", reactNativeConfig);
-
   auto runtimeExecutor = instance_->getRuntimeExecutor();
+
+  auto weakRuntimeScheduler = contextContainer->find<std::weak_ptr<RuntimeScheduler>>("RuntimeScheduler");
+  auto runtimeScheduler = weakRuntimeScheduler.hasValue() ? weakRuntimeScheduler.value().lock() : nullptr;
+  if (runtimeScheduler) {
+    runtimeExecutor = [runtimeScheduler](std::function<void(jsi::Runtime & runtime)> &&callback) {
+      runtimeScheduler->scheduleWork(std::move(callback));
+    };
+  }
+
 
   auto toolbox = SchedulerToolbox{};
   toolbox.contextContainer = contextContainer;
@@ -191,7 +221,7 @@ void RNInstance::InitializeFabric(RendererDelegate &rendererDelegate) {
           ContextContainer::Shared const &contextContainer)
       -> SharedComponentDescriptorRegistry {
     return componentViewRegistry_->CreateComponentDescriptorRegistry(
-        ComponentDescriptorParameters{eventDispatcher, nullptr, nullptr});
+        ComponentDescriptorParameters{eventDispatcher, contextContainer, nullptr});
   };
   toolbox.runtimeExecutor = runtimeExecutor;
   // toolbox.mainRunLoopObserverFactory = [](RunLoopObserver::Activity
@@ -200,6 +230,33 @@ void RNInstance::InitializeFabric(RendererDelegate &rendererDelegate) {
   //                                         &owner) {
   //   return std::make_unique<MainRunLoopObserver>(activities, owner);
   // };
+  //
+  //
+
+  RNS_LOG_INFO("Create bgExe");
+  backgroundTaskRunner_ = std::make_unique<RnsShell::TaskLoop>();
+  backgroundThread_ =  std::thread([this](){backgroundTaskRunner_->run();});
+  RNS_LOG_INFO("Create bgExe");
+  backgroundTaskRunner_->waitUntilRunning();
+
+  RNS_LOG_INFO("Create bgExe");
+  toolbox.backgroundExecutor = [&](std::function<void()> &&callback) {
+      RNS_LOG_INFO("backgroundExecutor execution");
+      auto copyableCallback = callback;
+#if 1
+      backgroundTaskRunner_->dispatch([copyableCallback](){
+           copyableCallback();
+      });
+#else
+      TaskLoop::main().dispatch([&,copyableCallback]() {
+             copyableCallback();
+      });
+
+#endif
+  };
+
+  RNS_LOG_INFO("Create bgExe");
+
   toolbox.synchronousEventBeatFactory =
       [runtimeExecutor](EventBeat::SharedOwnerBox const &ownerBox) {
         return std::make_unique<MainRunLoopEventBeat>(
@@ -252,9 +309,10 @@ void RNInstance::RegisterComponents() {
       std::make_unique<RSkComponentProviderParagraph>());
   componentViewRegistry_->Register(
       std::make_unique<RSkComponentProviderTextInput>());
+#if 0
   componentViewRegistry_->Register(
       std::make_unique<RSkComponentProviderScrollView>());
-
+#endif
   // Provider request callback which is called when it doesnt find a viewManagerProvider in componentViewRegistry
   componentViewRegistry_->providerRegistry().setComponentDescriptorProviderRequest(
     [this](ComponentName requestedComponentName) {

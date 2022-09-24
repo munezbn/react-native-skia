@@ -27,7 +27,7 @@ dynamic Uimanager::getConstantsForThirdpartyViewManager(std::string viewManagerN
 }
 
 dynamic Uimanager::getConstantsForViewManager(std::string viewManagerName) {
-  if(viewManagerName == "RCTView") {
+  if(viewManagerName == "RCTView" || viewManagerName == "RCTVirtualText") {
     auto nativeProps = folly::dynamic::object("onLayout", true)("pointerEvents", true)
 #if defined(TARGET_OS_TV) && TARGET_OS_TV
       ("focusable", true)("isTVSelectable", true)
@@ -168,17 +168,21 @@ void Uimanager::updateView(int Tag, std::string viewManagerName, dynamic props) 
 }
 
 UimanagerModule::UimanagerModule(std::unique_ptr<Uimanager> uimanager)
-    : uimanager_(std::move(uimanager)) {}
+    : uimanager_(std::move(uimanager)) {
+  RNS_LOG_INFO("UIManagerModule module");
+}
 
 std::string UimanagerModule::getName() {
   return "UIManager";
 }
 
 auto UimanagerModule::getConstants() -> std::map<std::string, folly::dynamic> {
+  RNS_LOG_INFO("UIManagerModule getConstants");
   return {};
 }
 
 auto UimanagerModule::getMethods() -> std::vector<Method> {
+  RNS_LOG_INFO("UIManagerModule getMethods");
   return {
       Method(
           "getConstantsForViewManager",

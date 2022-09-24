@@ -6,12 +6,14 @@
 */
 
 #include "TaskLoop.h"
+#include "ReactSkia/utils/RnsLog.h"
 
 namespace RnsShell {
 
 static std::unique_ptr<TaskLoop> mainTaskRunner_;
 
 TaskLoop::TaskLoop() {
+  RNS_LOG_INFO("TaskLopp created");
 }
 
 TaskLoop::~TaskLoop() {
@@ -40,6 +42,8 @@ TaskLoop& TaskLoop::main() {
 void TaskLoop::dispatch(Func fun) {
     if(eventBase_.isRunning())
         eventBase_.runInEventBaseThread(std::move(fun));
+    else
+        RNS_LOG_ERROR("TaskLoop eventBase is not running!!");
 }
 
 void TaskLoop::initializeMain() {

@@ -1,6 +1,6 @@
 /* React Native version*/
 #define RN_MAJOR_VERSION 0
-#define RN_MINOR_VERSION 64
+#define RN_MINOR_VERSION 68
 #define RN_PATCH_VERSION 2
 
 /* React Native Skia version */

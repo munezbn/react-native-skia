@@ -81,6 +81,7 @@ rn_cxx_component("bridge") {
 
   deps = [
     "//folly",
+    "//react-native/ReactCommon/logger:logger",
     "//react-native/ReactCommon/callinvoker:callinvoker",
     "//react-native/ReactCommon/jsi:jsi",
     "//react-native/ReactCommon/jsinspector:jsinspector",

@@ -38,6 +38,17 @@ void RSkComponentImage::OnPaint(SkCanvas *canvas) {
   string path;
   auto component = getComponentData();
   auto const &imageProps = *std::static_pointer_cast<ImageProps const>(component.props);
+
+  auto state = std::static_pointer_cast<ImageShadowNode::ConcreteState const>(component.state);
+  auto data = state->getData();
+
+#if 0
+  ImageSource source = imageProps.sources[0];
+#else
+  ImageSource source = data.getImageSource();
+#endif
+  RNS_LOG_INFO("Image source uri from state:" << source.uri);
+  RNS_LOG_INFO("Image source size from props:" << imageProps.sources.size());
   //First to check file entry presence. If not exist, generate imageData.
   do {
     if(networkImageData_) {
@@ -45,14 +56,15 @@ void RSkComponentImage::OnPaint(SkCanvas *canvas) {
       break;
     }
     if(imageProps.sources.empty()) break;
-    imageData = RSkImageCacheManager::getImageCacheManagerInstance()->findImageDataInCache(imageProps.sources[0].uri.c_str());
+    imageData = RSkImageCacheManager::getImageCacheManagerInstance()->findImageDataInCache(source.uri.c_str());
     if(imageData) break;
 
-    if (imageProps.sources[0].type == ImageSource::Type::Local) {
-      imageData = getLocalImageData(imageProps.sources[0]);
-    } else if(imageProps.sources[0].type == ImageSource::Type::Remote) {
-      requestNetworkImageData(imageProps.sources[0]);
+    if (source.type == ImageSource::Type::Local) {
+      imageData = getLocalImageData(source);
+    } else if(source.type == ImageSource::Type::Remote) {
+      requestNetworkImageData(source);
     }
+
   } while(0);
 
   Rect frame = component.layoutMetrics.frame;
@@ -117,13 +129,14 @@ void RSkComponentImage::OnPaint(SkCanvas *canvas) {
 
   } else {
   /* Emitting Image Load failed Event*/
-    if(imageProps.sources[0].type != ImageSource::Type::Remote) {
+    if(source.type != ImageSource::Type::Remote)
+    {
       if(!hasToTriggerEvent_) {
         imageEventEmitter_->onLoadStart();
         hasToTriggerEvent_ = true;
       }
       if(hasToTriggerEvent_) sendErrorEvents();
-      RNS_LOG_ERROR("Image not loaded :"<<imageProps.sources[0].uri.c_str());
+      RNS_LOG_ERROR("Image not loaded :"<<source.uri.c_str());
     }
   }
 }
@@ -173,6 +186,7 @@ RnsShell::LayerInvalidateMask RSkComponentImage::updateComponentProps(const Shad
     auto const &oldimageProps = *std::static_pointer_cast<ImageProps const>(component.props);
     RnsShell::LayerInvalidateMask updateMask=RnsShell::LayerInvalidateNone;
 
+    RNS_LOG_INFO("Image source size:" << newimageProps.sources.size());
     if((forceUpdate) || (oldimageProps.resizeMode != newimageProps.resizeMode)) {
       imageProps.resizeMode = newimageProps.resizeMode;
       updateMask =static_cast<RnsShell::LayerInvalidateMask>(updateMask | RnsShell::LayerInvalidateAll);

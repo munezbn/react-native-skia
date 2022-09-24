@@ -17,5 +17,9 @@ config("react_native_config") {
       "-Wno-sizeof-pointer-div",
       "-Wno-unused-result",
     ]
+  } else {
+    cflags_cc = [
+      "-std=c++17",
+    ]
   }
 }

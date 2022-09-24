@@ -34,6 +34,7 @@ inline int getTextLines(std::vector<LineMetrics> metrics, float maxNumberOfLines
 #if defined(TARGET_OS_TV) && TARGET_OS_TV
 // The textAlignVertical property is available only in the TVOS RN repo
 inline SkScalar yPosOffset(AttributedString attributedString, SkScalar paraHeight, Float frameHeight ) {
+#if 0
     for(auto &fragment: attributedString.getFragments()) {
         if((paraHeight < frameHeight) && (!fragment.textAttributes.textAlignVertical.empty())) {
             if(!strcmp(fragment.textAttributes.textAlignVertical.c_str(),"center"))
@@ -42,6 +43,7 @@ inline SkScalar yPosOffset(AttributedString attributedString, SkScalar paraHeigh
                 return (frameHeight - paraHeight);
         }
     }
+#endif
     return 0;
 }
 #endif //TARGET_OS_TV

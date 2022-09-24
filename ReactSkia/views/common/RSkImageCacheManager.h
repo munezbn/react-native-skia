@@ -5,6 +5,7 @@
  * LICENSE file in the root directory of this source tree.
  */
 #pragma once
+#include <butter/map.h>
 
 #include "include/core/SkImage.h"
 #include "include/core/SkGraphics.h"
@@ -25,7 +26,7 @@ typedef struct decodedimageCacheData {
   double expiryTime;
 }decodedimageCacheData;
 
-typedef better::map <string,decodedimageCacheData> ImageCacheMap;
+typedef butter::map <string,decodedimageCacheData> ImageCacheMap;
 
 class RSkImageCacheManager {
  public:

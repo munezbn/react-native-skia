@@ -13,9 +13,7 @@ rn_cxx_component("mounting") {
     "ShadowViewMutation.cpp",
     "StubView.cpp",
     "StubViewTree.cpp",
-    "SurfaceTelemetry.cpp",
     "TelemetryController.cpp",
-    "TransactionTelemetry.cpp",
     "stubs.cpp",
   ]
 

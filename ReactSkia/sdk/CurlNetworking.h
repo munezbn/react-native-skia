@@ -5,7 +5,6 @@
 * LICENSE file in the root directory of this source tree.
 */
 #include <curl/curl.h>
-#include <better/map.h>
 #include <semaphore.h>
 #include <thread>  
 #include "jsi/JSIDynamic.h"

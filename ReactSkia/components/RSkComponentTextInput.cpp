@@ -132,7 +132,7 @@ void RSkComponentTextInput::drawCursor(SkCanvas *canvas, LayoutMetrics layout){
 void RSkComponentTextInput::OnPaint(SkCanvas *canvas) {
   auto component = getComponentData();
   auto const &textInputProps = *std::static_pointer_cast<TextInputProps const>(component.props);
-  auto state = std::static_pointer_cast<TextInputShadowNode::ConcreteStateT const>(component.state);
+  auto state = std::static_pointer_cast<TextInputShadowNode::ConcreteState const>(component.state);
   auto data = state->getData();
   auto borderMetrics = textInputProps.resolveBorderMetrics(component.layoutMetrics);
   Rect frame = component.layoutMetrics.frame;
@@ -158,8 +158,8 @@ void RSkComponentTextInput::OnPaint(SkCanvas *canvas) {
     requestForEditingMode(false);
     hasToSetFocus_ = false;
   }
-  if (textInputProps.underlineColorAndroid.has_value()){
-    drawUnderline(canvas,frame,textInputProps.underlineColorAndroid.value());
+  if (textInputProps.underlineColorAndroid){
+    drawUnderline(canvas,frame,textInputProps.underlineColorAndroid);
   }
   drawBorder(canvas, frame, borderMetrics, textInputProps.backgroundColor);
 
@@ -208,7 +208,7 @@ void RSkComponentTextInput::onHandleKey(rnsKey eventKeyType, bool keyRepeat, boo
     // Always delete the immediate left character from
     // the cursor position.
       
-    if (textInputProps.value.has_value()) {
+    if (textInputProps.value) {
       if (!isTextInputInFocus_) {
         isTextInputInFocus_ = true;
         isKeyRepeateOn = false;
@@ -423,8 +423,8 @@ RnsShell::LayerInvalidateMask  RSkComponentTextInput::updateComponentProps(const
   /* 1. If props has value defined */
   /* 2. If props has defaultValue defined + its first time update */
   if ((textString != displayString_)
-      && (textInputProps.value.has_value()
-           || (textInputProps.defaultValue.has_value() && forceUpdate))) {
+      && (textInputProps.value
+           || (!textInputProps.defaultValue.empty() && forceUpdate))) {
 
     privateVarProtectorMutex.lock();
     displayString_ = textString;
@@ -436,7 +436,7 @@ RnsShell::LayerInvalidateMask  RSkComponentTextInput::updateComponentProps(const
   }
   if ((textInputProps.placeholder.size())
       && ((placeholderString_) != (textInputProps.placeholder))
-      &&(!textInputProps.value.has_value())) {
+      &&(!textInputProps.value)) {
 
     placeholderString_ = textInputProps.placeholder.c_str();
     if(!displayString_.size()) {

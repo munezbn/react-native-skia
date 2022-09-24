@@ -56,6 +56,7 @@ class TextLayoutManager : public RSkTextLayoutManager {
       ParagraphAttributes paragraphAttributes,
       Size size) const;
 
+  void *getNativeTextLayoutManager() const { return (void *)this;}
  private:
   ContextContainer::Shared contextContainer_;
   TextMeasureCache measureCache_{};
