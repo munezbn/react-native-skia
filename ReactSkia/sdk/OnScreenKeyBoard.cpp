@@ -53,6 +53,7 @@ void OnScreenKeyboard::exit() {
 
   std::scoped_lock lock(oskLaunchExitCtrlMutex);
   onScreenKeyboardEventEmit(std::string("keyboardWillHide"));
+  RNS_LOG_INFO("Closing OSK::Window!!!");
   oskHandle.closeWindow();
 
   /* Stop Listening for Hw Key Event*/
@@ -501,9 +502,11 @@ void OnScreenKeyboard ::drawHighLightOnKey(SkPoint index) {
   RNS_PROFILE_END(" Highlight Completion : ",HighlightOSKKey)
 }
 
-void OnScreenKeyboard::onHWkeyHandler(rnsKey keyValue, rnsKeyAction eventKeyAction) {
-  RNS_LOG_DEBUG("rnsKey: "<<RNSKeyMap[keyValue]<<" rnsKeyAction: "<<((eventKeyAction ==0) ? "RNS_KEY_Press ": "RNS_KEY_Release ") );
-
+void OnScreenKeyboard::onHWkeyHandler(rnsKey keyValue, rnsKeyAction eventKeyAction, RnsShell::Window* window) {
+  RNS_LOG_DEBUG(__func__<<"rnsKey: "<<RNSKeyMap[keyValue]<<" rnsKeyAction: "<<((eventKeyAction ==0) ? "RNS_KEY_Press ": "RNS_KEY_Release ")<<eventKeyAction );
+  if (getWindow() != window) {
+    return;
+  }
   if(eventKeyAction == RNS_KEY_Release) {
 #if ENABLE(FEATURE_KEY_THROTTLING)
     if(onKeyRepeatMode_) {
@@ -913,9 +916,11 @@ void OnScreenKeyboard::windowReadyToDrawCB() {
 #endif
       /*Listen for  Key Press event */
       if(subWindowKeyEventId_ == -1) {
-        std::function<void(rnsKey, rnsKeyAction)> handler = std::bind(&OnScreenKeyboard::onHWkeyHandler,this,
+        std::function<void(rnsKey, rnsKeyAction, RnsShell::Window*)> handler = std::bind(&OnScreenKeyboard::onHWkeyHandler,
+                                                                       this,
                                                                        std::placeholders::_1,
-                                                                       std::placeholders::_2);
+                                                                       std::placeholders::_2,
+                                                                       std::placeholders::_3);
         subWindowKeyEventId_ = NotificationCenter::subWindowCenter().addListener("onHWKeyEvent", handler);
       }
       onScreenKeyboardEventEmit(std::string("keyboardDidShow"));
