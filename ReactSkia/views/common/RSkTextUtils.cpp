@@ -80,18 +80,12 @@ void drawText(std::shared_ptr<Paragraph>& paragraph,
     SkPaint paint;
     SkScalar yOffset = 0;
     Rect frame = layout.frame;
-    int textFrameHeight=(std::isnan(props.textAttributes.lineHeight)) ? frame.size.height : props.textAttributes.lineHeight;
     SkAutoCanvasRestore save(canvas, true);
-    
-    if(textFrameHeight <= 0){
-        RNS_LOG_WARN(" Text Drawing Ignored, Height[" << textFrameHeight<<"]");
-        return;
-    }
 
     if (isParent){
-        canvas->clipRect(SkRect::MakeXYWH(0, 0, frame.size.width, textFrameHeight), SkClipOp::kIntersect);
+        canvas->clipRect(SkRect::MakeXYWH(0, 0, frame.size.width, frame.size.height), SkClipOp::kIntersect);
     } else {
-        canvas->clipRect(SkRect::MakeXYWH(frame.origin.x, frame.origin.y, frame.size.width, textFrameHeight), SkClipOp::kIntersect);
+        canvas->clipRect(SkRect::MakeXYWH(frame.origin.x, frame.origin.y, frame.size.width, frame.size.height), SkClipOp::kIntersect);
     }
 
     if (props.backgroundColor ){
