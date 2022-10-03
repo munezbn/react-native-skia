@@ -71,17 +71,16 @@ void OnScreenKeyboard::exit() {
   oskHandle.currentFocussIndex_.set(0,0);
   oskHandle.emittedOSKKey_=RNS_KEY_UnKnown;
 #if ENABLE(FEATURE_KEY_THROTTLING)
+  if(oskHandle.repeatKeyQueue_ && !oskHandle.repeatKeyQueue_->isEmpty()) {
+    oskHandle.repeatKeyQueue_->clear();
+  }
   if(oskHandle.repeatKeyHandler_.joinable()) {
     if(oskHandle.waitingForKeyConsumedSignal) {
       sem_post(&oskHandle.sigKeyConsumed_);//Release from sigKeyConsumed_ sem_wait, if waiting on it
     } else {
-      //post a dummy message  and wait for thread completion.
+      //post a dummy message to avoid dead lock on waiting for key Input.
       oskHandle.repeatKeyQueue_->push(RNS_KEY_UnKnown);
-      sem_wait(&oskHandle.sigKeyConsumed_);
     }
-  }
-  if(oskHandle.repeatKeyQueue_ && !oskHandle.repeatKeyQueue_->isEmpty()) {
-    oskHandle.repeatKeyQueue_->clear();
   }
   if(oskHandle.repeatKeyHandler_.joinable()) {
     oskHandle.repeatKeyHandler_.join();
@@ -535,6 +534,9 @@ void OnScreenKeyboard::onHWkeyHandler(rnsKey keyValue, rnsKeyAction eventKeyActi
 }
 
 inline void OnScreenKeyboard::processKey(rnsKey keyValue) {
+  if(keyValue == RNS_KEY_UnKnown){
+    return;
+  }
   SkPoint hlCandidate;
   bool drawCallPendingToRender{false};
   hlCandidate=lastFocussIndex_=currentFocussIndex_;
@@ -934,9 +936,6 @@ void OnScreenKeyboard::repeatKeyProcessingThread(){
     if(oskState_ == OSK_STATE_ACTIVE) {
       repeatKeyQueue_->pop(eventKeyType);
       processKey(eventKeyType);
-    } else {
-      sem_post(&sigKeyConsumed_); // Final signal to intimate Thread completed
-      return;
     }
   }
 }
