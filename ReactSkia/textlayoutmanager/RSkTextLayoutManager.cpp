@@ -174,8 +174,7 @@ void RSkTextLayoutManager::buildText (struct RSkSkTextLayout &textLayout,
     style.setFontFamilies({SkString(textAttributes.fontFamily.c_str())});
     style.setFontStyle(SkFontStyle{fontWeight, SkFontStyle::kNormal_Width, fontStyle});
 
-    if((!std::isnan(textAttributes.lineHeight)) && (textAttributes.lineHeight > 0))
-    {
+    if((!std::isnan(textAttributes.lineHeight)) && (textAttributes.lineHeight > 0)){
         style.setHeightOverride(true);
         style.setHeight(textAttributes.lineHeight / fontSize);
     }

@@ -5,7 +5,6 @@
  * LICENSE file in the root directory of this source tree.
  */
 
-#include "include/core/SkPath.h"
 #include "ReactSkia/views/common/RSkTextUtils.h"
 
 using namespace skia::textlayout;
@@ -90,7 +89,7 @@ void drawText(std::shared_ptr<Paragraph>& paragraph,
 
     if (props.backgroundColor ){
         SkColor bgColor = RSkColorFromSharedColor(props.backgroundColor, SK_ColorTRANSPARENT);
-        if (bgColor){
+        if (bgColor && SkColorGetA(bgColor)){
             canvas->drawColor(bgColor);
         }
     }
