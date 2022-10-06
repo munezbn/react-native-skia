@@ -50,9 +50,9 @@ class RSkComponentImage final : public RSkComponent {
                               SkRect targetRect,
                               sk_sp<SkImage> imageData,
                               const ImageProps &imageProps);
-  inline void getPaintObject (SkPaint &paintObj,const ImageProps &imageProps,
+  inline void setImageFilters (SkPaint &paintObj,const ImageProps &imageProps,
                               SkRect targetRect,SkRect frameRect,
-                              bool forImageShadow, bool isOpaque);
+                              bool setImageShadowFilter, bool isOpaque);
   inline void sendErrorEvents();
   inline void sendSuccessEvents();
  protected:
