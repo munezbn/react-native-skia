@@ -196,7 +196,7 @@ class OnScreenKeyboard : public WindowDelegator{
     std::atomic<bool> onKeyRepeatMode_{false};
     rnsKey        previousKey_{RNS_KEY_UnKnown};
     sem_t         sigKeyConsumed_;
-    std::atomic<bool> waitingForKeyConsumedSignal{false};
+    std::atomic<bool> waitingForKeyConsumedSignal_{false};
 #endif /*ENABLE_FEATURE_KEY_THROTTLING*/
 };
 

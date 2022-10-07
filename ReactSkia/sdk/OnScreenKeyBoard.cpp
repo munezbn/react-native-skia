@@ -74,20 +74,23 @@ void OnScreenKeyboard::exit() {
   if(oskHandle.repeatKeyQueue_ && !oskHandle.repeatKeyQueue_->isEmpty()) {
     oskHandle.repeatKeyQueue_->clear();
   }
+  // If Repeat Key Handler Thread is still Active, Exit it.
   if(oskHandle.repeatKeyHandler_.joinable()) {
-    if(oskHandle.waitingForKeyConsumedSignal) {
-      sem_post(&oskHandle.sigKeyConsumed_);//Release from sigKeyConsumed_ sem_wait, if waiting on it
+    if(oskHandle.waitingForKeyConsumedSignal_) {
+      //Release from waiting on response from client.
+      sem_post(&oskHandle.sigKeyConsumed_);
     } else {
       //post a dummy message to avoid dead lock on waiting for key Input.
       oskHandle.repeatKeyQueue_->push(RNS_KEY_UnKnown);
     }
   }
+  // Finally wait for thread to exit.
   if(oskHandle.repeatKeyHandler_.joinable()) {
     oskHandle.repeatKeyHandler_.join();
   }
   oskHandle.onKeyRepeatMode_=false;
   oskHandle.previousKey_=RNS_KEY_UnKnown;
-  oskHandle.waitingForKeyConsumedSignal=false;
+  oskHandle.waitingForKeyConsumedSignal_=false;
   sem_destroy(&oskHandle.sigKeyConsumed_);
   oskHandle.repeatKeyQueue_=nullptr;
 #endif/*ENABLE_FEATURE_KEY_THROTTLING*/
@@ -101,7 +104,7 @@ void  OnScreenKeyboard::updatePlaceHolderString(std::string displayString,int cu
     return;
   }
 #if ENABLE(FEATURE_KEY_THROTTLING)
-  if(oskHandle.waitingForKeyConsumedSignal) {
+  if(oskHandle.waitingForKeyConsumedSignal_) {
     sem_post(&oskHandle.sigKeyConsumed_);
   }
 #endif
@@ -634,7 +637,7 @@ inline void OnScreenKeyboard::processKey(rnsKey keyValue) {
   if(OSKkeyValue != RNS_KEY_UnKnown) {
 #if ENABLE(FEATURE_KEY_THROTTLING)
     if(onKeyRepeatMode_) {
-      waitingForKeyConsumedSignal=true;
+      waitingForKeyConsumedSignal_=true;
     }
 #endif
     emittedOSKKey_=OSKkeyValue;
@@ -929,9 +932,9 @@ void OnScreenKeyboard::onScreenKeyboardEventEmit(std::string eventType){
 void OnScreenKeyboard::repeatKeyProcessingThread(){
   rnsKey eventKeyType;
   while(oskState_ == OSK_STATE_ACTIVE) {
-    if(waitingForKeyConsumedSignal) {
+    if(waitingForKeyConsumedSignal_) {
       sem_wait(&sigKeyConsumed_);
-      waitingForKeyConsumedSignal=false;
+      waitingForKeyConsumedSignal_=false;
     }
     if(oskState_ == OSK_STATE_ACTIVE) {
       repeatKeyQueue_->pop(eventKeyType);
