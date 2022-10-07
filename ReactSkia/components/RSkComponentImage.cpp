@@ -279,11 +279,13 @@ inline void RSkComponentImage::setImageFilters (SkPaint &paintObj,const ImagePro
       if(imageProps.blurRadius > 0) {
         shadowFilter = SkImageFilters::Blur(imageProps.blurRadius, imageProps.blurRadius,shadowFilter);
       }
+      paintObj.setAntiAlias(true);
       paintObj.setImageFilter(std::move(shadowFilter));
    } else if( setImageShadowFilter && layer()->componentShadow.isShadowVisible() && layer()->componentShadow.shadowRadius) {
       if(layer()->componentShadow.maskFilter == nullptr) {
          layer()->componentShadow.createMaskFilter();
       }
+      paintObj.setAntiAlias(true);
       paintObj.setMaskFilter(layer()->componentShadow.maskFilter);
    }
 }
