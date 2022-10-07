@@ -134,7 +134,7 @@ void createEdge(PathMetrics pathMetrics,BorderEdges borderEdge,SkPath* path)
 void drawRect(DrawMethod drawMethod,SkCanvas *canvas,
                                         Rect frame,
                                         BorderMetrics borderProps,
-                                        SharedColor Color,
+                                        SkColor Color,
                                         SkPaint *paint=NULL)
 {
     if(canvas == NULL) return;
@@ -146,6 +146,9 @@ void drawRect(DrawMethod drawMethod,SkCanvas *canvas,
     SkPaint paintObj;
     if(paint != NULL){ paintObj = *paint; }
 
+    paintObj.setAntiAlias(true);
+    paintObj.setColor(Color);
+
   /*Creating basic layout from props*/
     rect=SkRect::MakeXYWH(frame.origin.x,frame.origin.y,\
          frame.size.width,frame.size.height);
@@ -154,8 +157,7 @@ void drawRect(DrawMethod drawMethod,SkCanvas *canvas,
                        {borderProps.borderRadii.topRight,borderProps.borderRadii.topRight}, \
                        {borderProps.borderRadii.bottomRight,borderProps.borderRadii.bottomRight }, \
                        {borderProps.borderRadii.bottomLeft,borderProps.borderRadii.bottomLeft}};
-
-    setColor(Color,&paintObj );
+   
     /* To sync with the border draw type, resetting the stroke width for background*/
     if(!hasUniformBorderEdges(borderProps) && (drawMethod == Background))
         rectStrokeWidth=0;
@@ -304,7 +306,7 @@ void  drawBackground(SkCanvas *canvas,
                                SharedColor backgroundColor)
 {
     if( backgroundColor && isDrawVisible(backgroundColor) ){
-      drawRect(Background,canvas,frame,borderProps,backgroundColor);
+      drawRect(Background,canvas,frame,borderProps,RSkColorFromSharedColor(backgroundColor, DEFAULT_COLOUR));
     }
 }
 void drawBorder(SkCanvas *canvas,
@@ -317,7 +319,7 @@ void drawBorder(SkCanvas *canvas,
    /*Skia draw with hairline thickness in case of Strokewidth Zero. So avoid drawing border if 
      borderWidth/StrokeWidth is Zero*/
           (isDrawVisible(borderProps.borderColors.left,borderProps.borderWidths.left) ))){
-             drawRect(Border,canvas,frame,borderProps,borderProps.borderColors.left);
+             drawRect(Border,canvas,frame,borderProps,RSkColorFromSharedColor(borderProps.borderColors.left, DEFAULT_COLOUR));
     }else{
          /*Draw Right Side*/
          if((backgroundColor != borderProps.borderColors.right) && \
@@ -355,6 +357,10 @@ bool  drawShadow(SkCanvas *canvas,Rect frame,
       paint.setMaskFilter(componentShadow.maskFilter);
    }
 
+    Rect shadowFrame{{frame.origin.x+componentShadow.shadowOffset.width(),
+                     frame.origin.y+componentShadow.shadowOffset.height()},
+                     {frame.size.width, frame.size.height}};
+
     DrawMethod shadowOn = None;
     /*Shadow on Background : If bg  visible */
     if(backgroundColor && isDrawVisible(backgroundColor)) {
@@ -368,17 +374,6 @@ bool  drawShadow(SkCanvas *canvas,Rect frame,
            shadowOn = Border;
     }
     if(shadowOn != None) {
-        SkRect clipRect = SkRect::MakeXYWH(frame.origin.x, frame.origin.y, frame.size.width, frame.size.height);
-        SkVector radii[4]={{borderProps.borderRadii.topLeft,borderProps.borderRadii.topLeft},
-                       {borderProps.borderRadii.topRight,borderProps.borderRadii.topRight}, \
-                       {borderProps.borderRadii.bottomRight,borderProps.borderRadii.bottomRight }, \
-                       {borderProps.borderRadii.bottomLeft,borderProps.borderRadii.bottomLeft}};
-        if(borderProps.borderWidths.left) {
-            clipRect.inset(borderProps.borderWidths.left/2,borderProps.borderWidths.left/2);
-        }
-
-        SkRRect clipRRect;
-        clipRRect.setRectRadii(clipRect,radii);
 
         bool needsSaveLayer{false};
 
@@ -387,10 +382,21 @@ bool  drawShadow(SkCanvas *canvas,Rect frame,
             needsSaveLayer=true;
         }
         if(shadowOn == Background) {
+            SkRect clipRect = SkRect::MakeXYWH(frame.origin.x, frame.origin.y, frame.size.width, frame.size.height);
+            SkVector radii[4]={{borderProps.borderRadii.topLeft,borderProps.borderRadii.topLeft},
+                           {borderProps.borderRadii.topRight,borderProps.borderRadii.topRight}, \
+                           {borderProps.borderRadii.bottomRight,borderProps.borderRadii.bottomRight }, \
+                           {borderProps.borderRadii.bottomLeft,borderProps.borderRadii.bottomLeft}};
+            if(borderProps.borderWidths.left) {
+                clipRect.inset(borderProps.borderWidths.left/2,borderProps.borderWidths.left/2);
+            }
+            SkRRect clipRRect;
+            clipRRect.setRectRadii(clipRect,radii);
+
             canvas->clipRRect(clipRRect,SkClipOp::kDifference);
             needsSaveLayer=true;
         }
-        drawRect(shadowOn,canvas,frame,borderProps,backgroundColor,&paint);
+        drawRect(shadowOn,canvas,shadowFrame,borderProps,componentShadow.shadowColor,&paint);
         if(needsSaveLayer) {
             canvas->restore();
         }
@@ -401,12 +407,13 @@ bool  drawShadow(SkCanvas *canvas,Rect frame,
 /*Shadow on Path */
     if(!borderProps.borderWidths.isUniform() ) {
         SkPath shadowPath;
-        bool pathExist=createshadowPath(canvas,frame,borderProps,&shadowPath);;
+        bool pathExist=createshadowPath(canvas,shadowFrame,borderProps,&shadowPath);;
 
        if(pathExist) {
            if(!(isOpaque(componentShadow.shadowOpacity)))
                canvas->saveLayerAlpha(NULL,componentShadow.shadowOpacity);
            canvas->clipPath(shadowPath,SkClipOp::kDifference);
+           paint.setColor(componentShadow.shadowColor);
            canvas->drawPath(shadowPath,paint);
            if(!(isOpaque(componentShadow.shadowOpacity)))
                canvas->restore();
