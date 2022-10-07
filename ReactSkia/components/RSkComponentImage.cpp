@@ -232,7 +232,7 @@ inline void RSkComponentImage::drawContentShadow( SkCanvas *canvas,
     SkRect mapRect;
       //Calculate absolute frame bounds
     SkIRect imageFrameBounds = SkIRect::MakeXYWH(frameRect.x() + layer()->componentShadow.shadowOffset.width(), frameRect.y() + layer()->componentShadow.shadowOffset.height(), frameRect.width(), frameRect.height());
-    SkIRect shadowBounds=componentShadow.getShadowBounds(imageFrameBounds);
+    SkIRect shadowBounds=layer()->componentShadow.getShadowBounds(imageFrameBounds);
     mapRect=SkRect::Make(shadowBounds);
     mapRect.join(frameRect);
 

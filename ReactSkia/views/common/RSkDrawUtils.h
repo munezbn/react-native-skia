@@ -30,7 +30,7 @@ namespace RSkDrawUtils{
                                Rect frame,
                                BorderMetrics borderMetrics,
                                SharedColor bgColor,
-                               struct RnsShell::ComponentShadow componentShadow);
+                               struct RnsShell::ComponentShadow &componentShadow);
   void drawUnderline(SkCanvas *canvas,Rect frame,SharedColor underlineColor);
 }//namespace RSkDrawUtils
 } // namespace react

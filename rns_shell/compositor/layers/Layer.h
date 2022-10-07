@@ -68,6 +68,8 @@ struct ComponentShadow {
         return false;
     }
     sk_sp<SkImageFilter> createImageFilter() {
+        RNS_LOG_INFO("createImageFilter");
+
         imageFilter= SkImageFilters::DropShadowOnly(shadowOffset.width(), 
                                        shadowOffset.height(),
                                        shadowRadius, shadowRadius,
@@ -75,25 +77,25 @@ struct ComponentShadow {
         return imageFilter;
     }
     sk_sp<SkMaskFilter> createMaskFilter() {
+        RNS_LOG_INFO("createMaskFilter");
         maskFilter= SkMaskFilter::MakeBlur(kNormal_SkBlurStyle, shadowRadius);
         return maskFilter;
     }
     SkIRect getShadowBounds(const SkIRect origSrc) {
-        SkMatrix identityMatrix;
-        if(maskFilter) {
+        if(imageFilter) {
+            SkMatrix identityMatrix;
             return imageFilter->filterBounds(
-                                        origSrc,
-                                        identityMatrix,
-                                        SkImageFilter::kForward_MapDirection,
-                                        nullptr);
-        } else if(imageFilter){
+                                    origSrc,
+                                    identityMatrix,
+                                    SkImageFilter::kForward_MapDirection,
+                                    nullptr);
+        } else if(maskFilter){
           SkRect storage;
           as_MFB(maskFilter)->computeFastBounds(SkRect::Make(origSrc), &storage);
           return  SkIRect::MakeXYWH(storage.x(), storage.y(), storage.width(), storage.height());
         }
-        return SkIRect::MakeEmpty();
+        return origSrc;
     }
-
 };
 
 typedef std::vector<std::shared_ptr<Layer> > LayerList;

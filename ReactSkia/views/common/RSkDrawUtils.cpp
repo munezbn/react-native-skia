@@ -346,17 +346,10 @@ void drawBorder(SkCanvas *canvas,
 bool  drawShadow(SkCanvas *canvas,Rect frame,
                         BorderMetrics borderProps,
                         SharedColor backgroundColor,
-                        RnsShell::ComponentShadow componentShadow) {
+                        RnsShell::ComponentShadow &componentShadow) {
 
     if(!componentShadow.isShadowVisible()) return false;
     SkPaint paint;
-    if(componentShadow.shadowRadius != 0) {
-      if(componentShadow.maskFilter == nullptr) {
-        componentShadow.createMaskFilter();
-      }
-      paint.setMaskFilter(componentShadow.maskFilter);
-   }
-
     Rect shadowFrame{{frame.origin.x+componentShadow.shadowOffset.width(),
                      frame.origin.y+componentShadow.shadowOffset.height()},
                      {frame.size.width, frame.size.height}};
@@ -375,6 +368,12 @@ bool  drawShadow(SkCanvas *canvas,Rect frame,
     }
     if(shadowOn != None) {
 
+        if(componentShadow.shadowRadius != 0) {
+           if(componentShadow.maskFilter == nullptr) {
+              componentShadow.createMaskFilter();
+            }
+            paint.setMaskFilter(componentShadow.maskFilter);
+        }
         bool needsSaveLayer{false};
 
         if(componentShadow.shadowOpacity) {
@@ -410,9 +409,16 @@ bool  drawShadow(SkCanvas *canvas,Rect frame,
         bool pathExist=createshadowPath(canvas,shadowFrame,borderProps,&shadowPath);;
 
        if(pathExist) {
-           if(!(isOpaque(componentShadow.shadowOpacity)))
+            if(!(isOpaque(componentShadow.shadowOpacity))) {
                canvas->saveLayerAlpha(NULL,componentShadow.shadowOpacity);
-           canvas->clipPath(shadowPath,SkClipOp::kDifference);
+            }
+            canvas->clipPath(shadowPath,SkClipOp::kDifference);
+            if(componentShadow.shadowRadius != 0) {
+              if(componentShadow.maskFilter == nullptr) {
+                componentShadow.createMaskFilter();
+            }
+            paint.setMaskFilter(componentShadow.maskFilter);
+        }
            paint.setColor(componentShadow.shadowColor);
            canvas->drawPath(shadowPath,paint);
            if(!(isOpaque(componentShadow.shadowOpacity)))
