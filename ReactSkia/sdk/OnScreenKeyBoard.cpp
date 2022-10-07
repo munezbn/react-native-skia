@@ -84,7 +84,7 @@ void OnScreenKeyboard::exit() {
       oskHandle.repeatKeyQueue_->push(RNS_KEY_UnKnown);
     }
   }
-  // Finally wait for thread to exit.
+  // Finally ensure the thread exit.
   if(oskHandle.repeatKeyHandler_.joinable()) {
     oskHandle.repeatKeyHandler_.join();
   }
