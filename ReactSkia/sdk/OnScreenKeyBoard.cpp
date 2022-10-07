@@ -19,6 +19,7 @@ namespace rns {
 namespace sdk {
 
 std::mutex oskLaunchExitCtrlMutex;//For synchronized OSK Launch & Exit
+std::mutex drawCtrlLockMutex;
 
 OnScreenKeyboard& OnScreenKeyboard::getInstance() {
   static OnScreenKeyboard oskHandle;
@@ -941,6 +942,45 @@ void OnScreenKeyboard::repeatKeyProcessingThread(){
   }
 }
 #endif
+
+void OnScreenKeyboard::sendDrawCommand(DrawCommands commands) {
+   std::scoped_lock lock(drawCtrlLockMutex);
+   SkPictureRecorder pictureRecorder_;
+   std::string commandKey;
+   std::vector<SkIRect>   dirtyRect;
+   pictureCanvas_ = pictureRecorder_.beginRecording(SkRect::MakeXYWH(0, 0, screenSize_.width(), screenSize_.height()));
+   switch(commands) {
+     case DRAW_OSK_BG:
+     RNS_LOG_INFO("@@@ Got Task to work:DRAW_OSK_BG@@");
+     drawOSKBackGround(dirtyRect);
+     commandKey="OSKBackGround";
+     setBasePicCommand(commandKey);
+     break;
+     case DRAW_PH_STRING:
+       RNS_LOG_INFO("@@@ Got Task to work:DRAW_PH_STRING@@");
+       drawPlaceHolderDisplayString(dirtyRect);
+       commandKey="EmbededTIString";
+       break;
+      case DRAW_HL:
+        RNS_LOG_INFO("@@@ Got Task to work:DRAW_HL@@");
+        commandKey="HighLight";
+        drawHighLightOnKey(dirtyRect);
+      break;
+     case DRAW_KB:
+       RNS_LOG_INFO("@@@ Got Task to work:DRAW_KB@@");
+       commandKey="KeyBoardLayout";
+       drawKBLayout(dirtyRect);
+      break;
+     default:
+     break;
+   }
+   auto pic = pictureRecorder_.finishRecordingAsPicture();
+   if(pic.get()) {
+     RNS_LOG_INFO("SkPicture ( "  << pic << " )For " <<
+     pic.get()->approximateOpCount() << " operations and size : " << pic.get()->approximateBytesUsed());
+   }
+   if(oskState_== OSK_STATE_ACTIVE) commitDrawCall(commandKey,{dirtyRect,pic});
+}
 
 } // namespace sdk
 } // namespace rns

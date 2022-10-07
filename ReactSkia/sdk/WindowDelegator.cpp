@@ -64,6 +64,11 @@ void  WindowDelegator::createNativeWindow() {
 void WindowDelegator::closeWindow() {
   RNS_LOG_TODO("Sync between rendering & Exit to be handled ");
   windowActive = false;
+<<<<<<< HEAD
+=======
+  std::scoped_lock lock(renderCtrlMutex_);
+  if(ownsTaskrunner_) windowTaskRunner_->stop();
+>>>>>>> ac272080a... Code Annotation
 
   std::scoped_lock lock(renderCtrlMutex_);
   if(ownsTaskrunner_){
@@ -88,25 +93,34 @@ void WindowDelegator::closeWindow() {
   windowReadyTodrawCB_=nullptr;
 }
 
-void WindowDelegator::commitDrawCall() {
+void WindowDelegator::commitDrawCall(std::string pictureCommandKey,PictureObject pictureObj) {
   if(!windowActive) return;
 
   if( ownsTaskrunner_ )  {
     if( windowTaskRunner_->running() )
-      windowTaskRunner_->dispatch([&](){ renderToDisplay(); });
+      windowTaskRunner_->dispatch([=](){ renderToDisplay(pictureCommandKey,pictureObj); });
   } else {
-    renderToDisplay();
+    renderToDisplay(pictureCommandKey,pictureObj);
   }
 }
 
-inline void WindowDelegator::renderToDisplay() {
+inline void WindowDelegator::renderToDisplay(std::string pictureCommandKey,PictureObject pictureObj) {
   if(!windowActive) return;
-
-  std::scoped_lock lock(renderCtrlMutex);
-
+  std::vector<SkIRect> dirtyRect;
+/* Works on the Expection, the client would seperated its window in to sepearte component
+ * and update/changes happens on portion of the screen i.e. w.r.t component
+ * pictureCommandKey : component/Updating Area's key name
+ * PictureObject     : Hold the recorded canvas command to the Area/component
+*/
+#ifdef SHOW_DIRTY_RECT
+  SkPaint paint;
+  paint.setColor(SK_ColorGREEN);
+  paint.setStrokeWidth(2);
+  paint.setStyle(SkPaint::kStroke_Style);
+#endif /*SHOW_DIRTY_RECT*/
+  std::scoped_lock lock(renderCtrlMutex_);
 #ifdef RNS_SHELL_HAS_GPU_SUPPORT
-  int bufferAge=windowContext_->bufferAge();
-  if(!pictureCommandKey.empty() && (bufferAge == 1)) {
+  if(!pictureCommandKey.empty()) {
 // Add last updated area of current component to dirty Rect
     auto iter=drawHistorybin_.find(pictureCommandKey);
     if(iter != drawHistorybin_.end()) {
@@ -164,7 +178,6 @@ inline void WindowDelegator::renderToDisplay() {
   if(backBuffer_)  backBuffer_->flushAndSubmit();
   if(windowContext_) {
     std::vector<SkIRect> emptyRect;// No partialUpdate handled , so passing emptyRect instead of dirtyRect
-    windowContext_->swapBuffers(emptyRect);
   }
 }
 
