@@ -78,8 +78,9 @@ void RSkComponentImage::OnPaint(SkCanvas *canvas) {
       drawContentShadow(canvas,frameRect,targetRect,imageData,imageProps);
     }
     /*Draw Image */
-    if(( frameRect.width() < targetRect.width()) || ( frameRect.height() < targetRect.height()))
+    if(( frameRect.width() < targetRect.width()) || ( frameRect.height() < targetRect.height())) {
       needClipAndRestore= true;
+    }
     /* clipping logic to be applied if computed Frame is greater than the target.*/
     if(needClipAndRestore) {
         canvas->save();
@@ -231,10 +232,10 @@ inline void RSkComponentImage::drawContentShadow( SkCanvas *canvas,
     SkMatrix identityMatrix;
     SkRect mapRect;
       //Calculate absolute frame bounds
-    SkIRect imageFrameBounds = SkIRect::MakeXYWH(frameRect.x() + layer()->componentShadow.shadowOffset.width(), frameRect.y() + layer()->componentShadow.shadowOffset.height(), frameRect.width(), frameRect.height());
+    SkIRect imageFrameBounds = SkIRect::MakeXYWH(targetRect.x() + layer()->componentShadow.shadowOffset.width(), targetRect.y() + layer()->componentShadow.shadowOffset.height(), targetRect.width(), targetRect.height());
     SkIRect shadowBounds=layer()->componentShadow.getShadowBounds(imageFrameBounds);
     mapRect=SkRect::Make(shadowBounds);
-    mapRect.join(frameRect);
+    mapRect.join(targetRect);
 
     if(!(isOpaque(layer()->componentShadow.shadowOpacity))) {
       canvas->saveLayerAlpha(&mapRect,layer()->componentShadow.shadowOpacity);
@@ -246,7 +247,7 @@ inline void RSkComponentImage::drawContentShadow( SkCanvas *canvas,
       if(!SaveLAyerDone) {
         canvas->saveLayer(&mapRect,&shadowPaint);
       }
-      canvas->clipRect(frameRect,SkClipOp::kDifference);
+      canvas->clipRect(targetRect,SkClipOp::kDifference);
       shadowPaint.setColor(layer()->componentShadow.shadowColor);
       canvas->drawIRect(imageFrameBounds, shadowPaint);
     }
@@ -279,11 +280,13 @@ inline void RSkComponentImage::setImageFilters (SkPaint &paintObj,const ImagePro
       if(imageProps.blurRadius > 0) {
         shadowFilter = SkImageFilters::Blur(imageProps.blurRadius, imageProps.blurRadius,shadowFilter);
       }
+      paintObj.setAntiAlias(true);
       paintObj.setImageFilter(std::move(shadowFilter));
    } else if( setImageShadowFilter && layer()->componentShadow.isShadowVisible() && layer()->componentShadow.shadowRadius) {
       if(layer()->componentShadow.maskFilter == nullptr) {
          layer()->componentShadow.createMaskFilter();
       }
+      paintObj.setAntiAlias(true);
       paintObj.setMaskFilter(layer()->componentShadow.maskFilter);
    }
 }
