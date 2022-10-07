@@ -103,8 +103,8 @@ void RSkComponentParagraph::OnPaint(SkCanvas *canvas) {
             textLayout.builder.reset();
         }
         textLayout.builder = std::static_pointer_cast<ParagraphBuilder>(std::make_shared<ParagraphBuilderImpl>(textLayout.paraStyle,data.layoutManager->collection_));
-        if(layer()->shadowParamsObj.shadowOpacity && layer()->shadowParamsObj.shadowFilter) {
-            textLayout.shadow={layer()->shadowParamsObj.shadowColor,SkPoint::Make(layer()->shadowParamsObj.shadowOffset.width(),layer()->shadowParamsObj.shadowOffset.height()),layer()->shadowParamsObj.shadowRadius};
+        if(layer()->componentShadow.isShadowVisible()) {
+            textLayout.shadow={layer()->componentShadow.shadowColor,SkPoint::Make(layer()->componentShadow.shadowOffset.width(),layer()->componentShadow.shadowOffset.height()),layer()->componentShadow.shadowRadius};
         }
 
         expectedAttachmentCount = data.layoutManager->buildParagraph(textLayout,
@@ -118,12 +118,12 @@ void RSkComponentParagraph::OnPaint(SkCanvas *canvas) {
         /* If the count is 0,means we have no fragment attachments.So paint right away*/
         if(!expectedAttachmentCount) {
 
-            if(layer()->shadowParamsObj.shadowOpacity && layer()->shadowParamsObj.shadowFilter) {
+            if(layer()->componentShadow.isShadowVisible()) {
                 drawShadow(canvas,
                           borderFrame,
                           borderMetrics,
                           props.backgroundColor,
-                          layer()->shadowParamsObj);
+                          layer()->componentShadow);
             }
 
             setTextLines(textLayout,

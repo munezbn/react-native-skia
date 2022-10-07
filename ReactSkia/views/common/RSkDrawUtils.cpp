@@ -344,12 +344,15 @@ void drawBorder(SkCanvas *canvas,
 bool  drawShadow(SkCanvas *canvas,Rect frame,
                         BorderMetrics borderProps,
                         SharedColor backgroundColor,
-                        RnsShell::shadowParams shadowParamsObj) {
+                        RnsShell::ComponentShadow componentShadow) {
 
-    if(!shadowParamsObj.isShadowVisible()) return false;
+    if(!componentShadow.isShadowVisible()) return false;
     SkPaint paint;
-    if(shadowParamsObj.shadowRadius != 0) {
-      paint.setMaskFilter(shadowParamsObj.maskFilter);
+    if(componentShadow.shadowRadius != 0) {
+      if(componentShadow.maskFilter == nullptr) {
+        componentShadow.createMaskFilter();
+      }
+      paint.setMaskFilter(componentShadow.maskFilter);
    }
 
     DrawMethod shadowOn = None;
@@ -379,8 +382,8 @@ bool  drawShadow(SkCanvas *canvas,Rect frame,
 
         bool needsSaveLayer{false};
 
-        if(shadowParamsObj.shadowOpacity) {
-            canvas->saveLayerAlpha(NULL,shadowParamsObj.shadowOpacity);
+        if(componentShadow.shadowOpacity) {
+            canvas->saveLayerAlpha(NULL,componentShadow.shadowOpacity);
             needsSaveLayer=true;
         }
         if(shadowOn == Background) {
@@ -401,11 +404,11 @@ bool  drawShadow(SkCanvas *canvas,Rect frame,
         bool pathExist=createshadowPath(canvas,frame,borderProps,&shadowPath);;
 
        if(pathExist) {
-           if(!(isOpaque(shadowParamsObj.shadowOpacity)))
-               canvas->saveLayerAlpha(NULL,shadowParamsObj.shadowOpacity);
+           if(!(isOpaque(componentShadow.shadowOpacity)))
+               canvas->saveLayerAlpha(NULL,componentShadow.shadowOpacity);
            canvas->clipPath(shadowPath,SkClipOp::kDifference);
            canvas->drawPath(shadowPath,paint);
-           if(!(isOpaque(shadowParamsObj.shadowOpacity)))
+           if(!(isOpaque(componentShadow.shadowOpacity)))
                canvas->restore();
         }
         return true;

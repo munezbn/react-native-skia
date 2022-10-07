@@ -65,8 +65,8 @@ void RSkComponentImage::OnPaint(SkCanvas *canvas) {
   bool contentShadow = false;
   bool needClipAndRestore =false;
   sk_sp<SkImageFilter> imageFilter;
-  if(layer()->shadowParamsObj.isShadowVisible()) {
-    contentShadow=drawShadow(canvas,frame,imageBorderMetrics,imageProps.backgroundColor,layer()->shadowParamsObj);
+  if(layer()->componentShadow.isShadowVisible()) {
+    contentShadow=drawShadow(canvas,frame,imageBorderMetrics,imageProps.backgroundColor,layer()->componentShadow);
   }
   drawBackground(canvas,frame,imageBorderMetrics,imageProps.backgroundColor);
 
@@ -221,7 +221,9 @@ inline void RSkComponentImage::drawContentShadow( SkCanvas *canvas,
                             SkRect targetRect,
                             sk_sp<SkImage> imageData ,
                             const ImageProps &imageProps){
-    if(!(layer()->shadowParamsObj.isShadowVisible())) return;
+    if(!(layer()->componentShadow.isShadowVisible())){
+      return;
+    }
 
     SkPaint shadowPaint;
     setImageFilters(shadowPaint,imageProps,targetRect,frameRect,true,imageData->isOpaque());
@@ -229,25 +231,13 @@ inline void RSkComponentImage::drawContentShadow( SkCanvas *canvas,
     SkMatrix identityMatrix;
     SkRect mapRect;
       //Calculate absolute frame bounds
-    SkIRect imageFrameBounds = SkIRect::MakeXYWH(frameRect.x() + layer()->shadowParamsObj.shadowOffset.width(), frameRect.y() + layer()->shadowParamsObj.shadowOffset.height(), frameRect.width(), frameRect.height());
-
-    if (shadowPaint.getImageFilter()) {
-      SkIRect shadowBounds = shadowPaint.getImageFilter()->filterBounds(
-                                               imageFrameBounds,
-                                               identityMatrix,
-                                               SkImageFilter::kForward_MapDirection);
-      mapRect=SkRect::Make(shadowBounds);
-    }
-    SkRect imageBounds =SkRect::Make(imageFrameBounds);
-
-    if (shadowPaint.getMaskFilter()) {
-      as_MFB(shadowPaint.getMaskFilter())->computeFastBounds(imageBounds,&mapRect);
-    }
-    //SkRect mapRect=SkRect::Make(shadowBounds);
+    SkIRect imageFrameBounds = SkIRect::MakeXYWH(frameRect.x() + layer()->componentShadow.shadowOffset.width(), frameRect.y() + layer()->componentShadow.shadowOffset.height(), frameRect.width(), frameRect.height());
+    SkIRect shadowBounds=componentShadow.getShadowBounds(imageFrameBounds);
+    mapRect=SkRect::Make(shadowBounds);
     mapRect.join(frameRect);
 
-    if(!(isOpaque(layer()->shadowParamsObj.shadowOpacity))) {
-      canvas->saveLayerAlpha(&mapRect,layer()->shadowParamsObj.shadowOpacity);
+    if(!(isOpaque(layer()->componentShadow.shadowOpacity))) {
+      canvas->saveLayerAlpha(&mapRect,layer()->componentShadow.shadowOpacity);
       SaveLAyerDone=true;
     }
     if(!imageData->isOpaque()) {
@@ -257,7 +247,7 @@ inline void RSkComponentImage::drawContentShadow( SkCanvas *canvas,
         canvas->saveLayer(&mapRect,&shadowPaint);
       }
       canvas->clipRect(frameRect,SkClipOp::kDifference);
-      shadowPaint.setColor(layer()->shadowParamsObj.shadowColor);
+      shadowPaint.setColor(layer()->componentShadow.shadowColor);
       canvas->drawIRect(imageFrameBounds, shadowPaint);
     }
     if(SaveLAyerDone)
@@ -276,13 +266,13 @@ inline void RSkComponentImage::setImageFilters (SkPaint &paintObj,const ImagePro
                                                       SkRect targetRect,SkRect frameRect ,
                                                       bool setImageShadowFilter, bool isOpaque) {
    // To use Image Filter for Tile Mode & Image with Transparent pixels
-   if((!isOpaque && layer()->shadowParamsObj.isShadowVisible())||
+   if((!isOpaque && layer()->componentShadow.isShadowVisible())||
       (imageProps.resizeMode == ImageResizeMode::Repeat) || (imageProps.blurRadius > 0)) {
-      if(setImageShadowFilter && (layer()->shadowParamsObj.shadowFilter == nullptr)  &&
-           layer()->shadowParamsObj.isShadowVisible()) {
-        layer()->shadowParamsObj.shadowFilter=layer()->shadowParamsObj.createImageFilter();
+      if(setImageShadowFilter && (layer()->componentShadow.imageFilter == nullptr)  &&
+        layer()->componentShadow.isShadowVisible()) {
+        layer()->componentShadow.createImageFilter();
       }
-      sk_sp<SkImageFilter> shadowFilter=setImageShadowFilter?layer()->shadowParamsObj.shadowFilter:nullptr;
+      sk_sp<SkImageFilter> shadowFilter=setImageShadowFilter?layer()->componentShadow.imageFilter:nullptr;
       if(imageProps.resizeMode == ImageResizeMode::Repeat) {
          shadowFilter = (SkImageFilters::Tile(targetRect,frameRect,shadowFilter ));
       }
@@ -290,11 +280,11 @@ inline void RSkComponentImage::setImageFilters (SkPaint &paintObj,const ImagePro
         shadowFilter = SkImageFilters::Blur(imageProps.blurRadius, imageProps.blurRadius,shadowFilter);
       }
       paintObj.setImageFilter(std::move(shadowFilter));
-   } else if( setImageShadowFilter && layer()->shadowParamsObj.isShadowVisible()) {
-      sk_sp<SkMaskFilter> maskFilter{nullptr};
-      if(layer()->shadowParamsObj.maskFilter) {
-         paintObj.setMaskFilter(layer()->shadowParamsObj.maskFilter);
+   } else if( setImageShadowFilter && layer()->componentShadow.isShadowVisible() && layer()->componentShadow.shadowRadius) {
+      if(layer()->componentShadow.maskFilter == nullptr) {
+         layer()->componentShadow.createMaskFilter();
       }
+      paintObj.setMaskFilter(layer()->componentShadow.maskFilter);
    }
 }
 

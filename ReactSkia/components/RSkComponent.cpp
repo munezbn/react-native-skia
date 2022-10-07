@@ -45,8 +45,8 @@ void RSkComponent::OnPaintShadow(SkCanvas *canvas) {
 
   /* apply view style props */
   auto borderMetrics= viewProps.resolveBorderMetrics(component_.layoutMetrics);
-  if(layer_->shadowParamsObj.shadowOpacity && layer_->shadowParamsObj.shadowFilter){
-      drawShadow(canvas,component_.layoutMetrics.frame,borderMetrics,layer_->backgroundColor,layer_->shadowParamsObj);
+  if(layer_->componentShadow.isShadowVisible()){
+      drawShadow(canvas,component_.layoutMetrics.frame,borderMetrics,layer_->backgroundColor,layer_->componentShadow);
   }
 }
 
@@ -106,52 +106,47 @@ RnsShell::LayerInvalidateMask RSkComponent::updateProps(const ShadowView &newSha
    }
   //ShadowOpacity
    if ((forceUpdate) || (oldviewProps.shadowOpacity != newviewProps.shadowOpacity)) {
-      layer_->shadowParamsObj.shadowOpacity = ((newviewProps.shadowOpacity > 1.0) ? 1.0:newviewProps.shadowOpacity)*MAX_8BIT;
+      layer_->componentShadow.shadowOpacity = ((newviewProps.shadowOpacity > 1.0) ? 1.0:newviewProps.shadowOpacity)*MAX_8BIT;
       /*TODO : To be tested and confirm updateMask need for this Prop*/
       updateMask =static_cast<RnsShell::LayerInvalidateMask>(updateMask | RnsShell::LayerInvalidateAll);
       createShadowFilter=true;
    }
   //shadowRadius
    if ((forceUpdate) || (oldviewProps.shadowRadius != newviewProps.shadowRadius)) {
-      layer_->shadowParamsObj.shadowRadius = newviewProps.shadowRadius;
+      layer_->componentShadow.shadowRadius = newviewProps.shadowRadius;
       /*TODO : To be tested and confirm updateMask need for this Prop*/
       updateMask =static_cast<RnsShell::LayerInvalidateMask>(updateMask | RnsShell::LayerInvalidateAll);
       createShadowFilter=true;
    }
   //shadowoffset
    if ((forceUpdate) || (oldviewProps.shadowOffset != newviewProps.shadowOffset)) {
-      layer_->shadowParamsObj.shadowOffset = RSkSkSizeFromSize(newviewProps.shadowOffset);
+      layer_->componentShadow.shadowOffset = RSkSkSizeFromSize(newviewProps.shadowOffset);
       /*TODO : To be tested and confirm updateMask need for this Prop*/
       updateMask =static_cast<RnsShell::LayerInvalidateMask>(updateMask | RnsShell::LayerInvalidateAll);
       createShadowFilter=true;
    }
   //shadowcolor
    if ((forceUpdate) || (oldviewProps.shadowColor != newviewProps.shadowColor)) {
-      layer_->shadowParamsObj.shadowColor = RSkColorFromSharedColor(newviewProps.shadowColor,SK_ColorBLACK);
+      layer_->componentShadow.shadowColor = RSkColorFromSharedColor(newviewProps.shadowColor,SK_ColorBLACK);
       /*TODO : To be tested and confirm updateMask need for this Prop*/
       updateMask =static_cast<RnsShell::LayerInvalidateMask>(updateMask | RnsShell::LayerInvalidateAll);
       createShadowFilter=true;
    }
   //Reset Show Create flasg, if Shadow won't not be visible
-   if(layer_->shadowParamsObj.shadowOffset.isEmpty() && (!layer_->opacity)) {
+   if(layer_->componentShadow.shadowOffset.isEmpty() && (!layer_->opacity)) {
       createShadowFilter=true;
    }
    /* Reset shadow filter - if valid and shadow opacity is 0.0 */
    /* Create shadow filter - shadow opacity is not 0 and change in any props of shadow - opacity,offset,radius */
-   if(layer_->shadowParamsObj.isShadowVisible() && createShadowFilter) {
-       layer_->shadowParamsObj.maskFilter= layer_->shadowParamsObj.createMaskFilter();
-       //Shadow Filter will be Image component for Content Shadow of Image with transparent pixel
-       if(layer_->shadowParamsObj.shadowFilter) {
-          layer_->shadowParamsObj.shadowFilter.reset();
+   if((layer_->componentShadow.isShadowVisible() && createShadowFilter) ||
+      (!layer_->componentShadow.isShadowVisible())|| (!createShadowFilter) ) {
+       if((layer_->componentShadow.maskFilter != nullptr)) {
+          layer_->componentShadow.maskFilter.reset();
        }
-   } else if ((!layer_->shadowParamsObj.isShadowVisible()) ||(!createShadowFilter)){
-       if((layer_->shadowParamsObj.shadowFilter != nullptr)) {
-          layer_->shadowParamsObj.shadowFilter.reset();
+       if(layer_->componentShadow.imageFilter) {
+          layer_->componentShadow.imageFilter.reset();
        }
-       if((layer_->shadowParamsObj.maskFilter != nullptr)) {
-          layer_->shadowParamsObj.maskFilter.reset();
-       }
-    }
+   } 
   //backgroundColor
    if ((forceUpdate) || (oldviewProps.backgroundColor != newviewProps.backgroundColor)) {
       layer_->backgroundColor = RSkColorFromSharedColor(newviewProps.backgroundColor,SK_ColorTRANSPARENT);
