@@ -348,7 +348,9 @@ bool  drawShadow(SkCanvas *canvas,Rect frame,
                         SharedColor backgroundColor,
                         RnsShell::ComponentShadow &componentShadow) {
 
-    if(!componentShadow.isShadowVisible()) return false;
+    if(!componentShadow.isShadowVisible()) {
+        return false;
+    }
     SkPaint paint;
     Rect shadowFrame{{frame.origin.x+componentShadow.shadowOffset.width(),
                      frame.origin.y+componentShadow.shadowOffset.height()},
@@ -406,7 +408,7 @@ bool  drawShadow(SkCanvas *canvas,Rect frame,
 /*Shadow on Path */
     if(!borderProps.borderWidths.isUniform() ) {
         SkPath shadowPath;
-        bool pathExist=createshadowPath(canvas,shadowFrame,borderProps,&shadowPath);;
+        bool pathExist=createshadowPath(canvas,frame,borderProps,&shadowPath);
 
        if(pathExist) {
             if(!(isOpaque(componentShadow.shadowOpacity))) {
@@ -414,15 +416,15 @@ bool  drawShadow(SkCanvas *canvas,Rect frame,
             }
             canvas->clipPath(shadowPath,SkClipOp::kDifference);
             if(componentShadow.shadowRadius != 0) {
-              if(componentShadow.maskFilter == nullptr) {
-                componentShadow.createMaskFilter();
+              if(componentShadow.imageFilter == nullptr) {
+                componentShadow.createImageFilter();
+              }
+              paint.setImageFilter(componentShadow.imageFilter);
             }
-            paint.setMaskFilter(componentShadow.maskFilter);
-        }
-           paint.setColor(componentShadow.shadowColor);
            canvas->drawPath(shadowPath,paint);
-           if(!(isOpaque(componentShadow.shadowOpacity)))
+           if(!(isOpaque(componentShadow.shadowOpacity))) {
                canvas->restore();
+           }
         }
         return true;
     }

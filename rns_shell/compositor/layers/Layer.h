@@ -82,18 +82,18 @@ struct ComponentShadow {
         return maskFilter;
     }
     SkIRect getShadowBounds(const SkIRect origSrc) {
-        if(imageFilter) {
+        if(maskFilter){
+          SkRect storage;
+          as_MFB(maskFilter)->computeFastBounds(SkRect::Make(origSrc), &storage);
+          return  SkIRect::MakeXYWH(storage.x(), storage.y(), storage.width(), storage.height());
+        } else if(imageFilter) {
             SkMatrix identityMatrix;
             return imageFilter->filterBounds(
                                     origSrc,
                                     identityMatrix,
                                     SkImageFilter::kForward_MapDirection,
                                     nullptr);
-        } else if(maskFilter){
-          SkRect storage;
-          as_MFB(maskFilter)->computeFastBounds(SkRect::Make(origSrc), &storage);
-          return  SkIRect::MakeXYWH(storage.x(), storage.y(), storage.width(), storage.height());
-        }
+        } 
         return origSrc;
     }
 };
