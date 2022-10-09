@@ -229,7 +229,7 @@ inline void RSkComponentImage::drawContentShadow( SkCanvas *canvas,
     SkPaint shadowPaint;
     setImageFilters(shadowPaint,imageProps,targetRect,frameRect,true,imageData->isOpaque());
     bool SaveLAyerDone=false;
-    bool shadowOnFrame=(( frameRect.width() < targetRect.width()) || ( frameRect.height() < targetRect.height()));
+    bool shadowOnFrame=(( frameRect.width() < targetRect.width()) || ( frameRect.height() < targetRect.height())||(imageProps.resizeMode == ImageResizeMode::Repeat));
     SkMatrix identityMatrix;
     SkRect mapRect;
     SkIRect imageFrameBounds;
