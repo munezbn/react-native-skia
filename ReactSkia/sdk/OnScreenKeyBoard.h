@@ -119,6 +119,14 @@ class OnScreenKeyboard : public WindowDelegator{
       OSK_STATE_EXIT_INPROGRESS,
       OSK_STATE_INACTIVE,
     };
+    enum DrawCommands {
+      DRAW_OSK_BG, // Draw OSK Window Background
+      DRAW_PH_STRING, // Draw PlaceHolder String
+      DRAW_KB, // Draw KeyBoard Layout
+      DRAW_HL, // Draw Highlighted Key
+      DRAW_MAX
+    };
+
     struct OSKLayout {
       KBLayoutKeyInfoContainer*  keyInfo;
       KBLayoutKeyPosContainer*    keyPos;
@@ -131,6 +139,8 @@ class OnScreenKeyboard : public WindowDelegator{
       SkScalar          horizontalStartOffset;
       // PlaceHolder Title
       SkScalar          placeHolderTitleVerticalStart;
+      //KB Layout
+      SkScalar          kBHeight;
       // Place Holder
       SkScalar          placeHolderLength;
       SkScalar          placeHolderHeight;
@@ -156,10 +166,10 @@ class OnScreenKeyboard : public WindowDelegator{
     void emitOSKKeyEvent(rnsKey keyValue);
     void windowReadyToDrawCB();
 
-    void drawHighLightOnKey(SkPoint index);
-    void drawOSK();
-    void drawPlaceHolderDisplayString();
-    void drawKBLayout(OSKTypes oskType);
+    void drawHighLightOnKey(std::vector<SkIRect> &dirtyRect);
+    void drawOSKBackGround(std::vector<SkIRect> &dirtyRect);
+    void drawPlaceHolderDisplayString(std::vector<SkIRect> &dirtyRect);
+    void drawKBLayout(std::vector<SkIRect> &dirtyRect);
     void drawKBKeyFont(SkPoint index,bool onHLTile=false);
     static inline void onScreenKeyboardEventEmit(std::string eventType);
 
@@ -198,6 +208,7 @@ class OnScreenKeyboard : public WindowDelegator{
     sem_t         sigKeyConsumed_;
     std::atomic<bool> waitingForKeyConsumedSignal_{false};
 #endif /*ENABLE_FEATURE_KEY_THROTTLING*/
+    SkCanvas*     pictureCanvas_{nullptr};
 };
 
 }// namespace sdk

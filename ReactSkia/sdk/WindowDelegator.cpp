@@ -106,9 +106,58 @@ inline void WindowDelegator::renderToDisplay() {
 
 #ifdef RNS_SHELL_HAS_GPU_SUPPORT
   int bufferAge=windowContext_->bufferAge();
-  if((bufferAge != 1) && (forceFullScreenDraw_)) {
-// Forcing full screen redraw as damage region handling is not done
-    forceFullScreenDraw_();
+  if(!pictureCommandKey.empty() && (bufferAge == 1)) {
+// Add last updated area of current component to dirty Rect
+    auto iter=drawHistorybin_.find(pictureCommandKey);
+    if(iter != drawHistorybin_.end()) {
+        for(auto oldDirtyRectIt:iter->second.dirtyRect) {
+          dirtyRect.push_back(oldDirtyRectIt);
+          #ifdef SHOW_DIRTY_RECT
+          windowDelegatorCanvas_->drawIRect(oldDirtyRectIt,paint);
+          #endif/*SHOW_DIRTY_RECT*/
+        }
+    }
+  }
+  // update with latest Picture Obj for current component
+  drawHistorybin_[pictureCommandKey]=pictureObj;
+
+  if(bufferAge != 1) {
+// when draw buffer don't have all the frame, redraw missed frames from command history bin
+    std::map<std::string,PictureObject>::reverse_iterator it = drawHistorybin_.rbegin();
+    for( ;it != drawHistorybin_.rend() ;it++ ) {
+      if(it->second.pictureCommand.get() ) {
+          RNS_LOG_ERROR("Parsing dirt Rect :: "<<(it->first));
+        it->second.pictureCommand->playback(windowDelegatorCanvas_);
+        RNS_LOG_DEBUG("SkPicture ( "  << it->second.pictureCommand << " )For " <<
+                it->second.pictureCommand.get()->approximateOpCount() << " operations and size : " << it->second.pictureCommand.get()->approximateBytesUsed());
+        if((bufferAge ==0) ||((it->first).compare(basePictureCommandKey_))) {
+// Base Picture command needs to be drawn  when draw buffer is empty
+            for(auto dirtyRectIt:(it->second).dirtyRect) {
+              dirtyRect.push_back(dirtyRectIt);
+              RNS_LOG_ERROR("Added dirt Rect :: "<<(it->first));
+              #ifdef SHOW_DIRTY_RECT
+              windowDelegatorCanvas_->drawIRect(dirtyRectIt,paint);
+              #endif/*SHOW_DIRTY_RECT*/
+            }
+        }
+      }
+    }
+  } else
+#endif/*RNS_SHELL_HAS_GPU_SUPPORT*/
+  {
+    if(pictureObj.pictureCommand.get()) {
+      RNS_LOG_INFO("SkPicture ( "  << pictureObj.pictureCommand << " )For " <<
+                pictureObj.pictureCommand.get()->approximateOpCount() << " operations and size : " << pictureObj.pictureCommand.get()->approximateBytesUsed());
+      pictureObj.pictureCommand->playback(windowDelegatorCanvas_);
+      for(auto dirtyRectIt:pictureObj.dirtyRect) {
+        dirtyRect.push_back(dirtyRectIt);
+        RNS_LOG_ERROR("Added dirt Rect :: "<<pictureCommandKey);
+        #ifdef SHOW_DIRTY_RECT
+        windowDelegatorCanvas_->drawIRect(dirtyRectIt,paint);
+        #endif/*SHOW_DIRTY_RECT*/
+      }
+      RNS_LOG_ERROR("Draw Current Command :pictureCommandKey :: "<<pictureCommandKey<< "Map Size : "<<drawHistorybin_.size());
+    }
   }
 #endif/*RNS_SHELL_HAS_GPU_SUPPORT*/
 
