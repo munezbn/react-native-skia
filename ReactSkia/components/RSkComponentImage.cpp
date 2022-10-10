@@ -231,7 +231,7 @@ inline void RSkComponentImage::drawContentShadow( SkCanvas *canvas,
     bool SaveLAyerDone=false;
     bool shadowOnFrame=(( frameRect.width() < targetRect.width()) || ( frameRect.height() < targetRect.height())||(imageProps.resizeMode == ImageResizeMode::Repeat));
     SkMatrix identityMatrix;
-    SkRect mapRect;
+    SkRect shadowRect;
     SkIRect imageFrameBounds;
       //Calculate absolute frame bounds
       if(shadowOnFrame) {
@@ -240,35 +240,35 @@ inline void RSkComponentImage::drawContentShadow( SkCanvas *canvas,
         imageFrameBounds.setXYWH(targetRect.x() + layer()->componentShadow.shadowOffset.width(), targetRect.y() + layer()->componentShadow.shadowOffset.height(), targetRect.width(), targetRect.height());
      }
     SkIRect shadowBounds=layer()->componentShadow.getShadowBounds(imageFrameBounds);
-    mapRect=SkRect::Make(shadowBounds);
-    mapRect.join(targetRect);
+    shadowRect=SkRect::Make(shadowBounds);
 
-    if(!(isOpaque(layer()->componentShadow.shadowOpacity))) {
-      canvas->saveLayerAlpha(&mapRect,layer()->componentShadow.shadowOpacity);
+    if(layer()->componentShadow.shadowOpacity) {
+      canvas->saveLayerAlpha(&shadowRect,layer()->componentShadow.shadowOpacity);
       SaveLAyerDone=true;
     }
     if(!imageData->isOpaque() ) {
       canvas->drawImageRect(imageData, targetRect, &shadowPaint);
     } else {
       if(!SaveLAyerDone) {
-        canvas->saveLayer(&mapRect,&shadowPaint);
+        canvas->saveLayer(&shadowRect,&shadowPaint);
       }
       if(shadowOnFrame) {
         canvas->clipRect(frameRect,SkClipOp::kDifference);
       } else {
         canvas->clipRect(targetRect,SkClipOp::kDifference);
-    }
+      }
       shadowPaint.setColor(layer()->componentShadow.shadowColor);
       canvas->drawIRect(imageFrameBounds, shadowPaint);
     }
-    if(SaveLAyerDone)
+    if(SaveLAyerDone) {
       canvas->restore();
+    }
     #ifdef SHOW_IMAGE_BOUND
       SkPaint paint;
       paint.setStyle(SkPaint::kStroke_Style);
       paint.setColor(SK_ColorGREEN);
       paint.setStrokeWidth(2);
-      canvas->drawRect(mapRect,paint);
+      canvas->drawRect(shadowRect,paint);
     #endif
 }
 
