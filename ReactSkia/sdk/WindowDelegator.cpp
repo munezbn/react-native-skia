@@ -64,10 +64,10 @@ void  WindowDelegator::createNativeWindow() {
 void WindowDelegator::closeWindow() {
   RNS_LOG_TODO("Sync between rendering & Exit to be handled ");
   windowActive = false;
-  std::scoped_lock lock(renderCtrlMutex);
 
-  if(ownsTaskrunner_) {
-    windowTaskRunner_->stop();
+  std::scoped_lock lock(renderCtrlMutex_);
+  if(ownsTaskrunner_){
+   windowTaskRunner_->stop();
   }
   if (workerThread_.joinable() ) {
     workerThread_.join();
