@@ -188,6 +188,8 @@ source_set("ReactSkia") {
     "views/common/RSkImageCacheManager.h",
     "views/common/RSkImageUtils.cpp",
     "views/common/RSkImageUtils.h",
+    "utils/RnsJsRaf.h",
+    "utils/RnsJsRaf.cpp",
   ]
 
   if(rns_enable_onscreen_keyboard) {

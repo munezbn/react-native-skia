@@ -108,6 +108,7 @@ static inline LayoutContext RSkGetLayoutContext(SkPoint viewportOffset) {
           .viewportOffset = RCTPointFromSkPoint(viewportOffset)};
 }
 
+jsi::Runtime *RNInstance::jsRuntime_ = nullptr;
 RNInstance::RNInstance(RendererDelegate &rendererDelegate) {
   InitializeJSCore();
   RegisterComponents();
@@ -226,10 +227,15 @@ void RNInstance::InitializeFabric(RendererDelegate &rendererDelegate) {
         std::make_unique<RuntimeEventBeat const>(ownerBox->owner);
       return std::make_unique<AsynchronousEventBeat>(std::move(runLoopObserver), runtimeExecutor);
   };
+  jsRuntime_ = reinterpret_cast<jsi::Runtime*>(instance_->getJavaScriptContext());
   mountingManager_ =
       std::make_unique<MountingManager>(componentViewRegistry_.get(), rendererDelegate);
   fabricScheduler_ =
       std::make_shared<Scheduler>(toolbox, nullptr, mountingManager_.get());
+}
+
+jsi::Runtime* RNInstance::RskJsRuntime() {
+  return jsRuntime_;
 }
 
 static RSkComponentProviderProtocol RSKComponentViewClassWithName(ComponentName componentName) {
