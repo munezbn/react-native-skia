@@ -15,14 +15,17 @@
 #include "jsi/JSIDynamic.h"
 #include "ReactCommon/TurboModule.h"
 
-#include "ReactSkia/core_modules/Alert.h"
+#include "ReactSkia/sdk/Alert.h"
 #include "ReactSkia/JSITurboModuleManager.h"
+#include "ReactSkia/sdk/Alert.h"
 #include "ReactSkia/sdk/NotificationCenter.h"
 #include "ReactSkia/sdk/RNSKeyCodeMapping.h"
 #include "ReactSkia/sdk/WindowDelegator.h"
 
 namespace facebook {
 namespace react {
+
+using namespace rns::sdk;
 
 enum AlertWindowState {
     ALERT_WINDOW_CREATE = 1, // Window is Created
@@ -31,7 +34,7 @@ enum AlertWindowState {
     ALERT_WINDOW_DESTRUCT = 4 // Window is Destructed
 };
 
-class RSkAlertManager : public rns::sdk::WindowDelegator, public TurboModule {
+class RSkAlertManager : public WindowDelegator, public TurboModule {
 public:
 
     RSkAlertManager(
@@ -55,6 +58,7 @@ private:
     AlertWindowState alertWindowState_{ALERT_WINDOW_DESTRUCT};
     SkFont font_;
     SkPaint paint_;
+    SkCanvas*     pictureCanvas_{nullptr};
 
     void processAlertMessages(std::shared_ptr<Alert> alertPtr);
     void drawAlertMsg();

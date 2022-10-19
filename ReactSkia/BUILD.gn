@@ -127,7 +127,7 @@ source_set("ReactSkia") {
     "sdk/ThreadSafeCache.h",
     "sdk/WindowDelegator.cpp",
     "sdk/WindowDelegator.h",
-    "core_modules/Alert.h",
+    "sdk/Alert.h",
     "core_modules/RSkAlertManager.cpp",
     "core_modules/RSkAlertManager.h",
     "core_modules/RSkDeviceInfo.cpp",
