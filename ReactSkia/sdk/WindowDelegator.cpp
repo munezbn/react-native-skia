@@ -44,7 +44,7 @@ void  WindowDelegator::createNativeWindow() {
                                                  SkSize::Make(windowSize_.width(),windowSize_.height()),
                                                  RnsShell::SubWindow);
   if(window_) {
-    windowContext_ = RnsShell::WCF::createContextForWindow((RnsShell::GLNativeWindowType)window_->nativeWindowHandle(),
+    windowContext_ = RnsShell::WCF::createContextForWindow(reinterpret_cast<RnsShell::GLNativeWindowType>(window_->nativeWindowHandle()),
                &RnsShell::PlatformDisplay::sharedDisplayForCompositing(), RnsShell::DisplayParams());
     if(windowContext_) {
       windowContext_->makeContextCurrent();
