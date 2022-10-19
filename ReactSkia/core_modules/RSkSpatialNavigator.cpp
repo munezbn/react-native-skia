@@ -89,13 +89,18 @@ void RSkSpatialNavigator::updateSpatialNavigatorState(NavigatorStateOperation op
             break;
         case ComponentRemoved:
             if (currentFocus_ == candidate) {
+                sendNotificationWithEventType("blur", currentFocus_->getComponentData().tag, completeCallback_);
+                currentContainer_ = nullptr;
                 currentFocus_ = nullptr;
             }
             break;
         case ComponentUpdated: // Called when the candidate is not focusable anymore
             if (currentFocus_ == candidate) {
                 sendNotificationWithEventType("blur", currentFocus_->getComponentData().tag, completeCallback_);
+                if(currentFocus_->isContainer()) currentContainer_ = nullptr;
                 currentFocus_ = nullptr;
+
+
             }
             break;
         default:
@@ -449,7 +454,7 @@ void RSkSpatialNavigator::navigateInDirection(rnsKey keyEvent) {
 
   do {
         consumed = advanceFocusInDirection(container, keyEvent);
-        container = (static_cast<RSkComponent*>(container))->nearestAncestorContainer();
+        if(container) container = (static_cast<RSkComponent*>(container))->nearestAncestorContainer();
   } while (!consumed && container);
 
 }
