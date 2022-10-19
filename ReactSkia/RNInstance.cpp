@@ -238,6 +238,7 @@ void RNInstance::InitializeFabric(RendererDelegate &rendererDelegate) {
         std::make_unique<RuntimeEventBeat const>(ownerBox->owner);
       return std::make_unique<AsynchronousEventBeat>(std::move(runLoopObserver), runtimeExecutor);
   };
+  jsRuntime_ = reinterpret_cast<jsi::Runtime*>(instance_->getJavaScriptContext());
   mountingManager_ =
       std::make_unique<MountingManager>(componentViewRegistry_.get(), rendererDelegate);
   fabricScheduler_ =

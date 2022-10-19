@@ -31,6 +31,7 @@ class RNInstance {
   
   static jsi::Runtime* RskJsRuntime();
 
+  static jsi::Runtime* RskJsRuntime();
  private:
   void InitializeJSCore();
   void InitializeFabric(RendererDelegate &rendererDelegate);
