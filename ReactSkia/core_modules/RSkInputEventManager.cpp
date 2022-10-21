@@ -23,7 +23,7 @@ RSkInputEventManager::RSkInputEventManager(){
                                                               std::placeholders::_1 );
   eventId_ = NotificationCenter::defaultCenter().addListener("onHWKeyEvent", handler);
 #if ENABLE(FEATURE_ONSCREEN_KEYBOARD)
-  subWindowEventId_ = NotificationCenter::subWindowCenter().addListener("onOSKKeyEvent", handler);
+  subWindowEventId_ = NotificationCenter::defaultCenter().addListener("onOSKKeyEvent", handler);
 #endif/*FEATURE_ONSCREEN_KEYBOARD*/
   spatialNavigator_ =  SpatialNavigator::RSkSpatialNavigator::sharedSpatialNavigator();
 #if ENABLE(FEATURE_KEY_THROTTLING)
@@ -91,6 +91,9 @@ void RSkInputEventManager::keyHandler(Inputkeyinfo keyInfo){
     return;
   }
 #endif
+  if (keyInfo.action == KEY_Release) {
+    return; // Ignore Key Release
+  }
   processKey(keyInfo);
 }
 
@@ -105,8 +108,6 @@ void RSkInputEventManager::processKey(Inputkeyinfo &keyInfo) {
       return;//don't propagate key further
     }
   }
-
-  if (keyInfo.action == KEY_Release) return;
 
 #if defined(TARGET_OS_TV) && TARGET_OS_TV
   sendNotificationWithEventType(

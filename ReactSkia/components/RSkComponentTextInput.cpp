@@ -178,14 +178,10 @@ void RSkComponentTextInput::onHandleKey(Inputkeyinfo keyInfo, bool *stopPropagat
   if (!editable_) {
     return;
   }
-  if((keyInfo.key >= KEY_Up) && (keyInfo.key <= KEY_Back) && isInEditingMode_) {
+  if(((keyInfo.key >= KEY_Up) && (keyInfo.key <= KEY_Back) && isInEditingMode_) ||
+       (keyInfo.key == KEY_Select)) {
     *stopPropagation = true;
-    if((!isKeyRepeateOn) && (keyInfo.action == KEY_Release)) { return;}
   }
-  if((keyInfo.key == KEY_Select) && (keyInfo.action == KEY_Press)){
-    *stopPropagation = true;
-    return;
-  };
   bool waitForupdateProps = false;
   privateVarProtectorMutex.lock();
   std::string textString = displayString_;
