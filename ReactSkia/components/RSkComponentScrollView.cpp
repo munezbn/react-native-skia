@@ -19,6 +19,11 @@ namespace react {
 
 RSkComponentScrollView::RSkComponentScrollView(const ShadowView &shadowView)
     : RSkComponent(shadowView) {
+
+  animRequest_ = new RnsJsRequestAnimation([this](double timestamp){
+    RNS_LOG_DEBUG("[" << this->animRequest_ << "] ScrollView request Animation callback [" << timestamp << "]");
+    handleNextFrameScroll(timestamp);
+  });
 }
 
 RSkComponentScrollView::~RSkComponentScrollView() {
@@ -256,6 +261,7 @@ bool RSkComponentScrollView::canScrollInDirection(rnsKey direction){
     default : return false;
   }
 
+
   return false;
 }
 
@@ -480,24 +486,106 @@ ScrollStatus RSkComponentScrollView::handleScroll(int x, int y, bool isFlushDisp
   return handleScroll(scrollPos,isFlushDisplay);
 }
 
-ScrollStatus RSkComponentScrollView::handleScroll(SkPoint scrollPos, bool isFlushDisplay) {
+#define TARGET_FPS_TIME 33  //( 30fps)
+void RSkComponentScrollView::handleNextFrameScroll(double timestamp){
+
+  //get current scroll pos
+  //get targetted scroll pos
+  //get targetted scroll timestamp
+  //get current scroll timestamp
+  //calcualte next scroll pos
+  //  targetted - current = remaining time
+  //  targetted - current = remaining offset
+  //  calculate avg time required = remaining time/targgetting fps time
+  //  calculate scroll offset required = remaining offset/calculated avg time
+  //  if targetted offset == current offset , stop anim request
+  //
 
   RnsShell::ScrollLayer* scrollLayer= SCROLL_LAYER_HANDLE;
-  if(scrollPos == scrollLayer->getScrollPosition()) return noScroll;
+  SkPoint currentScrollPos = scrollLayer->getScrollPosition();
+  SkPoint nextScrollPos = currentScrollPos;
+  int remainingScrollOffset = 0;
+  ScrollDirectionType scrollDirection = ScrollDirectionForward;
+  bool scrollingCompleted = false;
 
-  if(isFlushDisplay) scrollLayer->client().notifyFlushBegin();
+  if(isHorizontalScroll_) {
+     if(currentScrollPos.x() > targettedScrollPos_.x()) {
+       scrollDirection = ScrollDirectionBackward;
+       remainingScrollOffset = currentScrollPos.x() - targettedScrollPos_.x();
+     } else if ( currentScrollPos.x() == targettedScrollPos_.x()) {
+       scrollingCompleted = true;
+     } else {
+       remainingScrollOffset = targettedScrollPos_.x() - currentScrollPos.x();
+     }
+  } else {
+     if(currentScrollPos.y() > targettedScrollPos_.y()) {
+        scrollDirection = ScrollDirectionBackward;
+        remainingScrollOffset = currentScrollPos.y() - targettedScrollPos_.y();
+     } else if ( currentScrollPos.y() == targettedScrollPos_.y()) {
+        scrollingCompleted = true;
+     } else {
+       remainingScrollOffset = targettedScrollPos_.y() - currentScrollPos.y();
+     }
+  }
 
-  scrollLayer->setScrollPosition(scrollPos);
+  if(scrollingCompleted) {
+    RNS_LOG_DEBUG("Stop RAF request");
+    request_.lock();
+    animRequest_->stop();
+    requestActive_ = false;
+    request_.unlock();
+    return;
+  }
 
-#if ENABLE(FEATURE_SCROLL_INDICATOR)
-  if(drawScrollIndicator_) scrollLayer->getScrollBar().showScrollBar(true);
-#endif
+  double avgTimePerShift = (targettedTime_ - rns::sdk::Timer::getCurrentTimeMSecs())/TARGET_FPS_TIME;
+  int scrollShift = (avgTimePerShift < 1) ? remainingScrollOffset : remainingScrollOffset/avgTimePerShift;
+
+
+  if(isHorizontalScroll_){
+     if(scrollDirection == ScrollDirectionForward) nextScrollPos.fX += scrollShift;
+     else nextScrollPos.fX -= scrollShift;
+  } else {
+     if(scrollDirection == ScrollDirectionForward) nextScrollPos.fY += scrollShift;
+     else nextScrollPos.fY -= scrollShift;
+  }
+
+  RNS_LOG_DEBUG("Scroll iteration pos:" << nextScrollPos.x() << "," << nextScrollPos.y());
+  scrollLayer->client().notifyFlushBegin();
+
+  scrollLayer->setScrollPosition(nextScrollPos);
 
   scrollLayer->invalidate(LayerPaintInvalidate);
-  if(isFlushDisplay) scrollLayer->client().notifyFlushRequired();
+  scrollLayer->client().notifyFlushRequired();
+
+}
+
+ScrollStatus RSkComponentScrollView::handleScroll(SkPoint scrollPos, bool isFlushDisplay) {
+  RnsShell::ScrollLayer* scrollLayer= SCROLL_LAYER_HANDLE;
+  SkPoint currentScrollPos = scrollLayer->getScrollPosition();
+  RNS_LOG_DEBUG("handleScroll current["<< currentScrollPos.x() << "," << currentScrollPos.y() << "] target[" << scrollPos.x() << "," << scrollPos.y() <<"]");
+  if(scrollPos == currentScrollPos) return noScroll;
+
+  if(isFlushDisplay){
+    targettedScrollPos_ = scrollPos;
+    targettedTime_ = rns::sdk::Timer::getCurrentTimeMSecs() + 150;
+    if(!requestActive_) {
+      RNS_LOG_DEBUG("[" << animRequest_ << "] Start RAF request");
+      handleNextFrameScroll(0);
+      request_.lock();
+      animRequest_->start();
+      requestActive_ = true;
+      request_.unlock();
+    }
+  } else {
+    scrollLayer->setScrollPosition(scrollPos);
+    scrollLayer->invalidate(LayerPaintInvalidate);
+  }
+
+#if ENABLE(FEATURE_SCROLL_INDICATOR)
+    if(drawScrollIndicator_) scrollLayer->getScrollBar().showScrollBar(true);
+#endif
 
   dispatchOnScrollEvent(scrollPos);
-
 #if ENABLE(FEATURE_SCROLL_INDICATOR)
   if(drawScrollIndicator_ && (!persistentScrollIndicator_)) fadeOutScrollBar();
 #endif

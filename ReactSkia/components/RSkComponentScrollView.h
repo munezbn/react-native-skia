@@ -12,6 +12,7 @@
 #include "ReactSkia/components/RSkComponent.h"
 #include "ReactSkia/RSkSurfaceWindow.h"
 #include "ReactSkia/sdk/FollyTimer.h"
+#include "ReactSkia/utils/RnsJsRaf.h"
 
 using namespace rns::sdk;
 namespace facebook {
@@ -66,7 +67,11 @@ class RSkComponentScrollView final : public RSkComponent {
   bool isHorizontalScroll_{false};
   std::vector<int> snapToOffsets_;
   SkPoint contentOffset_{0,0};
-
+  RnsJsRequestAnimation * animRequest_{nullptr};
+  std::mutex request_;
+  bool requestActive_{false};
+  SkPoint targettedScrollPos_{0,0};
+  double targettedTime_{0};
 #if ENABLE(FEATURE_SCROLL_INDICATOR)
   bool showHorizontalScrollIndicator_{false};
   bool showVerticalScrollIndicator_{false};
@@ -91,6 +96,7 @@ class RSkComponentScrollView final : public RSkComponent {
   ScrollStatus handleScroll(rnsKey direction,SkIRect candidateFrame);
   ScrollStatus handleScroll(int x,int y, bool isFlushDisplay=true);
   ScrollStatus handleScroll(SkPoint scrollPos, bool isFlushDisplay=true);
+  void handleNextFrameScroll(double timestamp);
 
   void dispatchOnScrollEvent(SkPoint scrollPos);
 };
