@@ -11,6 +11,7 @@
 
 #include "ReactSkia/JSITurboModuleManager.h"
 
+#include "ReactSkia/sdk/Alert.h"
 
 namespace facebook {
 namespace react {
@@ -31,7 +32,7 @@ class RSkAlertManager : public TurboModule {
         const facebook::jsi::Value *args,
         size_t count);
 
-    jsi::Value processAlertMessages(struct AlertProps &alertProps);
+    jsi::Value processAlertMessages(rns::sdk::Alert::alertInfo &alertProps);
 
 };
 }//react

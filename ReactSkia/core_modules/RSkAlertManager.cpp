@@ -8,13 +8,10 @@
 #include "RSkAlertManager.h"
 #include "utils/RnsLog.h"
 
+using namespace rns::sdk;
+
 namespace facebook {
 namespace react {
-
-struct AlertProps {
-    std::string alertTitle;
-    std::string alertMsg;
-};
 
 RSkAlertManager::RSkAlertManager(
     const std::string &name,
@@ -36,18 +33,18 @@ facebook::jsi::Value RSkAlertManager::alertWithArgsWrapper(
     auto &self = static_cast<RSkAlertManager &>(turboModule);
     auto dataArg = facebook::jsi::dynamicFromValue(rt, args[0]); // Argument 1:: Alert Data
     // Argument 2:: Alert Callback
-    struct AlertProps alertProps;
-    alertProps.alertTitle.assign(dataArg["title"].getString()); 
-    alertProps.alertMsg.assign(dataArg["message"].getString());
+    Alert::alertInfo alertInfo;
+    alertInfo.alertTitle.assign(dataArg["title"].getString());
+    alertInfo.alertMsg.assign(dataArg["message"].getString());
     
-    RNS_LOG_DEBUG(" Alert Title   :: "<<alertProps.alertTitle.c_str());
-    RNS_LOG_DEBUG(" Alert Message :: "<<alertProps.alertMsg.c_str());
+    RNS_LOG_DEBUG(" Alert Title   :: "<<alertInfo.alertTitle.c_str());
+    RNS_LOG_DEBUG(" Alert Message :: "<<alertInfo.alertMsg.c_str());
     // Call the specific non-static Class object
-    return self.processAlertMessages(alertProps);
+    return self.processAlertMessages(alertInfo);
 }
 
-jsi::Value RSkAlertManager::processAlertMessages(struct AlertProps &alertProps) {
-
+jsi::Value RSkAlertManager::processAlertMessages(Alert::alertInfo &alertProps) {
+    Alert::showAlert(alertProps);
     return jsi::Value::undefined();
 }
 
