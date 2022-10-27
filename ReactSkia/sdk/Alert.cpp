@@ -49,7 +49,6 @@ void Alert::handleAlertMsg() {
 
   std::lock_guard<std::mutex> lock(msgHandlerMutex_);
 
-  RNS_LOG_INFO(" handleAlertMsg :: ");
   if (alertInfoList_.empty()) {
 // Close Window , When No Message Left
     if (subWindowKeyEventId_ != -1) {
@@ -88,8 +87,8 @@ void Alert::windowReadyToDrawCB() {
   setWindowTittle("Alert Window");
 
 //Get Darw Parameters for screen Size
-  textFontSize_=getFontSizeForScreen(alertWindowSize_);
-  lineSpacing_=getLineSpacingForScreen(alertWindowSize_);
+  textFontSize_=TEXT_FONT_SIZE*(alertWindowSize_.width()/DEFAULT_SCREEN_WIDTH);
+  lineSpacing_=LINE_SPACING*(alertWindowSize_.height()/DEFAULT_SCREEN_HEIGHT);
   font_.setSize(textFontSize_);
   paint_.setColor(DARK_THEME_FONT_COLOR);
   paint_.setAntiAlias(true);
@@ -154,7 +153,7 @@ inline void Alert::drawRecentAlert() {
                               font_,
                               paint_);
     setWindowTittle(alertRef.alertTitle.c_str());
-    RNS_LOG_INFO(" drawAlert Title :: "<<alertRef.alertTitle.c_str());
+    RNS_LOG_DEBUG(" drawAlert Title :: "<<alertRef.alertTitle.c_str());
   }
 
   if (!alertRef.alertMsg.empty()) {
@@ -173,7 +172,7 @@ inline void Alert::drawRecentAlert() {
                             drawStartPointY,
                             font_,
                             paint_);
-    RNS_LOG_INFO(" drawAlert Msg :: "<<alertRef.alertMsg.c_str());
+    RNS_LOG_DEBUG(" drawAlert Msg :: "<<alertRef.alertMsg.c_str());
   }
   idOfMessageOnDisplay_ = alertInfoList_.size();
 
