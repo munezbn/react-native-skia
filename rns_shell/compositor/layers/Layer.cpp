@@ -139,7 +139,7 @@ void Layer::preRoll(PaintContext& context, bool forceLayout) {
         absFrame_ = SkIRect::MakeXYWH(mapRect.x(), mapRect.y(), mapRect.width(), mapRect.height());
         SkIRect newBounds = absFrame_;
         frameBounds_ = frame_;
-        if(componentShadow.imageFilter) {
+        if(componentShadow.imageFilter || componentShadow.maskFilter) {
             SkMatrix identityMatrix;
             frameBounds_=componentShadow.getShadowBounds(frame_);
             //Calculate absolute frame bounds

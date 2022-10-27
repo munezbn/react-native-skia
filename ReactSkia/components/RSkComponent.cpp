@@ -95,7 +95,7 @@ RnsShell::LayerInvalidateMask RSkComponent::updateProps(const ShadowView &newSha
    auto const &newviewProps = *std::static_pointer_cast<ViewProps const>(newShadowView.props);
    auto const &oldviewProps = *std::static_pointer_cast<ViewProps const>(component_.props);
    RnsShell::LayerInvalidateMask updateMask=RnsShell::LayerInvalidateNone;
-   bool createShadowFilter=false;
+   bool resetShadowFilter=false;
 
    updateMask= updateComponentProps(newShadowView,forceUpdate);
   //opacity
@@ -109,37 +109,40 @@ RnsShell::LayerInvalidateMask RSkComponent::updateProps(const ShadowView &newSha
       layer_->componentShadow.shadowOpacity = ((newviewProps.shadowOpacity > 1.0) ? 1.0:newviewProps.shadowOpacity)*MAX_8BIT;
       /*TODO : To be tested and confirm updateMask need for this Prop*/
       updateMask =static_cast<RnsShell::LayerInvalidateMask>(updateMask | RnsShell::LayerInvalidateAll);
-      createShadowFilter=true;
+      resetShadowFilter=true;
    }
   //shadowRadius
    if ((forceUpdate) || (oldviewProps.shadowRadius != newviewProps.shadowRadius)) {
       layer_->componentShadow.shadowRadius = newviewProps.shadowRadius;
       /*TODO : To be tested and confirm updateMask need for this Prop*/
       updateMask =static_cast<RnsShell::LayerInvalidateMask>(updateMask | RnsShell::LayerInvalidateAll);
-      createShadowFilter=true;
+      resetShadowFilter=true;
    }
   //shadowoffset
    if ((forceUpdate) || (oldviewProps.shadowOffset != newviewProps.shadowOffset)) {
       layer_->componentShadow.shadowOffset = RSkSkSizeFromSize(newviewProps.shadowOffset);
       /*TODO : To be tested and confirm updateMask need for this Prop*/
       updateMask =static_cast<RnsShell::LayerInvalidateMask>(updateMask | RnsShell::LayerInvalidateAll);
-      createShadowFilter=true;
+      resetShadowFilter=true;
    }
   //shadowcolor
    if ((forceUpdate) || (oldviewProps.shadowColor != newviewProps.shadowColor)) {
       layer_->componentShadow.shadowColor = RSkColorFromSharedColor(newviewProps.shadowColor,SK_ColorBLACK);
       /*TODO : To be tested and confirm updateMask need for this Prop*/
       updateMask =static_cast<RnsShell::LayerInvalidateMask>(updateMask | RnsShell::LayerInvalidateAll);
-      createShadowFilter=true;
+      resetShadowFilter=true;
    }
   //Reset Show Create flasg, if Shadow won't not be visible
    if(layer_->componentShadow.shadowOffset.isEmpty() && (!layer_->opacity)) {
-      createShadowFilter=true;
+      resetShadowFilter=true;
    }
-   /* Reset shadow filter - if valid and shadow opacity is 0.0 */
-   /* Create shadow filter - shadow opacity is not 0 and change in any props of shadow - opacity,offset,radius */
-   if((layer_->componentShadow.isShadowVisible() && createShadowFilter) ||
-      (!layer_->componentShadow.isShadowVisible())|| (!createShadowFilter) ) {
+  /* Resetting shadow filter here on below scenario and creation/Re-creation happens in components:
+    1. when Shadow won't be visible outside the component., where shadow is directly under the component [Shadow Offset as Zero]
+    2. Shadow is fully transparent
+    3. Shadow will be visible , but it's property have changed.*/
+
+   if((layer_->componentShadow.isShadowVisible() && resetShadowFilter) ||
+      (!layer_->componentShadow.isShadowVisible())|| (!resetShadowFilter) ) {
        if((layer_->componentShadow.maskFilter != nullptr)) {
           layer_->componentShadow.maskFilter.reset();
        }

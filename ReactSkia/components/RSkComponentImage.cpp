@@ -8,8 +8,9 @@
 #include "include/core/SkPaint.h"
 #include "include/core/SkClipOp.h"
 #include "include/core/SkImageFilter.h"
-#include "include/effects/SkImageFilters.h"
 #include "include/core/SkMaskFilter.h"
+#include "include/effects/SkImageFilters.h"
+
 #include "src/core/SkMaskFilterBase.h"
 
 #include "rns_shell/compositor/layers/PictureLayer.h"
@@ -69,7 +70,6 @@ void RSkComponentImage::OnPaint(SkCanvas *canvas) {
     contentShadow=drawShadow(canvas,frame,imageBorderMetrics,imageProps.backgroundColor,layer()->componentShadow);
   }
   drawBackground(canvas,frame,imageBorderMetrics,imageProps.backgroundColor);
-
   if(imageData) {
     SkRect targetRect = computeTargetRect({imageData->width(),imageData->height()},frameRect,imageProps.resizeMode);
     SkPaint paint;
@@ -88,12 +88,11 @@ void RSkComponentImage::OnPaint(SkCanvas *canvas) {
     }
     /* TODO: Handle filter quality based of configuration. Setting Low Filter Quality as default for now*/
     paint.setFilterQuality(DEFAULT_IMAGE_FILTER_QUALITY);
-    setImageFilters(paint,imageProps,targetRect,frameRect,false,imageData->isOpaque());
+    filterForShadow(paint,imageProps,targetRect,frameRect,false,imageData->isOpaque());
     canvas->drawImageRect(imageData,targetRect,&paint);
     if(needClipAndRestore) {
       canvas->restore();
     }
-
     networkImageData_ = nullptr;
     drawBorder(canvas,frame,imageBorderMetrics,imageProps.backgroundColor);
     // Emitting Load completed Event
@@ -227,7 +226,7 @@ inline void RSkComponentImage::drawContentShadow( SkCanvas *canvas,
     }
 
     SkPaint shadowPaint;
-    setImageFilters(shadowPaint,imageProps,targetRect,frameRect,true,imageData->isOpaque());
+    filterForShadow(shadowPaint,imageProps,targetRect,frameRect,true,imageData->isOpaque());
     bool SaveLAyerDone=false;
     bool shadowOnFrame=(( frameRect.width() < targetRect.width()) || ( frameRect.height() < targetRect.height())||(imageProps.resizeMode == ImageResizeMode::Repeat));
     SkMatrix identityMatrix;
@@ -272,7 +271,7 @@ inline void RSkComponentImage::drawContentShadow( SkCanvas *canvas,
     #endif
 }
 
-inline void RSkComponentImage::setImageFilters (SkPaint &paintObj,const ImageProps &imageProps,
+inline void RSkComponentImage::filterForShadow (SkPaint &paintObj,const ImageProps &imageProps,
                                                       SkRect targetRect,SkRect frameRect ,
                                                       bool setImageShadowFilter, bool isOpaque) {
    // To use Image Filter for Tile Mode & Image with Transparent pixels

@@ -68,7 +68,6 @@ struct ComponentShadow {
         return false;
     }
     sk_sp<SkImageFilter> createImageFilter() {
-        RNS_LOG_INFO("createImageFilter");
 
         imageFilter= SkImageFilters::DropShadowOnly(shadowOffset.width(), 
                                        shadowOffset.height(),
@@ -77,8 +76,7 @@ struct ComponentShadow {
         return imageFilter;
     }
     sk_sp<SkMaskFilter> createMaskFilter() {
-        RNS_LOG_INFO("createMaskFilter");
-        maskFilter= SkMaskFilter::MakeBlur(kNormal_SkBlurStyle, shadowRadius);
+         maskFilter= SkMaskFilter::MakeBlur(kNormal_SkBlurStyle, shadowRadius);
         return maskFilter;
     }
     SkIRect getShadowBounds(const SkIRect origSrc) {
@@ -93,7 +91,7 @@ struct ComponentShadow {
                                     identityMatrix,
                                     SkImageFilter::kForward_MapDirection,
                                     nullptr);
-        } 
+        }
         return origSrc;
     }
 };

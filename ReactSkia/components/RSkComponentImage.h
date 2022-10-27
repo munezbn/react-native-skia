@@ -46,11 +46,11 @@ class RSkComponentImage final : public RSkComponent {
   void drawAndSubmit();
   bool processImageData(const char* path, char* response, int size);
   inline void drawContentShadow(SkCanvas *canvas,
-                               SkRect frameRect,
-                              SkRect targetRect,
+                              SkRect frameRect,/*actual image frame*/
+                              SkRect targetRect,/*area of draw image and shadow*/
                               sk_sp<SkImage> imageData,
                               const ImageProps &imageProps);
-  inline void setImageFilters (SkPaint &paintObj,const ImageProps &imageProps,
+  inline void filterForShadow (SkPaint &paintObj,const ImageProps &imageProps,
                               SkRect targetRect,SkRect frameRect,
                               bool setImageShadowFilter, bool isOpaque);
   inline void sendErrorEvents();
