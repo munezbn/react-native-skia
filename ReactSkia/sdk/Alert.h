@@ -7,7 +7,12 @@
 
 #pragma once
 
+#include <atomic>
 #include <mutex>
+
+#include "third_party/skia/include/core/SkColor.h"
+#include "third_party/skia/include/core/SkFont.h"
+#include "third_party/skia/include/core/SkFontMgr.h"
 
 #include "RNSKeyCodeMapping.h"
 #include "WindowDelegator.h"
@@ -23,31 +28,44 @@ class Alert : public WindowDelegator {
       std::string alertMsg;
     };
     typedef struct AlertInfo alertInfo;
+    enum AlertAction {
+      SHOW_ALERT,
+      REMOVE_ALERT
+    };
 
     static Alert* getAlertHandler(); // Interface to Instantiate & get Alert singleton class object
     static bool showAlert(alertInfo &alertData);
 
   private:
     enum AlertWindowState {
-      ALERT_WINDOW_CREATED, // Window is Created
-      ALERT_WINDOW_ACTIVE, // Window is Active
-      ALERT_WINDOW_INACTIVE, // Window is In-Active
-      ALERT_WINDOW_DESTRUCTED // Window is Destructed
+      ALERT_WINDOW_ON_CREATION, // Window getting Created
+      ALERT_WINDOW_ACTIVE, // Window created & ready To draw
+      ALERT_WINDOW_DESTRUCTED // Window Destroyed
     };
 
+    std::list<alertInfo> alertInfoList_;
     static Alert* alertHandler_;
-    static std::mutex mutex_;
+    static std::mutex alertThreadRaceHandlerMutex_;
+    std::mutex msgHandlerMutex_;
     SkSize alertWindowSize_;
     int subWindowKeyEventId_{-1};
+    unsigned int idOfMessageOnDisplay_{0};
+    std::atomic<bool> msgPendingToBeRemoved_{false};
     AlertWindowState alertWindowState_{ALERT_WINDOW_DESTRUCTED};
+    double textFontSize_;
+    double lineSpacing_;
+    SkFont font_;
+    SkPaint paint_;
 
-    Alert();
-    ~Alert(){};
+    Alert()=default;
+    ~Alert()=default;
 
     void windowReadyToDrawCB();
     void createAlertWindow();
     void onHWKeyHandler(rnsKey key, rnsKeyAction eventKeyAction);
-    void drawAlert();
+    inline void drawRecentAlert();
+    void handleAlertMsg();
+    inline void PopFromAlertContainer(unsigned int msgIndex);
 };
 
 }//sdk
