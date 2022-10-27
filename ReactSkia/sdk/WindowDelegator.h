@@ -39,7 +39,7 @@ class WindowDelegator {
     void closeNativeWindow();
     void setWindowTittle(const char* titleString);
     void commitDrawCall(std::string pictureCommandKey,PictureObject pictureObj,bool batchCommit=false);
-
+  
   private:
     void onExposeHandler(RnsShell::Window* window);
     void windowWorkerThread();

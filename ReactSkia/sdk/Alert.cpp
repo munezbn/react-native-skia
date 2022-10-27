@@ -104,16 +104,17 @@ void Alert::createAlertWindow() {
   createWindow(alertWindowSize_, createWindowCB, forceFullScreenDrawCB);
 
   if (subWindowKeyEventId_ == -1) {
-    std::function<void(rnsKey, rnsKeyAction)> handler = std::bind( &Alert::onHWKeyHandler,this,
+    std::function<void(rnsKey, rnsKeyAction,RnsShell::Window*)> handler = std::bind( &Alert::onHWKeyHandler,this,
                                 std::placeholders::_1,  // KeyValue
-                                std::placeholders::_2);  // eventKeyAction
+                                std::placeholders::_2,  // eventKeyAction
+                                std::placeholders::_3);  // window onject
     subWindowKeyEventId_ = NotificationCenter::subWindowCenter().addListener("onHWKeyEvent", handler);
   }
 }
 
-void Alert::onHWKeyHandler(rnsKey keyValue,rnsKeyAction eventKeyAction) {
+void Alert::onHWKeyHandler(rnsKey keyValue,rnsKeyAction eventKeyAction,RnsShell::Window *window) {
   RNS_LOG_DEBUG("KEY RECEIVED : " << RNSKeyMap[keyValue]);
-  if ((eventKeyAction != RNS_KEY_Press) || (RNS_KEY_Select != keyValue) ) {
+  if ((getWindow() != window) || (eventKeyAction != RNS_KEY_Press) || (RNS_KEY_Select != keyValue) ) {
     return;
   }
   msgPendingToBeRemoved_=true;

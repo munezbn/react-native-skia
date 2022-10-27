@@ -62,7 +62,7 @@ class Alert : public WindowDelegator {
 
     void windowReadyToDrawCB();
     void createAlertWindow();
-    void onHWKeyHandler(rnsKey key, rnsKeyAction eventKeyAction);
+    void onHWKeyHandler(rnsKey key, rnsKeyAction eventKeyAction,RnsShell::Window *window);
     inline void drawRecentAlert();
     void handleAlertMsg();
     inline void PopFromAlertContainer(unsigned int msgIndex);
