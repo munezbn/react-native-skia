@@ -16,7 +16,7 @@
 #include "layers/Layer.h"
 
 #define RNS_TARGET_FPS_US 16666.7 // In Microseconds
-#define MAX_FRAME_DAMAGE_HISTORY 5
+#define RNS_SHELL_MAX_FRAME_DAMAGE_HISTORY 5
 
 namespace RnsShell {
 
