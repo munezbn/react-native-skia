@@ -103,7 +103,7 @@ inline void WindowDelegator::renderToDisplay() {
 
   std::scoped_lock lock(renderCtrlMutex);
 
-#if USE(RNS_SHELL_PARTIAL_UPDATES) && RNS_SHELL_HAS_GPU_SUPPORT
+#if USE(RNS_SHELL_PARTIAL_UPDATES) && defined(RNS_SHELL_HAS_GPU_SUPPORT)
   int bufferAge=windowContext_->bufferAge();
   if((bufferAge != 1) && (forceFullScreenDraw_)) {
 // Forcing full screen redraw as damage region handling is not done
