@@ -15,7 +15,7 @@
 #include "Application.h"
 #include "DisplayParams.h"
 
-#include "ReactSkia/sdk/RNSKeyCodeMapping.h"
+#include "ReactSkia/sdk/KeyCodeMapping.h"
 
 class GrDirectContext;
 class SkCanvas;

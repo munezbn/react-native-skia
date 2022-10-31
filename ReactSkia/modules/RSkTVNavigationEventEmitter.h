@@ -6,7 +6,7 @@
 */
 
 #include "sdk/NotificationCenter.h"
-#include "sdk/RNSKeyCodeMapping.h"
+#include "sdk/KeyCodeMapping.h"
 #include "core_modules/RSkEventEmitter.h"
 
 namespace facebook {

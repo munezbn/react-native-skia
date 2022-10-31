@@ -1,5 +1,5 @@
-#ifndef RNS_KEYCODE_MAPPING_H
-#define RNS_KEYCODE_MAPPING_H
+#ifndef KEYCODE_MAPPING_H
+#define KEYCODE_MAPPING_H
 #include <iostream>
 typedef enum rnsKey{
     /*
@@ -334,4 +334,4 @@ static std::string RNSKeyMap[RNS_KEY_End]={
     "insert",
     "unKnown"
 };
-#endif// __RNSKeyCodeMapping_h__
+#endif// __KeyCodeMapping_h__

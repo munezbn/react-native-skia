@@ -21,7 +21,7 @@
 #include "ReactSkia/utils/RnsLog.h"
 #include "ReactSkia/utils/RnsUtils.h"
 #include "ReactSkia/sdk/NotificationCenter.h"
-#include "ReactSkia/sdk/RNSKeyCodeMapping.h"
+#include "ReactSkia/sdk/KeyCodeMapping.h"
 
 using folly::sorted_vector_map;
 using folly::sorted_vector_set;
