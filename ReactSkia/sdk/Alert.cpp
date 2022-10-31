@@ -51,10 +51,6 @@ void Alert::handleAlertMsg() {
 
   if (alertInfoList_.empty()) {
 // Close Window , When No Message Left
-    if (subWindowKeyEventId_ != -1) {
-      NotificationCenter::subWindowCenter().removeListener(subWindowKeyEventId_);
-      subWindowKeyEventId_ = -1;
-    }
     closeWindow();
     alertWindowState_=ALERT_WINDOW_DESTRUCTED;
   } else {
@@ -101,20 +97,15 @@ void Alert::createAlertWindow() {
   alertWindowSize_ = RnsShell::Window::getMainWindowSize();
   std::function<void()> createWindowCB = std::bind(&Alert::windowReadyToDrawCB, this);
   std::function<void()> forceFullScreenDrawCB = std::bind(&Alert::drawRecentAlert, this);
-  createWindow(alertWindowSize_, createWindowCB, forceFullScreenDrawCB);
-
-  if (subWindowKeyEventId_ == -1) {
-    std::function<void(rnsKey, rnsKeyAction,RnsShell::Window*)> handler = std::bind( &Alert::onHWKeyHandler,this,
+  std::function<void(rnsKey, rnsKeyAction)> windowKeyEventCB = std::bind( &Alert::onHWKeyHandler,this,
                                 std::placeholders::_1,  // KeyValue
-                                std::placeholders::_2,  // eventKeyAction
-                                std::placeholders::_3);  // window onject
-    subWindowKeyEventId_ = NotificationCenter::subWindowCenter().addListener("onHWKeyEvent", handler);
-  }
+                                std::placeholders::_2);  // eventKeyAction
+  createWindow(alertWindowSize_, createWindowCB, forceFullScreenDrawCB,windowKeyEventCB);
 }
 
-void Alert::onHWKeyHandler(rnsKey keyValue,rnsKeyAction eventKeyAction,RnsShell::Window *window) {
+void Alert::onHWKeyHandler(rnsKey keyValue,rnsKeyAction eventKeyAction) {
   RNS_LOG_DEBUG("KEY RECEIVED : " << RNSKeyMap[keyValue]);
-  if ((getWindow() != window) || (eventKeyAction != RNS_KEY_Press) || (RNS_KEY_Select != keyValue) ) {
+  if ((eventKeyAction != RNS_KEY_Press) || (RNS_KEY_Select != keyValue) ) {
     return;
   }
   msgPendingToBeRemoved_=true;

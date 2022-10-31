@@ -122,7 +122,7 @@ void WindowDelegator::closeNativeWindow() {
     exposeEventID_=-1;
   }
   if(window_) {
-    window_->closeWindow();
+    window_->closeNativeWindow();
     delete window_;
     window_=nullptr;
     windowContext_ = nullptr;
@@ -132,7 +132,6 @@ void WindowDelegator::closeNativeWindow() {
   windowReadyTodrawCB_=nullptr;
   std::map<std::string,PictureObject> emptyMap;
   recentComponentCommandMap_.swap(emptyMap);
-
 }
 
 void WindowDelegator::commitDrawCall(std::string pictureCommandKey,PictureObject pictureObj,bool batchCommit) {
@@ -149,11 +148,11 @@ inline void WindowDelegator::renderToDisplay(std::string pictureCommandKey,Pictu
   if(!windowActive) { return;}
 
 #ifdef SHOW_RENDER_COMMAND_INFO
-RNS_LOG_INFO("Rendering component  : " << pictureCommandKey);
-RNS_LOG_INFO("Count of Dirt Rect   : " <<  pictureObj.dirtyRect.size());
-RNS_LOG_INFO("Draw Command Count   : "<< pictureObj.pictureCommand.get()->approximateOpCount());
-RNS_LOG_INFO(" operations and size : " << pictureObj.pictureCommand.get()->approximateBytesUsed());
-RNS_LOG_INFO(" Batching Request    : "<<batchCommit);
+   RNS_LOG_INFO("Rendering component  : " << pictureCommandKey);
+   RNS_LOG_INFO("Count of Dirt Rect   : " <<  pictureObj.dirtyRect.size());
+   RNS_LOG_INFO("Draw Command Count   : "<< pictureObj.pictureCommand.get()->approximateOpCount());
+   RNS_LOG_INFO(" operations and size : " << pictureObj.pictureCommand.get()->approximateBytesUsed());
+   RNS_LOG_INFO(" Batching Request    : "<<batchCommit);
 #endif
 
   std::scoped_lock lock(renderCtrlMutex_);

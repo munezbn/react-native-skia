@@ -43,7 +43,6 @@ public:
             return mainWindow_->getWindowSize();
         return SkSize::MakeEmpty();
     }
-
     virtual ~Window();
 
     virtual void setTitle(const char*) = 0;
@@ -79,8 +78,16 @@ public:
     void setWindowDimension(int width,int height) {
         currentWindowDimension_.set(width,height);
     }
+    void setWindowKeyEventCB(std::function<void(rnsKey,rnsKeyAction)> cbFun) {
+        windowKeyEventCB_=cbFun;
+    }
+    void closeNativeWindow() {
+        windowKeyEventCB_=nullptr;
+        closeWindow();
+    };
 private:
     SkSize currentWindowDimension_;
+    std::function<void(rnsKey,rnsKeyAction)> windowKeyEventCB_{nullptr};
 
 protected:
     Window();

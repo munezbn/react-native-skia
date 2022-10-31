@@ -18,6 +18,8 @@
 #include "rns_shell/platform/graphics/WindowContextFactory.h"
 #include "rns_shell/platform/linux/TaskLoop.h"
 
+#include "KeyCodeMapping.h"
+
 namespace rns {
 namespace sdk {
 
@@ -34,12 +36,16 @@ class WindowDelegator {
     WindowDelegator(){};
    ~WindowDelegator(){};
 
-    void createWindow(SkSize windowSize,std::function<void ()> windowReadyTodrawCB,bool runOnTaskRunner=true);
+    void createWindow(SkSize windowSize,
+                      std::function<void ()> windowReadyTodrawCB,
+                      std::function<void (rnsKey,rnsKeyAction)> keyEventCB=nullptr,
+                      bool runOnTaskRunner=true
+                    );
     void closeWindow();
     void closeNativeWindow();
     void setWindowTittle(const char* titleString);
     void commitDrawCall(std::string pictureCommandKey,PictureObject pictureObj,bool batchCommit=false);
-  
+
   private:
     void onExposeHandler(RnsShell::Window* window);
     void windowWorkerThread();
@@ -65,6 +71,7 @@ class WindowDelegator {
     std::thread workerThread_;
 
     std::function<void ()> windowReadyTodrawCB_{nullptr};
+    std::function<void (rnsKey,rnsKeyAction)> windowKeyEventCB_{nullptr};
 
     RnsShell::PlatformDisplay::Type displayPlatForm_;
     int exposeEventID_{-1};

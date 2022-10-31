@@ -14,7 +14,6 @@
 #include "include/core/SkColor.h"
 
 #include "NotificationCenter.h"
-#include "KeyCodeMapping.h"
 #if ENABLE(FEATURE_KEY_THROTTLING)
 #include "ThreadSafeQueue.h"
 #endif /*ENABLE_FEATURE_KEY_THROTTLING*/
@@ -152,7 +151,7 @@ class OnScreenKeyboard : public WindowDelegator{
     ~OnScreenKeyboard() = default;
 
     void launchOSKWindow();
-    void onHWkeyHandler(rnsKey key, rnsKeyAction eventKeyAction,RnsShell::Window *window);
+    void onHWkeyHandler(rnsKey key, rnsKeyAction eventKeyAction);
     void processKey(rnsKey keyValue);
 #if ENABLE(FEATURE_KEY_THROTTLING)
     void repeatKeyProcessingThread();
@@ -189,7 +188,6 @@ class OnScreenKeyboard : public WindowDelegator{
     SkPaint       highLightTilePaint_;//paint objet for key High light
 
 // Members for OSK operations
-    int           subWindowKeyEventId_{-1};
     bool          generateOSKLayout_{true};
     SkPoint       currentFocussIndex_{};
     SkPoint       lastFocussIndex_{};

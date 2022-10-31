@@ -48,7 +48,6 @@ class Alert : public WindowDelegator {
     static std::mutex alertThreadRaceHandlerMutex_;
     std::mutex msgHandlerMutex_;
     SkSize alertWindowSize_;
-    int subWindowKeyEventId_{-1};
     unsigned int idOfMessageOnDisplay_{0};
     std::atomic<bool> msgPendingToBeRemoved_{false};
     AlertWindowState alertWindowState_{ALERT_WINDOW_DESTRUCTED};
@@ -62,7 +61,7 @@ class Alert : public WindowDelegator {
 
     void windowReadyToDrawCB();
     void createAlertWindow();
-    void onHWKeyHandler(rnsKey key, rnsKeyAction eventKeyAction,RnsShell::Window *window);
+    void onHWKeyHandler(rnsKey key, rnsKeyAction eventKeyAction);
     inline void drawRecentAlert();
     void handleAlertMsg();
     inline void PopFromAlertContainer(unsigned int msgIndex);
