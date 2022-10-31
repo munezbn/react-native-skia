@@ -46,7 +46,7 @@ void RSkComponent::OnPaintShadow(SkCanvas *canvas) {
   /* apply view style props */
   auto borderMetrics= viewProps.resolveBorderMetrics(component_.layoutMetrics);
   if(layer_->componentShadow.isShadowVisible()){
-      drawShadow(canvas,component_.layoutMetrics.frame,borderMetrics,layer_->backgroundColor,layer_->componentShadow);
+      drawShadow(canvas,component_.layoutMetrics.frame,borderMetrics,layer_->backgroundColor,layer_->componentShadow,layer_->opacity);
   }
 }
 
@@ -142,7 +142,7 @@ RnsShell::LayerInvalidateMask RSkComponent::updateProps(const ShadowView &newSha
     3. Shadow will be visible , but it's property have changed.*/
 
    if((layer_->componentShadow.isShadowVisible() && resetShadowFilter) ||
-      (!layer_->componentShadow.isShadowVisible())|| (!resetShadowFilter) ) {
+      (!layer_->componentShadow.isShadowVisible())|| (resetShadowFilter) ) {
        if((layer_->componentShadow.maskFilter != nullptr)) {
           layer_->componentShadow.maskFilter.reset();
        }

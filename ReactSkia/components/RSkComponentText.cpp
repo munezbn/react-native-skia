@@ -123,7 +123,8 @@ void RSkComponentParagraph::OnPaint(SkCanvas *canvas) {
                           borderFrame,
                           borderMetrics,
                           props.backgroundColor,
-                          layer()->componentShadow);
+                          layer()->componentShadow,
+                          layer()->opacity);
             }
 
             setTextLines(textLayout,

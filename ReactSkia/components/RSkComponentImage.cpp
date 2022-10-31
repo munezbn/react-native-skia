@@ -67,7 +67,7 @@ void RSkComponentImage::OnPaint(SkCanvas *canvas) {
   bool needClipAndRestore =false;
   sk_sp<SkImageFilter> imageFilter;
   if(layer()->componentShadow.isShadowVisible()) {
-    contentShadow=drawShadow(canvas,frame,imageBorderMetrics,imageProps.backgroundColor,layer()->componentShadow);
+    contentShadow=drawShadow(canvas,frame,imageBorderMetrics,imageProps.backgroundColor,layer()->componentShadow,layer()->opacity);
   }
   drawBackground(canvas,frame,imageBorderMetrics,imageProps.backgroundColor);
   if(imageData) {
@@ -88,7 +88,7 @@ void RSkComponentImage::OnPaint(SkCanvas *canvas) {
     }
     /* TODO: Handle filter quality based of configuration. Setting Low Filter Quality as default for now*/
     paint.setFilterQuality(DEFAULT_IMAGE_FILTER_QUALITY);
-    filterForShadow(paint,imageProps,targetRect,frameRect,false,imageData->isOpaque());
+    setImageFilters(paint,imageProps,targetRect,frameRect,false,imageData->isOpaque());
     canvas->drawImageRect(imageData,targetRect,&paint);
     if(needClipAndRestore) {
       canvas->restore();
@@ -226,7 +226,7 @@ inline void RSkComponentImage::drawContentShadow( SkCanvas *canvas,
     }
 
     SkPaint shadowPaint;
-    filterForShadow(shadowPaint,imageProps,targetRect,frameRect,true,imageData->isOpaque());
+    setImageFilters(shadowPaint,imageProps,targetRect,frameRect,true,imageData->isOpaque());
     bool SaveLAyerDone=false;
     bool shadowOnFrame=(( frameRect.width() < targetRect.width()) || ( frameRect.height() < targetRect.height())||(imageProps.resizeMode == ImageResizeMode::Repeat));
     SkMatrix identityMatrix;
@@ -248,13 +248,16 @@ inline void RSkComponentImage::drawContentShadow( SkCanvas *canvas,
     if(!imageData->isOpaque() ) {
       canvas->drawImageRect(imageData, targetRect, &shadowPaint);
     } else {
-      if(!SaveLAyerDone) {
+      if(!SaveLAyerDone && !(layer()->opacity < 0xFF)) {
         canvas->saveLayer(&shadowRect,&shadowPaint);
+        SaveLAyerDone =true;
       }
-      if(shadowOnFrame) {
-        canvas->clipRect(frameRect,SkClipOp::kDifference);
-      } else {
-        canvas->clipRect(targetRect,SkClipOp::kDifference);
+      if(!(layer()->opacity < 0xFF)) {
+        if(shadowOnFrame) {
+          canvas->clipRect(frameRect,SkClipOp::kDifference);
+        } else {
+          canvas->clipRect(targetRect,SkClipOp::kDifference);
+        }
       }
       shadowPaint.setColor(layer()->componentShadow.shadowColor);
       canvas->drawIRect(imageFrameBounds, shadowPaint);
@@ -271,18 +274,18 @@ inline void RSkComponentImage::drawContentShadow( SkCanvas *canvas,
     #endif
 }
 
-inline void RSkComponentImage::filterForShadow (SkPaint &paintObj,const ImageProps &imageProps,
+inline void RSkComponentImage::setImageFilters (SkPaint &paintObj,const ImageProps &imageProps,
                                                       SkRect targetRect,SkRect frameRect ,
-                                                      bool setImageShadowFilter, bool isOpaque) {
+                                                      bool  filterForShadow, bool isOpaque) {
    // To use Image Filter for Tile Mode & Image with Transparent pixels
    if((!isOpaque && layer()->componentShadow.isShadowVisible())||
-      (!setImageShadowFilter && (imageProps.resizeMode == ImageResizeMode::Repeat)) ||
+      (! filterForShadow && (imageProps.resizeMode == ImageResizeMode::Repeat)) ||
       (imageProps.blurRadius > 0)) {
-      if(setImageShadowFilter && (layer()->componentShadow.imageFilter == nullptr)  &&
+      if(filterForShadow && (layer()->componentShadow.imageFilter == nullptr)  &&
         layer()->componentShadow.isShadowVisible()) {
         layer()->componentShadow.createImageFilter();
       }
-      sk_sp<SkImageFilter> shadowFilter=setImageShadowFilter?layer()->componentShadow.imageFilter:nullptr;
+      sk_sp<SkImageFilter> shadowFilter= filterForShadow?layer()->componentShadow.imageFilter:nullptr;
       if(imageProps.resizeMode == ImageResizeMode::Repeat) {
          shadowFilter = (SkImageFilters::Tile(targetRect,frameRect,shadowFilter ));
       }
@@ -291,7 +294,7 @@ inline void RSkComponentImage::filterForShadow (SkPaint &paintObj,const ImagePro
       }
       paintObj.setAntiAlias(true);
       paintObj.setImageFilter(std::move(shadowFilter));
-   } else if( setImageShadowFilter && layer()->componentShadow.isShadowVisible() && layer()->componentShadow.shadowRadius) {
+   } else if(filterForShadow && layer()->componentShadow.isShadowVisible() && layer()->componentShadow.shadowRadius) {
       if(layer()->componentShadow.maskFilter == nullptr) {
          layer()->componentShadow.createMaskFilter();
       }

@@ -346,7 +346,8 @@ void drawBorder(SkCanvas *canvas,
 bool  drawShadow(SkCanvas *canvas,Rect frame,
                         BorderMetrics borderProps,
                         SharedColor backgroundColor,
-                        RnsShell::ComponentShadow &componentShadow) {
+                        RnsShell::ComponentShadow &componentShadow,
+                        float opacity) {
 
     if(!componentShadow.isShadowVisible()) {
         return false;
@@ -375,14 +376,13 @@ bool  drawShadow(SkCanvas *canvas,Rect frame,
             }
             paint.setMaskFilter(componentShadow.maskFilter);
         }
-        bool needsSaveLayer=(componentShadow.shadowOpacity|| (shadowOn == Background));
-
+        bool needsSaveLayer=(componentShadow.shadowOpacity || ((shadowOn == Background) && !(opacity < 0xFF)));
         if(needsSaveLayer) {
             SkRect frameBounds=SkRect::Make(componentShadow.getShadowBounds(SkIRect::MakeXYWH(shadowFrame.origin.x,shadowFrame.origin.y,
                                             shadowFrame.size.width,shadowFrame.size.height)));
             canvas->saveLayerAlpha(&frameBounds,componentShadow.shadowOpacity);
         }
-        if(shadowOn == Background) {
+        if((shadowOn == Background) && !(opacity < 0xFF)) {
             SkRect clipRect = SkRect::MakeXYWH(frame.origin.x, frame.origin.y, frame.size.width, frame.size.height);
             SkVector radii[4]={{borderProps.borderRadii.topLeft,borderProps.borderRadii.topLeft},
                            {borderProps.borderRadii.topRight,borderProps.borderRadii.topRight}, \
@@ -418,6 +418,7 @@ bool  drawShadow(SkCanvas *canvas,Rect frame,
               }
               paint.setImageFilter(componentShadow.imageFilter);
             }
+
            canvas->drawPath(shadowPath,paint);
            canvas->restore();
         }

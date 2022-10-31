@@ -153,7 +153,7 @@ void RSkComponentTextInput::OnPaint(SkCanvas *canvas) {
     }
   }
   if(layer()->componentShadow.isShadowVisible()) {
-    drawShadow(canvas, frame, borderMetrics, textInputProps.backgroundColor, layer()->componentShadow);
+    drawShadow(canvas, frame, borderMetrics, textInputProps.backgroundColor, layer()->componentShadow,layer()->opacity);
   }
   drawTextInput(canvas, component.layoutMetrics, textInputProps, textLayout);
   if(hasToSetFocus_){
