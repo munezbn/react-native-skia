@@ -10,9 +10,6 @@
 
 #include <glib.h>
 
-#include "ReactSkia/sdk/NotificationCenter.h"
-#include "ReactSkia/sdk/RNSKeyCodeMapping.h"
-
 #include "include/private/SkChecksum.h"
 #include "src/core/SkTDynamicHash.h"
 
@@ -73,7 +70,6 @@ private:
     void setViewSize(int width, int height);
     bool initViewBackend(wpe_view_backend* viewBackend);
     bool initRenderTarget(wpe_view_backend* viewBackend, wpe_renderer_backend_egl* renderBackend,SkSize dimension);
-    void onKey(rnsKey keyType,rnsKeyAction eventKeyAction);
     rnsKey keyIdentifierForWPEKeyCode(int keyCode);
 
     struct wpe_renderer_backend_egl_target* rendererTarget_;

@@ -11,6 +11,8 @@
 #include "WindowLibWPE.h"
 #include "platform/linux/TaskLoop.h"
 
+#include "ReactSkia/sdk/NotificationCenter.h"
+
 using namespace std; 
 namespace RnsShell {
 
@@ -262,18 +264,6 @@ void WindowLibWPE::setRequestedDisplayParams(const DisplayParams& params, bool a
 #endif
 
     INHERITED::setRequestedDisplayParams(params, allowReattach);
-}
-
-void WindowLibWPE::onKey(rnsKey eventKeyType, rnsKeyAction eventKeyAction){
-#if ENABLE(FEATURE_ONSCREEN_KEYBOARD)
-    if(winType == SubWindow) {
-        NotificationCenter::subWindowCenter().emit("onHWKeyEvent", eventKeyType, eventKeyAction,(Window*)this);
-    } else
-#endif/*FEATURE_ONSCREEN_KEYBOARD*/
-    {
-        NotificationCenter::defaultCenter().emit("onHWKeyEvent", eventKeyType, eventKeyAction);
-    }
-    return;
 }
 
 }   // namespace RnsShell

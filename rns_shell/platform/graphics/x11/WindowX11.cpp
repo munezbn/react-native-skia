@@ -22,6 +22,8 @@
 
 #include "x11/PlatformDisplayX11.h"
 
+#include "ReactSkia/sdk/NotificationCenter.h"
+
 namespace RnsShell {
 
 SkTDynamicHash<WindowX11, XWindow> WindowX11::gWindowMap;
@@ -343,18 +345,6 @@ void WindowX11::setRequestedDisplayParams(const DisplayParams& params, bool allo
 
 void WindowX11::onExpose() {
     NotificationCenter::defaultCenter().emit("windowExposed",(Window*)this);
-}
-
-void WindowX11::onKey(rnsKey eventKeyType, rnsKeyAction eventKeyAction){
-#if ENABLE(FEATURE_ONSCREEN_KEYBOARD)
-    if(winType == SubWindow) {
-        NotificationCenter::subWindowCenter().emit("onHWKeyEvent", eventKeyType, eventKeyAction,(Window*)this);
-    } else
-#endif/*FEATURE_ONSCREEN_KEYBOARD*/
-    {
-        NotificationCenter::defaultCenter().emit("onHWKeyEvent", eventKeyType, eventKeyAction);
-    }
-    return;
 }
 
 }   // namespace RnsShell

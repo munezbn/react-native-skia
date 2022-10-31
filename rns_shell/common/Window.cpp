@@ -9,7 +9,10 @@
 
 #include "include/core/SkCanvas.h"
 #include "include/core/SkSurface.h"
+
 #include "WindowContext.h"
+
+#include "ReactSkia/sdk/NotificationCenter.h"
 
 namespace RnsShell {
 
@@ -38,6 +41,18 @@ void Window::onResize(int w, int h) {
 GrDirectContext* Window::directContext() const {
     RNS_LOG_NOT_IMPL;
     return nullptr;
+}
+
+void Window::onKey(rnsKey eventKeyType, rnsKeyAction eventKeyAction){
+#if ENABLE(FEATURE_ONSCREEN_KEYBOARD)
+    if(winType == SubWindow) {
+        NotificationCenter::subWindowCenter().emit("onHWKeyEvent", eventKeyType, eventKeyAction,this);
+    } else
+#endif/*FEATURE_ONSCREEN_KEYBOARD*/
+    {
+        NotificationCenter::defaultCenter().emit("onHWKeyEvent", eventKeyType, eventKeyAction);
+    }
+    return;
 }
 
 }   // namespace RnsShell

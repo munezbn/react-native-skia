@@ -15,6 +15,8 @@
 #include "Application.h"
 #include "DisplayParams.h"
 
+#include "ReactSkia/sdk/RNSKeyCodeMapping.h"
+
 class GrDirectContext;
 class SkCanvas;
 class SkSurface;
@@ -66,6 +68,7 @@ public:
     int sampleCount() const;
     int stencilBits() const;
     void onResize(int w, int h);
+    void onKey(rnsKey keyType,rnsKeyAction eventKeyAction);
 
     // Returns null if there is not a GPU backend or if the backend is not yet created.
     GrDirectContext* directContext() const;
