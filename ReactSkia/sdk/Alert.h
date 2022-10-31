@@ -61,7 +61,7 @@ class Alert : public WindowDelegator {
 
     void windowReadyToDrawCB();
     void createAlertWindow();
-    void onHWKeyHandler(rnsKey key, rnsKeyAction eventKeyAction);
+    void onHWKeyHandler(KeyInput keyInput);
     inline void drawRecentAlert();
     void handleAlertMsg();
     inline void PopFromAlertContainer(unsigned int msgIndex);

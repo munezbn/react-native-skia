@@ -43,16 +43,24 @@ GrDirectContext* Window::directContext() const {
     return nullptr;
 }
 
-void Window::onKey(rnsKey eventKeyType, rnsKeyAction eventKeyAction){
-#if ENABLE(FEATURE_ONSCREEN_KEYBOARD)
+void Window::onKey(rnsKey eventKey, rnsKeyAction eventKeyAction){
+
+    KeyInput keyInput(eventKey,eventKeyAction,false);
+    if(previousKey_ == eventKey  && eventKeyAction == RNS_KEY_Press){
+        keyInput.repeat = true;
+    }
+    if(eventKeyAction == RNS_KEY_Release) {
+        previousKey_=RNS_KEY_UnKnown;
+    } else {
+        previousKey_=eventKey;
+    }
+
     if(winType == SubWindow) {
         if(windowKeyEventCB_) {
-            windowKeyEventCB_(eventKeyType, eventKeyAction);
+            windowKeyEventCB_(keyInput);
         }
-    } else
-#endif/*FEATURE_ONSCREEN_KEYBOARD*/
-    {
-        NotificationCenter::defaultCenter().emit("onHWKeyEvent", eventKeyType, eventKeyAction);
+    } else {
+        NotificationCenter::defaultCenter().emit("onHWKeyEvent", keyInput);
     }
     return;
 }

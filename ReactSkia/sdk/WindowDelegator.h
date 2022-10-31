@@ -38,7 +38,12 @@ class WindowDelegator {
 
     void createWindow(SkSize windowSize,
                       std::function<void ()> windowReadyTodrawCB,
+<<<<<<< HEAD
                       std::function<void (rnsKey,rnsKeyAction)> keyEventCB=nullptr,
+=======
+                      std::function<void ()> forceFullScreenDraw=nullptr,
+                      std::function<void (KeyInput)> keyEventCB=nullptr,
+>>>>>>> moved repeat handling to window from clients
                       bool runOnTaskRunner=true
                     );
     void closeWindow();
@@ -71,7 +76,7 @@ class WindowDelegator {
     std::thread workerThread_;
 
     std::function<void ()> windowReadyTodrawCB_{nullptr};
-    std::function<void (rnsKey,rnsKeyAction)> windowKeyEventCB_{nullptr};
+    std::function<void (KeyInput)> windowKeyEventCB_{nullptr};
 
     RnsShell::PlatformDisplay::Type displayPlatForm_;
     int exposeEventID_{-1};

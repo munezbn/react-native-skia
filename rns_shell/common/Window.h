@@ -78,7 +78,7 @@ public:
     void setWindowDimension(int width,int height) {
         currentWindowDimension_.set(width,height);
     }
-    void setWindowKeyEventCB(std::function<void(rnsKey,rnsKeyAction)> cbFun) {
+    void setWindowKeyEventCB(std::function<void(KeyInput)> cbFun) {
         windowKeyEventCB_=cbFun;
     }
     void closeNativeWindow() {
@@ -87,7 +87,8 @@ public:
     };
 private:
     SkSize currentWindowDimension_;
-    std::function<void(rnsKey,rnsKeyAction)> windowKeyEventCB_{nullptr};
+    std::function<void(KeyInput)> windowKeyEventCB_{nullptr};
+    rnsKey previousKey_{RNS_KEY_UnKnown};
 
 protected:
     Window();

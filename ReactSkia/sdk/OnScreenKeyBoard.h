@@ -151,8 +151,8 @@ class OnScreenKeyboard : public WindowDelegator{
     ~OnScreenKeyboard() = default;
 
     void launchOSKWindow();
-    void onHWkeyHandler(rnsKey key, rnsKeyAction eventKeyAction);
-    void processKey(rnsKey keyValue);
+    void onHWkeyHandler(KeyInput keyInput);
+    void processKey(KeyInput &keyInput);
 #if ENABLE(FEATURE_KEY_THROTTLING)
     void repeatKeyProcessingThread();
 #endif/*ENABLE_FEATURE_KEY_THROTTLING*/
@@ -200,10 +200,9 @@ class OnScreenKeyboard : public WindowDelegator{
     SkScalar      displayStrWidth_{0};
     rnsKey        emittedOSKKey_{RNS_KEY_UnKnown};
 #if ENABLE(FEATURE_KEY_THROTTLING)
-    std::unique_ptr<ThreadSafeQueue<rnsKey>> repeatKeyQueue_;
+    std::unique_ptr<ThreadSafeQueue<KeyInput>> repeatKeyQueue_;
     std::thread   repeatKeyHandler_;
     std::atomic<bool> onKeyRepeatMode_{false};
-    rnsKey        previousKey_{RNS_KEY_UnKnown};
     sem_t         sigKeyConsumed_;
     std::atomic<bool> waitingForKeyConsumedSignal_{false};
 #endif /*ENABLE_FEATURE_KEY_THROTTLING*/
