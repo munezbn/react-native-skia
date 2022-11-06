@@ -8,11 +8,13 @@
 #include <math.h>
 
 #include "include/core/SkPaint.h"
-#include "include/effects/SkImageFilters.h"
 #include "include/core/SkClipOp.h"
+#include "include/effects/SkDashPathEffect.h"
+#include "include/effects/SkImageFilters.h"
+#include "src/core/SkMaskFilterBase.h"
 
-#include "ReactSkia/views/common/RSkDrawUtils.h"
-#include "ReactSkia/views/common/RSkConversion.h"
+#include "RSkDrawUtils.h"
+#include "RSkConversion.h"
 
 #define DEFAULT_COLOUR   SK_ColorBLACK /*Black*/
 #define UNDERLINEWIDTH   1
@@ -79,7 +81,7 @@ bool hasUniformBorderEdges(BorderMetrics borderProps)
 }
 bool isDrawVisible(SharedColor Color,Float thickness=1.0)
 {
-    return (Color !=clearColor() && thickness > 0.0)? true:false;
+    return ((colorComponentsFromColor(Color).alpha != 0) && thickness > 0.0)? true:false;
 }
 void createEdge(PathMetrics pathMetrics,BorderEdges borderEdge,SkPath* path)
 {
@@ -346,14 +348,18 @@ void drawBorder(SkCanvas *canvas,
 bool  drawShadow(SkCanvas *canvas,Rect frame,
                         BorderMetrics borderProps,
                         SharedColor backgroundColor,
-                        RnsShell::ComponentShadow &componentShadow,
-                        float opacity) {
+                        ShadowProps shadowProps,
+                        sk_sp<SkImageFilter> shadowImageFilter,
+                        sk_sp<SkMaskFilter> shadowMaskFilter,
+                        float frameOpacity) {
+    /* Shadow will not be drawn  if,
+       1. frame is fully transparent
+       2. None of the filter is valid.
+    */
 
-    if(!componentShadow.isShadowVisible()) {
-        return false;
-    }
-    Rect shadowFrame{{frame.origin.x+componentShadow.shadowOffset.width(),
-                     frame.origin.y+componentShadow.shadowOffset.height()},
+
+    Rect shadowFrame{{frame.origin.x+shadowProps.shadowOffset.width(),
+                     frame.origin.y+shadowProps.shadowOffset.height()},
                      {frame.size.width, frame.size.height}};
 
     DrawMethod shadowOn = None;
@@ -370,19 +376,17 @@ bool  drawShadow(SkCanvas *canvas,Rect frame,
     }
     if(shadowOn != None) {
         SkPaint paint;
-        if(componentShadow.shadowRadius != 0) {
-           if(componentShadow.maskFilter == nullptr) {
-              componentShadow.createMaskFilter();
-            }
-            paint.setMaskFilter(componentShadow.maskFilter);
+        if((shadowProps.shadowRadius != 0) && (shadowMaskFilter != nullptr)) {
+            paint.setMaskFilter(shadowMaskFilter);
         }
-        bool needsSaveLayer=(componentShadow.shadowOpacity || ((shadowOn == Background) && !(opacity < 0xFF)));
+        bool needsSaveLayer=(shadowProps.shadowOpacity || ((shadowOn == Background) && !(frameOpacity < 0xFF)));
         if(needsSaveLayer) {
-            SkRect frameBounds=SkRect::Make(componentShadow.getShadowBounds(SkIRect::MakeXYWH(shadowFrame.origin.x,shadowFrame.origin.y,
-                                            shadowFrame.size.width,shadowFrame.size.height)));
-            canvas->saveLayerAlpha(&frameBounds,componentShadow.shadowOpacity);
+            SkRect frameBounds=SkRect::Make(getShadowBounds(SkIRect::MakeXYWH(shadowFrame.origin.x,shadowFrame.origin.y,
+                                            shadowFrame.size.width,shadowFrame.size.height),
+                                            shadowMaskFilter));
+            canvas->saveLayerAlpha(&frameBounds,shadowProps.shadowOpacity);
         }
-        if((shadowOn == Background) && !(opacity < 0xFF)) {
+        if((shadowOn == Background) && !(frameOpacity < 0xFF)) {
             SkRect clipRect = SkRect::MakeXYWH(frame.origin.x, frame.origin.y, frame.size.width, frame.size.height);
             SkVector radii[4]={{borderProps.borderRadii.topLeft,borderProps.borderRadii.topLeft},
                            {borderProps.borderRadii.topRight,borderProps.borderRadii.topRight}, \
@@ -395,7 +399,7 @@ bool  drawShadow(SkCanvas *canvas,Rect frame,
             clipRRect.setRectRadii(clipRect,radii);
             canvas->clipRRect(clipRRect,SkClipOp::kDifference);
         }
-        drawRect(shadowOn,canvas,shadowFrame,borderProps,componentShadow.shadowColor,&paint);
+        drawRect(shadowOn,canvas,shadowFrame,borderProps,shadowProps.shadowColor,&paint);
         if(needsSaveLayer) {
             canvas->restore();
         }
@@ -410,13 +414,10 @@ bool  drawShadow(SkCanvas *canvas,Rect frame,
 
        if(pathExist) {
             SkPaint paint;
-            canvas->saveLayerAlpha(NULL,componentShadow.shadowOpacity);
+            canvas->saveLayerAlpha(NULL,shadowProps.shadowOpacity);
             canvas->clipPath(shadowPath,SkClipOp::kDifference);
-            if(componentShadow.shadowRadius != 0) {
-              if(componentShadow.imageFilter == nullptr) {
-                componentShadow.createImageFilter();
-              }
-              paint.setImageFilter(componentShadow.imageFilter);
+            if(shadowImageFilter != nullptr) {
+              paint.setImageFilter(shadowImageFilter);
             }
 
            canvas->drawPath(shadowPath,paint);
@@ -436,6 +437,25 @@ void drawUnderline(SkCanvas *canvas,Rect frame,SharedColor underlineColor){
     auto frameOrigin = frame.origin;
     auto frameSize = frame.size;
     canvas->drawLine(frameOrigin.x,frameOrigin.y+frameSize.height-BOTTOMALIGNMENT,frameOrigin.x+frameSize.width,frameOrigin.y+frameSize.height-BOTTOMALIGNMENT, paint);
+}
+
+SkIRect getShadowBounds(const SkIRect shadowFrame,
+                        sk_sp<SkMaskFilter> shadowMaskFilter,
+                        sk_sp<SkImageFilter> shadowImageFilter) {
+    if(shadowMaskFilter){
+        SkRect storage;
+        as_MFB(shadowMaskFilter)->computeFastBounds(SkRect::Make(shadowFrame), &storage);
+        return  SkIRect::MakeXYWH(storage.x(), storage.y(), storage.width(), storage.height());
+    }
+    if(shadowImageFilter) {
+        SkMatrix identityMatrix;
+        return shadowImageFilter->filterBounds(
+                                    shadowFrame,
+                                    identityMatrix,
+                                    SkImageFilter::kForward_MapDirection,
+                                    nullptr);
+    }
+    return shadowFrame;
 }
 
 } // namespace RSkDrawUtils

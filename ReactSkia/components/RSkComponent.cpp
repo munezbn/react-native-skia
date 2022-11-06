@@ -1,12 +1,10 @@
 #include "include/core/SkPaint.h"
 #include "include/core/SkPictureRecorder.h"
 #include "include/core/SkSurface.h"
-#include "include/core/SkImageFilter.h"
 #include "include/effects/SkImageFilters.h"
 
 #include "ReactSkia/components/RSkComponent.h"
 #include "ReactSkia/views/common/RSkConversion.h"
-#include "ReactSkia/views/common/RSkDrawUtils.h"
 
 #include "rns_shell/compositor/layers/PictureLayer.h"
 #include "rns_shell/compositor/layers/ScrollLayer.h"
@@ -15,7 +13,6 @@ namespace facebook {
 namespace react {
 
 using namespace RnsShell;
-using namespace RSkDrawUtils;
 
 RSkComponent::RSkComponent(const ShadowView &shadowView)
     : INHERITED(Layer::EmptyClient::singleton(), LAYER_TYPE_DEFAULT)
@@ -45,8 +42,12 @@ void RSkComponent::OnPaintShadow(SkCanvas *canvas) {
 
   /* apply view style props */
   auto borderMetrics= viewProps.resolveBorderMetrics(component_.layoutMetrics);
-  if(layer_->componentShadow.isShadowVisible()){
-      drawShadow(canvas,component_.layoutMetrics.frame,borderMetrics,layer_->backgroundColor,layer_->componentShadow,layer_->opacity);
+  if(hasVisibleShadow) {
+      drawShadow(canvas,component_.layoutMetrics.frame,borderMetrics,
+                 layer_->backgroundColor,
+                 component_.shadowProps,
+                 layer()->shadowImageFilter,layer()->shadowMaskFilter,
+                 layer_->opacity);
   }
 }
 
@@ -95,7 +96,7 @@ RnsShell::LayerInvalidateMask RSkComponent::updateProps(const ShadowView &newSha
    auto const &newviewProps = *std::static_pointer_cast<ViewProps const>(newShadowView.props);
    auto const &oldviewProps = *std::static_pointer_cast<ViewProps const>(component_.props);
    RnsShell::LayerInvalidateMask updateMask=RnsShell::LayerInvalidateNone;
-   bool resetShadowFilter=false;
+   bool createShadowFilter=false;
 
    updateMask= updateComponentProps(newShadowView,forceUpdate);
   //opacity
@@ -106,50 +107,63 @@ RnsShell::LayerInvalidateMask RSkComponent::updateProps(const ShadowView &newSha
    }
   //ShadowOpacity
    if ((forceUpdate) || (oldviewProps.shadowOpacity != newviewProps.shadowOpacity)) {
-      layer_->componentShadow.shadowOpacity = ((newviewProps.shadowOpacity > 1.0) ? 1.0:newviewProps.shadowOpacity)*MAX_8BIT;
+      component_.shadowProps.shadowOpacity = ((newviewProps.shadowOpacity > 1.0) ? 1.0:newviewProps.shadowOpacity)*MAX_8BIT;
       /*TODO : To be tested and confirm updateMask need for this Prop*/
       updateMask =static_cast<RnsShell::LayerInvalidateMask>(updateMask | RnsShell::LayerInvalidateAll);
-      resetShadowFilter=true;
+      createShadowFilter=true;
    }
   //shadowRadius
    if ((forceUpdate) || (oldviewProps.shadowRadius != newviewProps.shadowRadius)) {
-      layer_->componentShadow.shadowRadius = newviewProps.shadowRadius;
+      component_.shadowProps.shadowRadius = newviewProps.shadowRadius;
       /*TODO : To be tested and confirm updateMask need for this Prop*/
       updateMask =static_cast<RnsShell::LayerInvalidateMask>(updateMask | RnsShell::LayerInvalidateAll);
-      resetShadowFilter=true;
+      createShadowFilter=true;
    }
   //shadowoffset
    if ((forceUpdate) || (oldviewProps.shadowOffset != newviewProps.shadowOffset)) {
-      layer_->componentShadow.shadowOffset = RSkSkSizeFromSize(newviewProps.shadowOffset);
+      layer_->shadowOffset=component_.shadowProps.shadowOffset = RSkSkSizeFromSize(newviewProps.shadowOffset);
       /*TODO : To be tested and confirm updateMask need for this Prop*/
       updateMask =static_cast<RnsShell::LayerInvalidateMask>(updateMask | RnsShell::LayerInvalidateAll);
-      resetShadowFilter=true;
+      createShadowFilter=true;
    }
   //shadowcolor
    if ((forceUpdate) || (oldviewProps.shadowColor != newviewProps.shadowColor)) {
-      layer_->componentShadow.shadowColor = RSkColorFromSharedColor(newviewProps.shadowColor,SK_ColorBLACK);
+      component_.shadowProps.shadowColor = RSkColorFromSharedColor(newviewProps.shadowColor,SK_ColorBLACK);
       /*TODO : To be tested and confirm updateMask need for this Prop*/
       updateMask =static_cast<RnsShell::LayerInvalidateMask>(updateMask | RnsShell::LayerInvalidateAll);
-      resetShadowFilter=true;
+      createShadowFilter=true;
    }
-  //Reset Show Create flasg, if Shadow won't not be visible
-   if(layer_->componentShadow.shadowOffset.isEmpty() && (!layer_->opacity)) {
-      resetShadowFilter=true;
-   }
-  /* Resetting shadow filter here on below scenario and creation/Re-creation happens in components:
-    1. when Shadow won't be visible outside the component., where shadow is directly under the component [Shadow Offset as Zero]
-    2. Shadow is fully transparent
-    3. Shadow will be visible , but it's property have changed.*/
 
-   if((layer_->componentShadow.isShadowVisible() && resetShadowFilter) ||
-      (!layer_->componentShadow.isShadowVisible())|| (resetShadowFilter) ) {
-       if((layer_->componentShadow.maskFilter != nullptr)) {
-          layer_->componentShadow.maskFilter.reset();
+   if( createShadowFilter && !getshadowVisibility()) {
+        createShadowFilter =false;
+    }
+
+    if( createShadowFilter ) {
+/*Creating both Skia's Mask & Image filters here.
+   Mask Flter will be used for Rect frames / Affine Frames.
+   Image Filter will be used for discrete frames such as path or frames with transparent pixels.
+*/
+//TO DO : Need to Miantain only the filter needed , not the both always.
+
+       layer_->shadowImageFilter= SkImageFilters::DropShadowOnly(component_.shadowProps.shadowOffset.width(),
+                                       component_.shadowProps.shadowOffset.height(),
+                                       component_.shadowProps.shadowRadius, component_.shadowProps.shadowRadius,
+                                       component_.shadowProps.shadowColor, nullptr);
+
+       layer_->shadowMaskFilter= SkMaskFilter::MakeBlur(kNormal_SkBlurStyle, component_.shadowProps.shadowRadius);
+       hasVisibleShadow=true;
+
+   } else {
+
+       if((layer_->shadowMaskFilter != nullptr)) {
+          layer_->shadowMaskFilter.reset();
        }
-       if(layer_->componentShadow.imageFilter) {
-          layer_->componentShadow.imageFilter.reset();
+       if(layer_->shadowImageFilter != nullptr) {
+          layer_->shadowImageFilter.reset();
        }
-   } 
+       hasVisibleShadow=false;
+   }
+
   //backgroundColor
    if ((forceUpdate) || (oldviewProps.backgroundColor != newviewProps.backgroundColor)) {
       layer_->backgroundColor = RSkColorFromSharedColor(newviewProps.backgroundColor,SK_ColorTRANSPARENT);
@@ -331,6 +345,23 @@ const SkIRect RSkComponent::getScreenFrame() {
                              -containerScrollOffset.y()).makeOffset(
                               containerScreenFrame.x(),
                               containerScreenFrame.y());
+}
+
+bool RSkComponent::getshadowVisibility() {
+
+
+ /*Shadow will not visible on below scenarios
+  1. Frame is compelety transparent.
+  2. Shadow opacity is completely Transparent.
+  3. Shadow color has Alpha as fully transparent.
+  4. shadow is directly under the frame & frame is fully opaque.
+*/
+  if ((layer()->opacity == 0) || (component_.shadowProps.shadowOpacity ==0) ||
+      (SkColorGetA(component_.shadowProps.shadowColor) == SK_AlphaTRANSPARENT) ||
+      (component_.shadowProps.shadowOffset.isEmpty() && (layer()->opacity == 0xFF)) ) {
+    return false;
+  }
+  return true;
 }
 
 } // namespace react

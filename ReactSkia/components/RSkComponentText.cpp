@@ -5,13 +5,11 @@
 #include "react/renderer/components/text/ParagraphShadowNode.h"
 #include "react/renderer/components/text/RawTextShadowNode.h"
 #include "react/renderer/components/text/TextShadowNode.h"
-#include "ReactSkia/views/common/RSkDrawUtils.h"
 #include "ReactSkia/views/common/RSkTextUtils.h"
 
 #include "ReactSkia/utils/RnsLog.h"
 
 using namespace skia::textlayout;
-using namespace facebook::react::RSkDrawUtils;
 using namespace facebook::react::RSkTextUtils;
 
 namespace facebook {
@@ -103,8 +101,8 @@ void RSkComponentParagraph::OnPaint(SkCanvas *canvas) {
             textLayout.builder.reset();
         }
         textLayout.builder = std::static_pointer_cast<ParagraphBuilder>(std::make_shared<ParagraphBuilderImpl>(textLayout.paraStyle,data.layoutManager->collection_));
-        if(layer()->componentShadow.isShadowVisible()) {
-            textLayout.shadow={layer()->componentShadow.shadowColor,SkPoint::Make(layer()->componentShadow.shadowOffset.width(),layer()->componentShadow.shadowOffset.height()),layer()->componentShadow.shadowRadius};
+        if(hasVisibleShadow) {
+            textLayout.shadow={component.shadowProps.shadowColor,SkPoint::Make(component.shadowProps.shadowOffset.width(),component.shadowProps.shadowOffset.height()),component.shadowProps.shadowRadius};
         }
 
         expectedAttachmentCount = data.layoutManager->buildParagraph(textLayout,
@@ -118,12 +116,14 @@ void RSkComponentParagraph::OnPaint(SkCanvas *canvas) {
         /* If the count is 0,means we have no fragment attachments.So paint right away*/
         if(!expectedAttachmentCount) {
 
-            if(layer()->componentShadow.isShadowVisible()) {
+            if((layer()->shadowMaskFilter != nullptr) || (layer()->shadowImageFilter != nullptr)) {
                 drawShadow(canvas,
                           borderFrame,
                           borderMetrics,
                           props.backgroundColor,
-                          layer()->componentShadow,
+                          component.shadowProps,
+                          layer()->shadowImageFilter,
+                          layer()->shadowMaskFilter,
                           layer()->opacity);
             }
 

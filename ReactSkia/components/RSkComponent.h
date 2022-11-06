@@ -9,6 +9,7 @@
 #include "ReactSkia/utils/RnsUtils.h"
 #include "ReactSkia/utils/RnsLog.h"
 #include "ReactSkia/sdk/RNSKeyCodeMapping.h"
+#include "ReactSkia/views/common/RSkDrawUtils.h"
 
 #include "rns_shell/compositor/layers/Layer.h"
 
@@ -16,6 +17,7 @@ namespace facebook {
 namespace react {
 
 using namespace RnsShell;
+using namespace RSkDrawUtils;
 
 enum PictureType {
    PictureTypeShadow = 1,
@@ -59,6 +61,7 @@ struct Component {
   LayoutMetrics layoutMetrics{EmptyLayoutMetrics};
   State::Shared state{};
   struct CommonProps commonProps;
+  ShadowProps shadowProps;
 };
 
 class RSkComponent;
@@ -101,6 +104,8 @@ class RSkComponent : public RnsShell::Layer , public SpatialNavigator::Container
   SpatialNavigator::Container *nearestAncestorContainer();
   bool hasAncestor(const SpatialNavigator::Container* ancestor);
   bool isFocusable();
+  bool  hasVisibleShadow{false};
+  bool getshadowVisibility();
 
   void requiresLayer(const ShadowView &shadowView, Layer::Client& layerClient);
   RnsShell::LayerInvalidateMask updateProps(const ShadowView &newShadowView , bool forceUpdate);

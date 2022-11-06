@@ -22,8 +22,6 @@
 #include "include/core/SkSurface.h"
 #include "include/core/SkImageFilter.h"
 #include "include/core/SkMaskFilter.h"
-#include "src/core/SkMaskFilterBase.h"
-#include "include/effects/SkImageFilters.h"
 #include "ReactSkia/utils/RnsLog.h"
 #include "ReactSkia/utils/RnsUtils.h"
 
@@ -44,56 +42,6 @@ enum LayerInvalidateMask {
     LayerLayoutInvalidate = 1 << 1,
     LayerRemoveInvalidate = 1 << 2,
     LayerInvalidateAll = LayerPaintInvalidate | LayerLayoutInvalidate
-};
-
-struct ComponentShadow {
-  ~ComponentShadow () = default;
-    ComponentShadow (float shadowOpacity=0, float shadowRadius=3, SkColor shadowColor=SK_ColorBLACK, SkSize  shadowOffset={0,-3})
-      : shadowOpacity(shadowOpacity),
-        shadowRadius(shadowRadius),
-        shadowColor(shadowColor),
-        shadowOffset(shadowOffset) {}
-
-    float shadowOpacity;
-    float shadowRadius;
-    SkColor shadowColor;
-    SkSize shadowOffset;
-    sk_sp<SkImageFilter> imageFilter{nullptr};
-    sk_sp<SkMaskFilter> maskFilter{nullptr};
-
-    bool isShadowVisible(){
-        if(shadowOpacity){
-            return true;
-        }
-        return false;
-    }
-    sk_sp<SkImageFilter> createImageFilter() {
-
-        imageFilter= SkImageFilters::DropShadowOnly(shadowOffset.width(), 
-                                       shadowOffset.height(),
-                                       shadowRadius, shadowRadius,
-                                       shadowColor, nullptr);
-        return imageFilter;
-    }
-    sk_sp<SkMaskFilter> createMaskFilter() {
-         maskFilter= SkMaskFilter::MakeBlur(kNormal_SkBlurStyle, shadowRadius);
-        return maskFilter;
-    }
-    SkIRect getShadowBounds(const SkIRect origSrc) {
-        if(maskFilter){
-          SkRect storage;
-          as_MFB(maskFilter)->computeFastBounds(SkRect::Make(origSrc), &storage);
-          return  SkIRect::MakeXYWH(storage.x(), storage.y(), storage.width(), storage.height());
-        } else if(imageFilter) {
-            SkMatrix identityMatrix;
-            return imageFilter->filterBounds(
-                                    origSrc,
-                                    identityMatrix,
-                                    SkImageFilter::kForward_MapDirection,
-                                    nullptr);
-        }
-        return origSrc;
-    }
 };
 
 typedef std::vector<std::shared_ptr<Layer> > LayerList;
@@ -130,7 +78,10 @@ public:
     float opacity{255.9999};
     SkMatrix transformMatrix;
 
-    struct ComponentShadow componentShadow;
+    //Shadow filters
+    sk_sp<SkImageFilter> shadowImageFilter{nullptr};
+    sk_sp<SkMaskFilter> shadowMaskFilter{nullptr};
+    SkSize shadowOffset;//Maintain shadowOffset in Layer to calculate Frame bounds with MaskFilter
 
     static SharedLayer Create(Client& layerClient, LayerType type = LAYER_TYPE_DEFAULT);
     Layer(Client&, LayerType);
@@ -192,6 +143,8 @@ private:
     void setSkipParentMatrix(bool skipParentMatrix) {skipParentMatrix_ = skipParentMatrix;}
     void setLayerOpacity(PaintContext& context);
     void setLayerTransformMatrix(PaintContext& context);
+
+    SkIRect getShadowBounds(const SkIRect origSrc);
 
     void calculateTransformMatrix();
 

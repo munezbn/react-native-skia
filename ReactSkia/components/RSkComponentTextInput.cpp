@@ -12,7 +12,6 @@
 #include "ReactSkia/components/RSkComponent.h"
 #include "ReactSkia/core_modules/RSkSpatialNavigator.h"
 #include "ReactSkia/sdk/RNSKeyCodeMapping.h"
-#include "ReactSkia/views/common/RSkDrawUtils.h"
 #include "ReactSkia/views/common/RSkConversion.h"
 #include "ReactSkia/views/common/RSkSdkConversion.h"
 #include "rns_shell/compositor/layers/PictureLayer.h"
@@ -29,7 +28,6 @@ namespace facebook {
 namespace react {
 
 using namespace rns::sdk;
-using namespace RSkDrawUtils;
 using namespace skia::textlayout;
 
 #define NUMBER_OF_LINES         1
@@ -152,8 +150,12 @@ void RSkComponentTextInput::OnPaint(SkCanvas *canvas) {
       data.layoutManager->buildText(textLayout, textInputProps.backgroundColor, textInputProps.paragraphAttributes, textAttributes, displayString_, true);
     }
   }
-  if(layer()->componentShadow.isShadowVisible()) {
-    drawShadow(canvas, frame, borderMetrics, textInputProps.backgroundColor, layer()->componentShadow,layer()->opacity);
+  if(hasVisibleShadow) {
+    drawShadow(canvas, frame, borderMetrics,
+                textInputProps.backgroundColor,
+                component.shadowProps,
+                layer()->shadowImageFilter,layer()->shadowMaskFilter,
+                layer()->opacity);
   }
   drawTextInput(canvas, component.layoutMetrics, textInputProps, textLayout);
   if(hasToSetFocus_){

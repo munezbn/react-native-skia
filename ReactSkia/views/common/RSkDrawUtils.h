@@ -6,17 +6,21 @@
  */
 #pragma once
 
-#include "include/core/SkPaint.h"
 #include "include/core/SkCanvas.h"
-#include "include/effects/SkDashPathEffect.h"
 #include <react/renderer/components/view/ViewProps.h>
-#include "rns_shell/compositor/layers/Layer.h"
 
 namespace facebook {
 namespace react {
 
 namespace RSkDrawUtils{
 
+  struct FrameShadowProps {
+    float shadowOpacity;
+    float shadowRadius;
+    SkSize shadowOffset;
+    SkColor shadowColor;
+  };
+  typedef struct FrameShadowProps ShadowProps;
 /*Function: Draw Background & Border */
   void drawBackground(SkCanvas *canvas,
                                Rect frame,
@@ -30,9 +34,18 @@ namespace RSkDrawUtils{
                                Rect frame,
                                BorderMetrics borderMetrics,
                                SharedColor bgColor,
-                               struct RnsShell::ComponentShadow &componentShadow,
-                               float opacity);
+                               ShadowProps shadowProps,
+                               sk_sp<SkImageFilter> shadowImageFilter,
+                               sk_sp<SkMaskFilter> shadowMaskFilter,
+                               float frameOpacity);
+
   void drawUnderline(SkCanvas *canvas,Rect frame,SharedColor underlineColor);
+
+
+  SkIRect getShadowBounds(const SkIRect shadowFrame,
+                        sk_sp<SkMaskFilter> shadowMaskFilter,
+                        sk_sp<SkImageFilter> shadowImageFilter=nullptr);
+
 }//namespace RSkDrawUtils
 } // namespace react
 } // namespace facebook
