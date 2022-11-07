@@ -134,10 +134,6 @@ RnsShell::LayerInvalidateMask RSkComponent::updateProps(const ShadowView &newSha
       createShadowFilter=true;
    }
 
-   if( createShadowFilter && !getshadowVisibility()) {
-        createShadowFilter =false;
-    }
-
     if( createShadowFilter ) {
 /*Creating both Skia's Mask & Image filters here.
    Mask Flter will be used for Rect frames / Affine Frames.
@@ -152,8 +148,7 @@ RnsShell::LayerInvalidateMask RSkComponent::updateProps(const ShadowView &newSha
 
        layer_->shadowMaskFilter= SkMaskFilter::MakeBlur(kNormal_SkBlurStyle, component_.shadowProps.shadowRadius);
        hasVisibleShadow=true;
-
-   } else {
+   } else if(!getshadowVisibility()){
 
        if((layer_->shadowMaskFilter != nullptr)) {
           layer_->shadowMaskFilter.reset();

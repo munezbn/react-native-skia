@@ -44,8 +44,10 @@ void Layer::addDamageRect(PaintContext& context, SkIRect dirtyAbsFrameRect) {
 inline SkIRect Layer::getShadowBounds(const SkIRect origSrc){
     if(shadowMaskFilter){
         SkRect storage;
-        as_MFB(shadowMaskFilter)->computeFastBounds(SkRect::Make(origSrc), &storage);
-        return  SkIRect::MakeXYWH(storage.x()+shadowOffset.width(), storage.y()+shadowOffset.height(), storage.width(), storage.height());
+        SkRect ShadowRect=SkRect::MakeXYWH(origSrc.x()+shadowOffset.width(), origSrc.y()+shadowOffset.height(), origSrc.width(), origSrc.height());
+        as_MFB(shadowMaskFilter)->computeFastBounds(ShadowRect, &storage);
+        storage.join(SkRect::Make(origSrc));
+        return  SkIRect::MakeXYWH(storage.x(), storage.y(), storage.width(), storage.height());
     }
     if(shadowImageFilter) {
         SkMatrix identityMatrix;

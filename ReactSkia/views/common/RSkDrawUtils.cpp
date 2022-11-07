@@ -100,10 +100,10 @@ FrameType getFrameType(BorderMetrics borderProps,SharedColor backgroundColor)
             frameType=MonoChromeStrokedRect;
         } else if(!borderProps.borderColors.isUniform()) {
         /* Border Color  differs for each Side.So make sure all the side are Visible*/
-            if(isDrawVisible(borderProps.borderColors.left) &&
-               isDrawVisible(borderProps.borderColors.right) &&
-               isDrawVisible(borderProps.borderColors.top) &&
-               isDrawVisible(borderProps.borderColors.bottom)){
+            if(isDrawVisible(borderProps.borderColors.left,borderProps.borderWidths.left) &&
+               isDrawVisible(borderProps.borderColors.right,borderProps.borderWidths.right) &&
+               isDrawVisible(borderProps.borderColors.top,borderProps.borderWidths.top) &&
+               isDrawVisible(borderProps.borderColors.bottom,borderProps.borderWidths.bottom)){
                 frameType=PolyChromeStrokedRect;
             } else {
                 frameType=DiscretePath; // Few of the side/s fully transparent
@@ -124,7 +124,6 @@ void drawRect(FrameType frameType,SkCanvas *canvas,
                                         BorderMetrics borderProps,
                                         SkColor Color,
                                         SkPaint *paint=NULL,
-                                        sk_sp<SkImageFilter> shadowImageFilter=nullptr,
                                         sk_sp<SkMaskFilter> shadowMaskFilter=nullptr
                  )
 {
@@ -139,11 +138,11 @@ void drawRect(FrameType frameType,SkCanvas *canvas,
 
     paintObj.setAntiAlias(true);
     paintObj.setColor(Color);
-    if(shadowImageFilter != nullptr) {
-        paintObj.setImageFilter(shadowImageFilter);
-    } else if(shadowMaskFilter != nullptr){
+
+    if(shadowMaskFilter != nullptr){
         paintObj.setMaskFilter(shadowMaskFilter);
     }
+
   /*Creating basic layout from props*/
     rect=SkRect::MakeXYWH(frame.origin.x,frame.origin.y,\
          frame.size.width,frame.size.height);
@@ -406,7 +405,6 @@ bool  drawShadow(SkCanvas* canvas,Rect frame,
 
     FrameType frameType = getFrameType(borderProps,backgroundColor);
 
-    RNS_LOG_DEBUG("frameType:::"<<frameType);
     if(frameType == InvisibleFrame) { return true;} // frame doesn't have visible pixel, content in teh frame may have
 
     Rect shadowFrame{{frame.origin.x+shadowProps.shadowOffset.width(),
@@ -435,13 +433,16 @@ bool  drawShadow(SkCanvas* canvas,Rect frame,
                        {borderProps.borderRadii.bottomRight,borderProps.borderRadii.bottomRight }, \
                        {borderProps.borderRadii.bottomLeft,borderProps.borderRadii.bottomLeft}};
         SkRRect clipRRect;
+        if(borderProps.borderWidths.left) {
+            clipRect.inset(borderProps.borderWidths.left/2,borderProps.borderWidths.left/2);
+        }
         clipRRect.setRectRadii(clipRect,radii);
         canvas->clipRRect(clipRRect,SkClipOp::kDifference);
     }
 /*Proceed to draw Shadow*/
     if(frameType != DiscretePath ) {
        /*Frame is a Rect*/
-       drawRect(frameType,canvas,frame,borderProps,shadowProps.shadowColor,NULL,shadowImageFilter,shadowMaskFilter);
+       drawRect(frameType,canvas,shadowFrame,borderProps,shadowProps.shadowColor,NULL,shadowMaskFilter);
     } else {
         /*Frame is Non contiguos or Discrete, so draw it as a path*/
         drawDiscretePath(canvas,frame,borderProps,shadowImageFilter);
