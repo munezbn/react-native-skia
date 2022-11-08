@@ -83,17 +83,17 @@ bool isDrawVisible(SharedColor Color,Float thickness=1.0)
 {
     return ((colorComponentsFromColor(Color).alpha != 0) && (thickness != 0.0))? true:false;
 }
-FrameType getFrameType(BorderMetrics borderProps,SharedColor backgroundColor)
+
+FrameType getFrameBorderType(BorderMetrics borderProps,SharedColor backgroundColor)
 {
     FrameType frameType=InvisibleFrame;
-    if(backgroundColor && isDrawVisible(backgroundColor)) {
-        frameType=FilledRect;
-    } else if( !borderProps.borderWidths.isUniform() ){
+    if( !borderProps.borderWidths.isUniform() ){
         frameType=DiscretePath;
     } else if( borderProps.borderWidths.left ==0) {
+        //Width confirmed to be uniform, make sure it is visible
         frameType=InvisibleFrame;
     } else {
-        /*Doesn't have BackGround & All the sides confirmed to have uniform visble Thickness.
+       /*All the sides confirmed to have uniform visble Thickness.
          confirming visible color on ALL sides*/
         if(borderProps.borderColors.isUniform() && isDrawVisible(borderProps.borderColors.left)){
             frameType=MonoChromeStrokedRect;
@@ -112,6 +112,15 @@ FrameType getFrameType(BorderMetrics borderProps,SharedColor backgroundColor)
         }
     }
     return frameType;
+
+}
+FrameType getFrameType(BorderMetrics borderProps,SharedColor backgroundColor)
+{
+    if(backgroundColor && isDrawVisible(backgroundColor)) {
+        return FilledRect;
+    } else {
+        return getFrameBorderType(borderProps,backgroundColor);
+    }
 }
 
 bool hasUniformBorderEdges(BorderMetrics borderProps)
@@ -363,7 +372,7 @@ void drawBorder(SkCanvas *canvas,
                                SharedColor backgroundColor)
 {
 
-    FrameType frameType = getFrameType(borderProps,backgroundColor);
+    FrameType frameType = getFrameBorderType(borderProps,backgroundColor);
 
     if(frameType == MonoChromeStrokedRect) {
         drawRect(MonoChromeStrokedRect,canvas,frame,borderProps,RSkColorFromSharedColor(borderProps.borderColors.left, DEFAULT_COLOUR));
