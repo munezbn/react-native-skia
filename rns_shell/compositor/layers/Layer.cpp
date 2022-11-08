@@ -51,11 +51,13 @@ inline SkIRect Layer::getFrameBoundsWithShadow(const SkIRect origSrc){
     }
     if(shadowImageFilter) {
         SkMatrix identityMatrix;
-        return shadowImageFilter->filterBounds(
+        SkIRect shadowBounds= shadowImageFilter->filterBounds(
                                     origSrc,
                                     identityMatrix,
                                     SkImageFilter::kForward_MapDirection,
                                     nullptr);
+        shadowBounds.join(origSrc);
+        return shadowBounds;
     }
     return origSrc;
 }

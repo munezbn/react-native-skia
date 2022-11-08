@@ -282,6 +282,7 @@ inline void RSkComponentImage::drawContentShadow( SkCanvas *canvas,
   paint.setStyle(SkPaint::kStroke_Style);
   paint.setColor(SK_ColorGREEN);
   paint.setStrokeWidth(2);
+  shadowBounds.join(frameBound);
   canvas->drawRect(shadowBounds,paint);
 #endif
 }
