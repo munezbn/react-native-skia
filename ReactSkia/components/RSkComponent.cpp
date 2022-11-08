@@ -135,16 +135,9 @@ RnsShell::LayerInvalidateMask RSkComponent::updateProps(const ShadowView &newSha
       createShadowFilter=true;
    }
 
-    if(!getshadowVisibility()){
-// Reset the filter, when shadow is not avaiable or not visible
-        if((layer_->shadowMaskFilter != nullptr)) {
-           layer_->shadowMaskFilter.reset();
-        }
-        if(layer_->shadowImageFilter != nullptr) {
-           layer_->shadowImageFilter.reset();
-        }
-        layer_->shadowVisibility=false;
-    } else if( createShadowFilter ) {
+   layer_->shadowVisibility=getshadowVisibility();
+
+   if( createShadowFilter ) {
 /*Creating both Skia's Mask & Image filters here.
    Mask Flter will be used for Rect frames / Affine Frames.
    Image Filter will be used for discrete frames such as path or frames with transparent pixels.
@@ -157,7 +150,6 @@ RnsShell::LayerInvalidateMask RSkComponent::updateProps(const ShadowView &newSha
                                        layer_->shadowColor, nullptr);
 
        layer_->shadowMaskFilter= SkMaskFilter::MakeBlur(kNormal_SkBlurStyle, layer_->shadowRadius);
-       layer_->shadowVisibility=true;
    }
 
   //backgroundColor

@@ -145,8 +145,8 @@ private:
 
     void setParent(Layer* layer);
     void setSkipParentMatrix(bool skipParentMatrix) {skipParentMatrix_ = skipParentMatrix;}
-    void setLayerOpacity(PaintContext& context);
-    void setLayerTransformMatrix(PaintContext& context);
+    void applyLayerOpacity(PaintContext& context);
+    void applyLayerTransformMatrix(PaintContext& context);
 
     SkIRect getFrameBoundsWithShadow(const SkIRect origSrc);
 

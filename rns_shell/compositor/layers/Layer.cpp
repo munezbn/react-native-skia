@@ -252,8 +252,11 @@ void Layer::paint(PaintContext& context) {
 
     SkAutoCanvasRestore save(context.canvas, true); // Save current clip and matrix state.
 
-    setLayerTransformMatrix(context);
-    setLayerOpacity(context);
+    applyLayerTransformMatrix(context);
+
+    if(opacity <= 0.0) return; //if transparent,paint self & children not required
+
+    applyLayerOpacity(context);
     paintSelf(context); // First paint self and then children if any
 
     if(masksToBounds_) { // Need to clip children.
@@ -349,15 +352,14 @@ bool Layer::requireInvalidate(bool skipChildren) {
     return false;
 }
 
-void Layer::setLayerOpacity(PaintContext& context) {
-    if(opacity <= 0.0) return; //if transparent,paint self & children not required
-    if(opacity < 0xFF) {
+void Layer::applyLayerOpacity(PaintContext& context) {
+    if((opacity >= 0) && (opacity < 0xFF)) {
       SkRect layerBounds = SkRect::Make(frameBounds_);
       context.canvas->saveLayerAlpha(&layerBounds,opacity);
     }
 }
 
-void Layer::setLayerTransformMatrix(PaintContext& context) {
+void Layer::applyLayerTransformMatrix(PaintContext& context) {
     SkMatrix screenMatrix;
     //If scrolling offset is available,concat the offset to transform matrix
     if(!context.offset.isZero()) {

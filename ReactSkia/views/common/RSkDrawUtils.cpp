@@ -330,13 +330,6 @@ SkPath createAndDrawDiscretePath(BorderEdges borderEdge,SkCanvas *canvas,
      }
     return path;
 }
-
-inline void drawPolyChromeRectAsPath( SkCanvas *canvas,Rect frame, BorderMetrics borderProps) {
-    createAndDrawDiscretePath(RightEdge,canvas,frame,borderProps);
-    createAndDrawDiscretePath(LeftEdge,canvas,frame,borderProps);
-    createAndDrawDiscretePath(TopEdge,canvas,frame,borderProps);
-    createAndDrawDiscretePath(BottomEdge,canvas,frame,borderProps);
-}
 inline void drawDiscretePath( SkCanvas *canvas,Rect frame,BorderMetrics borderProps,sk_sp<SkImageFilter> shadowImageFilter) {
     SkPath path;
     if(isDrawVisible(borderProps.borderColors.right,borderProps.borderWidths.right)){
@@ -376,9 +369,7 @@ void drawBorder(SkCanvas *canvas,
 
     if(frameType == MonoChromeStrokedRect) {
         drawRect(MonoChromeStrokedRect,canvas,frame,borderProps,RSkColorFromSharedColor(borderProps.borderColors.left, DEFAULT_COLOUR));
-    } else if(frameType == PolyChromeStrokedRect) {
-        drawPolyChromeRectAsPath(canvas,frame,borderProps);
-    }else if(frameType == DiscretePath) {
+    } else if((frameType == PolyChromeStrokedRect)|| (frameType == DiscretePath)) {
         /*Draw Right Side*/
         if((backgroundColor != borderProps.borderColors.right) && \
                 (isDrawVisible(borderProps.borderColors.right,borderProps.borderWidths.right) )){
