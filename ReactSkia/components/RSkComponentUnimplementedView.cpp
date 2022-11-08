@@ -37,12 +37,14 @@ void RSkComponentUnimplementedView::OnPaint(
   RNS_LOG_WARN("Painting an unimplemented view : " << component.componentName);
 
   // Draw Order : 1. Shadow 2. BackGround 3 Border
-  if(hasVisibleShadow) {
+  auto layerRef=layer();
+  if(layerRef->shadowVisibility) {
     drawShadow(canvas,frame,borderMetrics,
                 viewProps.backgroundColor,
-                component.shadowProps,
-                layer()->shadowImageFilter,layer()->shadowMaskFilter,
-                layer()->opacity);
+                layerRef->shadowColor,layerRef->shadowOffset,layerRef->shadowOpacity,
+                layerRef->opacity,
+                layerRef->shadowImageFilter,layerRef->shadowMaskFilter
+              );
   }
   drawBackground(canvas,frame,borderMetrics,SK_ColorWHITE);
   drawBorder(canvas,frame,borderMetrics,viewProps.backgroundColor);

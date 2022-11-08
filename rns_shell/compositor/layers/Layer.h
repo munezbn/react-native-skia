@@ -78,10 +78,14 @@ public:
     float opacity{255.9999};
     SkMatrix transformMatrix;
 
-    //Shadow filters
+    //Shadow filters & Properties
+    float shadowOpacity{0};
+    float shadowRadius{3};
+    SkColor shadowColor=SK_ColorBLACK;
+    SkSize shadowOffset{0,-3};
     sk_sp<SkImageFilter> shadowImageFilter{nullptr};
     sk_sp<SkMaskFilter> shadowMaskFilter{nullptr};
-    SkSize shadowOffset;//Maintain shadowOffset in Layer to calculate Frame bounds with MaskFilter
+    bool  shadowVisibility{false};
 
     static SharedLayer Create(Client& layerClient, LayerType type = LAYER_TYPE_DEFAULT);
     Layer(Client&, LayerType);
@@ -144,7 +148,7 @@ private:
     void setLayerOpacity(PaintContext& context);
     void setLayerTransformMatrix(PaintContext& context);
 
-    SkIRect getShadowBounds(const SkIRect origSrc);
+    SkIRect getFrameBoundsWithShadow(const SkIRect origSrc);
 
     void calculateTransformMatrix();
 

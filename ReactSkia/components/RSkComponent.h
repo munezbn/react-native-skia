@@ -61,7 +61,6 @@ struct Component {
   LayoutMetrics layoutMetrics{EmptyLayoutMetrics};
   State::Shared state{};
   struct CommonProps commonProps;
-  ShadowProps shadowProps;
 };
 
 class RSkComponent;
@@ -104,7 +103,6 @@ class RSkComponent : public RnsShell::Layer , public SpatialNavigator::Container
   SpatialNavigator::Container *nearestAncestorContainer();
   bool hasAncestor(const SpatialNavigator::Container* ancestor);
   bool isFocusable();
-  bool  hasVisibleShadow{false};
   bool getshadowVisibility();
 
   void requiresLayer(const ShadowView &shadowView, Layer::Client& layerClient);

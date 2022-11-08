@@ -42,12 +42,13 @@ void RSkComponent::OnPaintShadow(SkCanvas *canvas) {
 
   /* apply view style props */
   auto borderMetrics= viewProps.resolveBorderMetrics(component_.layoutMetrics);
-  if(hasVisibleShadow) {
+  if(layer_->shadowVisibility) {
       drawShadow(canvas,component_.layoutMetrics.frame,borderMetrics,
                  layer_->backgroundColor,
-                 component_.shadowProps,
-                 layer()->shadowImageFilter,layer()->shadowMaskFilter,
-                 layer_->opacity);
+                 layer_->shadowColor,layer_->shadowOffset,layer_->shadowOpacity,
+                 layer_->opacity,
+                 layer_->shadowImageFilter,layer_->shadowMaskFilter
+                 );
   }
 }
 
@@ -107,28 +108,28 @@ RnsShell::LayerInvalidateMask RSkComponent::updateProps(const ShadowView &newSha
    }
   //ShadowOpacity
    if ((forceUpdate) || (oldviewProps.shadowOpacity != newviewProps.shadowOpacity)) {
-      component_.shadowProps.shadowOpacity = ((newviewProps.shadowOpacity > 1.0) ? 1.0:newviewProps.shadowOpacity)*MAX_8BIT;
+      layer_->shadowOpacity = ((newviewProps.shadowOpacity > 1.0) ? 1.0:newviewProps.shadowOpacity)*MAX_8BIT;
       /*TODO : To be tested and confirm updateMask need for this Prop*/
       updateMask =static_cast<RnsShell::LayerInvalidateMask>(updateMask | RnsShell::LayerInvalidateAll);
       createShadowFilter=true;
    }
   //shadowRadius
    if ((forceUpdate) || (oldviewProps.shadowRadius != newviewProps.shadowRadius)) {
-      component_.shadowProps.shadowRadius = newviewProps.shadowRadius;
+      layer_->shadowRadius = newviewProps.shadowRadius;
       /*TODO : To be tested and confirm updateMask need for this Prop*/
       updateMask =static_cast<RnsShell::LayerInvalidateMask>(updateMask | RnsShell::LayerInvalidateAll);
       createShadowFilter=true;
    }
   //shadowoffset
    if ((forceUpdate) || (oldviewProps.shadowOffset != newviewProps.shadowOffset)) {
-      layer_->shadowOffset=component_.shadowProps.shadowOffset = RSkSkSizeFromSize(newviewProps.shadowOffset);
+      layer_->shadowOffset = RSkSkSizeFromSize(newviewProps.shadowOffset);
       /*TODO : To be tested and confirm updateMask need for this Prop*/
       updateMask =static_cast<RnsShell::LayerInvalidateMask>(updateMask | RnsShell::LayerInvalidateAll);
       createShadowFilter=true;
    }
   //shadowcolor
    if ((forceUpdate) || (oldviewProps.shadowColor != newviewProps.shadowColor)) {
-      component_.shadowProps.shadowColor = RSkColorFromSharedColor(newviewProps.shadowColor,SK_ColorBLACK);
+      layer_->shadowColor = RSkColorFromSharedColor(newviewProps.shadowColor,SK_ColorBLACK);
       /*TODO : To be tested and confirm updateMask need for this Prop*/
       updateMask =static_cast<RnsShell::LayerInvalidateMask>(updateMask | RnsShell::LayerInvalidateAll);
       createShadowFilter=true;
@@ -141,13 +142,13 @@ RnsShell::LayerInvalidateMask RSkComponent::updateProps(const ShadowView &newSha
 */
 //TO DO : Need to Miantain only the filter needed , not the both always.
 
-       layer_->shadowImageFilter= SkImageFilters::DropShadowOnly(component_.shadowProps.shadowOffset.width(),
-                                       component_.shadowProps.shadowOffset.height(),
-                                       component_.shadowProps.shadowRadius, component_.shadowProps.shadowRadius,
-                                       component_.shadowProps.shadowColor, nullptr);
+       layer_->shadowImageFilter= SkImageFilters::DropShadowOnly(layer_->shadowOffset.width(),
+                                       layer_->shadowOffset.height(),
+                                       layer_->shadowRadius, layer_->shadowRadius,
+                                       layer_->shadowColor, nullptr);
 
-       layer_->shadowMaskFilter= SkMaskFilter::MakeBlur(kNormal_SkBlurStyle, component_.shadowProps.shadowRadius);
-       hasVisibleShadow=true;
+       layer_->shadowMaskFilter= SkMaskFilter::MakeBlur(kNormal_SkBlurStyle, layer_->shadowRadius);
+       layer_->shadowVisibility=true;
    } else if(!getshadowVisibility()){
 
        if((layer_->shadowMaskFilter != nullptr)) {
@@ -156,7 +157,7 @@ RnsShell::LayerInvalidateMask RSkComponent::updateProps(const ShadowView &newSha
        if(layer_->shadowImageFilter != nullptr) {
           layer_->shadowImageFilter.reset();
        }
-       hasVisibleShadow=false;
+       layer_->shadowVisibility=false;
    }
 
   //backgroundColor
@@ -351,9 +352,9 @@ bool RSkComponent::getshadowVisibility() {
   3. Shadow color has Alpha as fully transparent.
   4. shadow is directly under the frame & frame is fully opaque.
 */
-  if ((layer()->opacity == 0) || (component_.shadowProps.shadowOpacity ==0) ||
-      (SkColorGetA(component_.shadowProps.shadowColor) == SK_AlphaTRANSPARENT) ||
-      (component_.shadowProps.shadowOffset.isEmpty() && (layer()->opacity == 0xFF)) ) {
+  if ((layer_->opacity == 0) || (layer_->shadowOpacity ==0) ||
+      (SkColorGetA(layer_->shadowColor) == SK_AlphaTRANSPARENT) ||
+      (layer_->shadowOffset.isEmpty() && (layer_->opacity == 0xFF)) ) {
     return false;
   }
   return true;

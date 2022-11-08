@@ -50,7 +50,9 @@ class RSkComponentImage final : public RSkComponent {
                               SkRect targetRect,/*area of draw image and shadow*/
                               sk_sp<SkImage> imageData,
                               const ImageProps &imageProps,
-                              const ShadowProps &shadowProps);
+                              SkSize shadowOffset,
+                              SkColor shadowColor,
+                              float shadowOpacity);
   inline void setImageFilters (SkPaint &paintObj,const ImageProps &imageProps,
                               SkRect targetRect,SkRect frameRect,
                               bool  filterForShadow, bool isOpaque);

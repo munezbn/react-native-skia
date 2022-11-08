@@ -14,13 +14,6 @@ namespace react {
 
 namespace RSkDrawUtils{
 
-  struct FrameShadowProps {
-    float shadowOpacity;
-    float shadowRadius;
-    SkSize shadowOffset;
-    SkColor shadowColor;
-  };
-  typedef struct FrameShadowProps ShadowProps;
 /*Function: Draw Background & Border */
   void drawBackground(SkCanvas *canvas,
                                Rect frame,
@@ -34,10 +27,13 @@ namespace RSkDrawUtils{
                                Rect frame,
                                BorderMetrics borderMetrics,
                                SharedColor bgColor,
-                               ShadowProps shadowProps,
+                               SkColor shadowColor,
+                               SkSize shadowOffset,
+                               float shadowOpacity,
+                               float frameOpacity,
                                sk_sp<SkImageFilter> shadowImageFilter,
-                               sk_sp<SkMaskFilter> shadowMaskFilter,
-                               float frameOpacity);
+                               sk_sp<SkMaskFilter> shadowMaskFilter
+                  );
 
   void drawUnderline(SkCanvas *canvas,Rect frame,SharedColor underlineColor);
 

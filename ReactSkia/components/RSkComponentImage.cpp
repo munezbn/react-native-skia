@@ -10,7 +10,6 @@
 #include "include/core/SkImageFilter.h"
 #include "include/core/SkMaskFilter.h"
 #include "include/effects/SkImageFilters.h"
-
 #include "src/core/SkMaskFilterBase.h"
 
 #include "rns_shell/compositor/layers/PictureLayer.h"
@@ -59,16 +58,18 @@ void RSkComponentImage::OnPaint(SkCanvas *canvas) {
   auto const &imageBorderMetrics=imageProps.resolveBorderMetrics(component.layoutMetrics);
 
   // Draw order 1.Shadow 2. Background 3.Image Shadow 4. Image 5.Border
-  bool hallowFrame = false;
+  bool hollowFrame = false;
   bool needClipAndRestore =false;
   sk_sp<SkImageFilter> imageFilter;
-  if(hasVisibleShadow) {
+  auto  layerRef=layer();
+  if(layerRef->shadowVisibility) {
     /*Draw Shadow on Frame*/
-    hallowFrame=drawShadow(canvas,frame,imageBorderMetrics,
+    hollowFrame=drawShadow(canvas,frame,imageBorderMetrics,
                               imageProps.backgroundColor,
-                              component.shadowProps,
-                              layer()->shadowImageFilter,layer()->shadowMaskFilter,
-                              layer()->opacity);
+                              layerRef->shadowColor,layerRef->shadowOffset,layerRef->shadowOpacity,
+                              layerRef->opacity,
+                              layerRef->shadowImageFilter,layerRef->shadowMaskFilter
+                          );
   }
   /*Draw Frame BackGround*/
   drawBackground(canvas,frame,imageBorderMetrics,imageProps.backgroundColor);
@@ -76,8 +77,8 @@ void RSkComponentImage::OnPaint(SkCanvas *canvas) {
     SkRect targetRect = computeTargetRect({imageData->width(),imageData->height()},frameRect,imageProps.resizeMode);
     SkPaint paint;
     /*Draw Image Shadow*/
-    if(hallowFrame) {
-      drawContentShadow(canvas,frameRect,targetRect,imageData,imageProps,component.shadowProps);
+    if(hollowFrame) {
+      drawContentShadow(canvas,frameRect,targetRect,imageData,imageProps,layerRef->shadowOffset,layerRef->shadowColor,layerRef->shadowOpacity);
     }
     /*Draw Image */
     if(( frameRect.width() < targetRect.width()) || ( frameRect.height() < targetRect.height())) {
@@ -223,12 +224,14 @@ inline void RSkComponentImage::drawContentShadow( SkCanvas *canvas,
                             SkRect targetRect,
                             sk_sp<SkImage> imageData ,
                             const ImageProps &imageProps,
-                            const ShadowProps &shadowProps){
+                            SkSize shadowOffset,
+                            SkColor shadowColor,
+                            float shadowOpacity){
 
   SkRect shadowBounds;
   SkIRect shadowFrame;
   SkRect  frameBound;
-/*On below special cases, Shadow to be drawn of complete frame/Layout instead on Image target frame :
+/*On below special cases, Shadow to be drawn on complete frame/Layout instead on Image target frame :
   ---------------------------------------------------------------------------------------------------
    1. The target size of Image > Frame's size. In that case, clipping will be done to contain the image
       within the frame, So shadow to be drawn conidering frame size.
@@ -237,18 +240,18 @@ inline void RSkComponentImage::drawContentShadow( SkCanvas *canvas,
   bool shadowOnFrame=(( frameRect.width() < targetRect.width()) || ( frameRect.height() < targetRect.height())||(imageProps.resizeMode == ImageResizeMode::Repeat));
   if(shadowOnFrame) {
     frameBound=frameRect;
-    shadowFrame.setXYWH(frameRect.x() + shadowProps.shadowOffset.width(), frameRect.y() + shadowProps.shadowOffset.height(), frameRect.width(), frameRect.height());
+    shadowFrame.setXYWH(frameRect.x() + shadowOffset.width(), frameRect.y() + shadowOffset.height(), frameRect.width(), frameRect.height());
   } else {
     frameBound=targetRect;
-    shadowFrame.setXYWH(targetRect.x() + shadowProps.shadowOffset.width(), targetRect.y() + shadowProps.shadowOffset.height(), targetRect.width(), targetRect.height());
+    shadowFrame.setXYWH(targetRect.x() + shadowOffset.width(), targetRect.y() + shadowOffset.height(), targetRect.width(), targetRect.height());
   }
   SkIRect shadowIBounds=RSkDrawUtils::getShadowBounds(shadowFrame,layer()->shadowMaskFilter,layer()->shadowImageFilter);
   shadowBounds=SkRect::Make(shadowIBounds);
 
   bool SaveLayerDone=false;
 //Apply Opacity
-  if(shadowProps.shadowOpacity) {
-    canvas->saveLayerAlpha(&shadowBounds,shadowProps.shadowOpacity);
+  if(shadowOpacity) {
+    canvas->saveLayerAlpha(&shadowBounds,shadowOpacity);
     SaveLayerDone=true;
   }
 
@@ -268,7 +271,7 @@ inline void RSkComponentImage::drawContentShadow( SkCanvas *canvas,
       }
       canvas->clipRect(frameBound,SkClipOp::kDifference);
     }
-    shadowPaint.setColor(shadowProps.shadowColor);
+    shadowPaint.setColor(shadowColor);
     canvas->drawIRect(shadowFrame, shadowPaint);
   }
   if(SaveLayerDone) {

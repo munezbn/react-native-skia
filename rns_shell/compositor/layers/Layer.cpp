@@ -41,7 +41,7 @@ void Layer::addDamageRect(PaintContext& context, SkIRect dirtyAbsFrameRect) {
 }
 #endif
 
-inline SkIRect Layer::getShadowBounds(const SkIRect origSrc){
+inline SkIRect Layer::getFrameBoundsWithShadow(const SkIRect origSrc){
     if(shadowMaskFilter){
         SkRect storage;
         SkRect ShadowRect=SkRect::MakeXYWH(origSrc.x()+shadowOffset.width(), origSrc.y()+shadowOffset.height(), origSrc.width(), origSrc.height());
@@ -161,9 +161,9 @@ void Layer::preRoll(PaintContext& context, bool forceLayout) {
         absFrame_ = SkIRect::MakeXYWH(mapRect.x(), mapRect.y(), mapRect.width(), mapRect.height());
         SkIRect newBounds = absFrame_;
         frameBounds_ = frame_;
-        if((shadowMaskFilter != nullptr) || (shadowImageFilter != nullptr)) {
+        if(shadowVisibility) {
             SkMatrix identityMatrix;
-            frameBounds_=getShadowBounds(frame_);
+            frameBounds_=getFrameBoundsWithShadow(frame_);
             //Calculate absolute frame bounds
             SkRect mapRect=SkRect::Make(frameBounds_);
             absoluteTransformMatrix_.mapRect(&mapRect);

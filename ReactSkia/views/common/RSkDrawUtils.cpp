@@ -26,12 +26,11 @@ namespace react {
 namespace {
 
 enum FrameType {
-     FilledRect,//Case of BAckGraound
+     FilledRect,//Case of BackGround
      MonoChromeStrokedRect,//Case of Rect Border with same color & thickness on All sides
      PolyChromeStrokedRect,//Case of Rect Border with same thickness but vary in color on sides
      DiscretePath,//Case of non uniform Border
-     InvisibleFrame, // Case of fully transparent frame
-     StrokedRect=MonoChromeStrokedRect // Alias for internal handling
+     InvisibleFrame // Case of fully transparent frame
 };
 
 enum BorderEdges {
@@ -168,7 +167,7 @@ void drawRect(FrameType frameType,SkCanvas *canvas,
     }
     canvas->drawRRect(rRect, paintObj);
 }
-void drawPath(SkCanvas *canvas,SkPath &path,SharedColor Color,sk_sp<SkImageFilter> shadowImageFilter=nullptr)
+inline void drawPath(SkCanvas *canvas,SkPath &path,SharedColor Color,sk_sp<SkImageFilter> shadowImageFilter=nullptr)
 {
     SkPaint paint;
     setColor(Color,&paint);
@@ -367,7 +366,7 @@ void drawBorder(SkCanvas *canvas,
     FrameType frameType = getFrameType(borderProps,backgroundColor);
 
     if(frameType == MonoChromeStrokedRect) {
-        drawRect(StrokedRect,canvas,frame,borderProps,RSkColorFromSharedColor(borderProps.borderColors.left, DEFAULT_COLOUR));
+        drawRect(MonoChromeStrokedRect,canvas,frame,borderProps,RSkColorFromSharedColor(borderProps.borderColors.left, DEFAULT_COLOUR));
     } else if(frameType == PolyChromeStrokedRect) {
         drawPolyChromeRectAsPath(canvas,frame,borderProps);
     }else if(frameType == DiscretePath) {
@@ -396,19 +395,21 @@ void drawBorder(SkCanvas *canvas,
 bool  drawShadow(SkCanvas* canvas,Rect frame,
                         BorderMetrics borderProps,
                         SharedColor backgroundColor,
-                        ShadowProps shadowProps,
+                        SkColor shadowColor,
+                        SkSize shadowOffset,
+                        float shadowOpacity,
+                        float frameOpacity,
                         sk_sp<SkImageFilter> shadowImageFilter,
-                        sk_sp<SkMaskFilter> shadowMaskFilter,
-                        float frameOpacity) {
+                        sk_sp<SkMaskFilter> shadowMaskFilter) {
 
-    if(shadowProps.shadowOpacity == 0) {return false;} // won't proceed, if shadow is fully transparent
+    if(shadowOpacity == 0) {return false;} // won't proceed, if shadow is fully transparent
 
     FrameType frameType = getFrameType(borderProps,backgroundColor);
 
     if(frameType == InvisibleFrame) { return true;} // frame doesn't have visible pixel, content in teh frame may have
 
-    Rect shadowFrame{{frame.origin.x+shadowProps.shadowOffset.width(),
-                     frame.origin.y+shadowProps.shadowOffset.height()},
+    Rect shadowFrame{{frame.origin.x+shadowOffset.width(),
+                     frame.origin.y+shadowOffset.height()},
                      {frame.size.width, frame.size.height}};
     SkRect frameBounds=SkRect::Make(getShadowBounds(SkIRect::MakeXYWH(shadowFrame.origin.x,shadowFrame.origin.y,
                                     shadowFrame.size.width,shadowFrame.size.height),
@@ -417,8 +418,8 @@ bool  drawShadow(SkCanvas* canvas,Rect frame,
 
     bool saveLayerDone=false;
 /* Apply opacity*/
-    if(!isOpaque(shadowProps.shadowOpacity)) {
-        canvas->saveLayerAlpha(&frameBounds,shadowProps.shadowOpacity);
+    if(!isOpaque(shadowOpacity)) {
+        canvas->saveLayerAlpha(&frameBounds,shadowOpacity);
         saveLayerDone=true;
     }
 /* Apply Clip to avoid draw shadow on NonVisible Area[behind the opaque frames]*/
@@ -442,7 +443,7 @@ bool  drawShadow(SkCanvas* canvas,Rect frame,
 /*Proceed to draw Shadow*/
     if(frameType != DiscretePath ) {
        /*Frame is a Rect*/
-       drawRect(frameType,canvas,shadowFrame,borderProps,shadowProps.shadowColor,NULL,shadowMaskFilter);
+       drawRect(frameType,canvas,shadowFrame,borderProps,shadowColor,NULL,shadowMaskFilter);
     } else {
         /*Frame is Non contiguos or Discrete, so draw it as a path*/
         drawDiscretePath(canvas,frame,borderProps,shadowImageFilter);
