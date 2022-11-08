@@ -135,7 +135,16 @@ RnsShell::LayerInvalidateMask RSkComponent::updateProps(const ShadowView &newSha
       createShadowFilter=true;
    }
 
-    if( createShadowFilter ) {
+    if(!getshadowVisibility()){
+// Reset the filter, when shadow is not avaiable or not visible
+        if((layer_->shadowMaskFilter != nullptr)) {
+           layer_->shadowMaskFilter.reset();
+        }
+        if(layer_->shadowImageFilter != nullptr) {
+           layer_->shadowImageFilter.reset();
+        }
+        layer_->shadowVisibility=false;
+    } else if( createShadowFilter ) {
 /*Creating both Skia's Mask & Image filters here.
    Mask Flter will be used for Rect frames / Affine Frames.
    Image Filter will be used for discrete frames such as path or frames with transparent pixels.
@@ -149,15 +158,6 @@ RnsShell::LayerInvalidateMask RSkComponent::updateProps(const ShadowView &newSha
 
        layer_->shadowMaskFilter= SkMaskFilter::MakeBlur(kNormal_SkBlurStyle, layer_->shadowRadius);
        layer_->shadowVisibility=true;
-   } else if(!getshadowVisibility()){
-
-       if((layer_->shadowMaskFilter != nullptr)) {
-          layer_->shadowMaskFilter.reset();
-       }
-       if(layer_->shadowImageFilter != nullptr) {
-          layer_->shadowImageFilter.reset();
-       }
-       layer_->shadowVisibility=false;
    }
 
   //backgroundColor
@@ -347,14 +347,14 @@ bool RSkComponent::getshadowVisibility() {
 
 
  /*Shadow will not visible on below scenarios
-  1. Frame is compelety transparent.
-  2. Shadow opacity is completely Transparent.
+  1. Shadow opacity is completely Transparent.
+  2.Frame is compelety transparent.
   3. Shadow color has Alpha as fully transparent.
   4. shadow is directly under the frame & frame is fully opaque.
 */
-  if ((layer_->opacity == 0) || (layer_->shadowOpacity ==0) ||
+  if ((layer_->shadowOpacity ==0)||(layer_->opacity == 0) ||
       (SkColorGetA(layer_->shadowColor) == SK_AlphaTRANSPARENT) ||
-      (layer_->shadowOffset.isEmpty() && (layer_->opacity == 0xFF)) ) {
+      (layer_->shadowOffset.isEmpty() && isOpaque(layer_->opacity)) ) {
     return false;
   }
   return true;
