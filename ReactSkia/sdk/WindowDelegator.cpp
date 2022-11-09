@@ -23,8 +23,7 @@ namespace sdk {
  *> Works on expectation,client knows its screen's component and screen layout is fixed.
  *> Supports Partial Update, So Expects client would do component by component rendering all the time.
  *> As part of recorded commands, expects dirty regions associted with this draw and the updating component name
- *> Recent recorded command maintained for all the components.This will be used to redraw the screen, when current draw misses old frames.
- *> Client can update it's base screen like BackGround. This information will be used while redraw the missed frames
+ *> Recent recorded command maintained for all the components.This will be used to redraw the screen, when current draw buffer misses old frames.
 
    Rendering Logic followed by Window Delegator:
    =============================================
@@ -35,7 +34,9 @@ namespace sdk {
  *>When Buffer Age is "0".Write buffer to be consider as empty and needs to redraw all the components in received order
     to fill the missed frames
  *> When "Buffer Age is anything other than "0" & "1", it means it is not empty but it misses few frames.
-    In this case, update all the other component other than Base screen.
+    In this case, update the components which are set as inavlidate by client.
+    This is to reduce/ avoid rending of static component in the screen. So client is expected to set
+    "invalidate flag as false" for static/root components such as BACKGROUND and true for dynamic or components whose content will change.
 */
 void WindowDelegator::createWindow(SkSize windowSize,std::function<void ()> windowReadyCB,bool runOnTaskRunner) {
 
@@ -75,7 +76,9 @@ void  WindowDelegator::createNativeWindow() {
       windowContext_->makeContextCurrent();
       backBuffer_ = windowContext_->getBackbufferSurface();
       windowDelegatorCanvas_ = backBuffer_->getCanvas();
+#if USE(RNS_SHELL_PARTIAL_UPDATES)
       supportsPartialUpdate_=windowContext_->supportsPartialUpdate();
+#endif/*RNS_SHELL_PARTIAL_UPDATES*/
       windowActive = true;
       if(displayPlatForm_ == RnsShell::PlatformDisplay::Type::X11) {
         sem_post(&semReadyToDraw_);
@@ -114,63 +117,53 @@ void WindowDelegator::closeWindow() {
   windowDelegatorCanvas_=nullptr;
   windowReadyTodrawCB_=nullptr;
   std::map<std::string,PictureObject> emptyMap;
-  componentCommandBin_.swap(emptyMap);
+  recentComponentCommandMap_.swap(emptyMap);
 }
 
-void WindowDelegator::commitDrawCall(std::string pictureCommandKey,PictureObject pictureObj) {
-  if(!windowActive) return;
+void WindowDelegator::commitDrawCall(std::string pictureCommandKey,PictureObject pictureObj,bool batchCommit) {
+  if(!windowActive) { return; }
   if( ownsTaskrunner_ ) {
     if( windowTaskRunner_->running() )
-      windowTaskRunner_->dispatch([=](){ renderToDisplay(pictureCommandKey,pictureObj); });
+      windowTaskRunner_->dispatch([=](){ renderToDisplay(pictureCommandKey,pictureObj,batchCommit); });
   } else {
-    renderToDisplay(pictureCommandKey,pictureObj);
+    renderToDisplay(pictureCommandKey,pictureObj,batchCommit);
   }
 }
 
-inline void WindowDelegator::renderToDisplay(std::string pictureCommandKey,PictureObject pictureObj) {
-  if(!windowActive) return;
-  std::vector<SkIRect> dirtyRect;
+inline void WindowDelegator::renderToDisplay(std::string pictureCommandKey,PictureObject pictureObj,bool batchCommit) {
+  if(!windowActive) { return;}
 
   std::scoped_lock lock(renderCtrlMutex_);
 
-#ifdef RNS_SHELL_HAS_GPU_SUPPORT
+#if USE(RNS_SHELL_PARTIAL_UPDATES) && defined(RNS_SHELL_HAS_GPU_SUPPORT)
   int bufferAge=windowContext_->bufferAge();
-
-  #if USE(RNS_SHELL_PARTIAL_UPDATES)
     if(supportsPartialUpdate_ && !pictureCommandKey.empty() && (bufferAge == 1)) {
   // Add last updated area of current component to dirty Rect
-      auto iter=componentCommandBin_.find(pictureCommandKey);
-      if(iter != componentCommandBin_.end()) {
-        RNS_LOG_ERROR("Updating old dirty Rect");
-        generateDirtyRect(dirtyRect,iter->second.dirtyRect);
+      auto iter=recentComponentCommandMap_.find(pictureCommandKey);
+      if(iter != recentComponentCommandMap_.end()) {
+        generateDirtyRect(iter->second.dirtyRect);
       }
     }
-  #endif/*RNS_SHELL_PARTIAL_UPDATES*/
-
-  componentCommandBin_[pictureCommandKey]=pictureObj;
-  RNS_LOG_DEBUG("Count of component for this window :: "<< componentCommandBin_.size());
+  recentComponentCommandMap_[pictureCommandKey]=pictureObj;
+  RNS_LOG_DEBUG("Count of component for this window :: "<< recentComponentCommandMap_.size());
 
   if(bufferAge != 1) {
 // use Stored History to fill missed frames in the write buffer
-    std::map<std::string,PictureObject>::reverse_iterator it = componentCommandBin_.rbegin();
-    bool windowAddedAsDirtyRect{false};
-    for( ;it != componentCommandBin_.rend() ;it++ ) {
+    std::map<std::string,PictureObject>::reverse_iterator it = recentComponentCommandMap_.rbegin();
+    bool fullScreenAddedAsDirtyRect{false};
+    for( ;it != recentComponentCommandMap_.rend() ;it++ ) {
       if(it->second.pictureCommand.get() ) {
         it->second.pictureCommand->playback(windowDelegatorCanvas_);
-
-        #if USE(RNS_SHELL_PARTIAL_UPDATES)
-          if(supportsPartialUpdate_) {
-            if((bufferAge ==0 ) && !windowAddedAsDirtyRect) {
-              //Update complete Screen if Buffer Age is "0"
-              RNS_LOG_DEBUG("Updating complete screen : width : "<<windowContext_->width()<<" height: "<<windowContext_->height());
-              dirtyRect.push_back(SkIRect::MakeXYWH (0,0,windowContext_->width(),windowContext_->height()));
-              windowAddedAsDirtyRect=true;
-            } else if(!windowAddedAsDirtyRect && (it->first).compare(basePictureCommandKey_)) {
+          if(supportsPartialUpdate_ && !fullScreenAddedAsDirtyRect) {
+            if(bufferAge ==0 ) {
+                //Update complete Screen if Buffer Age is "0"
+                dirtyRectVec_.push_back(SkIRect::MakeXYWH (0,0,windowContext_->width(),windowContext_->height()));
+                fullScreenAddedAsDirtyRect=true;
+            } else if(it->second.invalidate) {
               RNS_LOG_DEBUG("Updating dirty Rect for component : "<<it->first);
-              generateDirtyRect(dirtyRect,(it->second).dirtyRect);
+              generateDirtyRect((it->second).dirtyRect);
             }
           }
-        #endif/*RNS_SHELL_PARTIAL_UPDATES*/
       }
     }
   } else
@@ -180,12 +173,11 @@ inline void WindowDelegator::renderToDisplay(std::string pictureCommandKey,Pictu
       RNS_LOG_DEBUG("Rendering component  " << pictureCommandKey << " Command Count : "<<
                 pictureObj.pictureCommand.get()->approximateOpCount() << " operations and size : " << pictureObj.pictureCommand.get()->approximateBytesUsed());
       pictureObj.pictureCommand->playback(windowDelegatorCanvas_);
-
-      #if USE(RNS_SHELL_PARTIAL_UPDATES)
+#if USE(RNS_SHELL_PARTIAL_UPDATES)
       if(supportsPartialUpdate_) {
-        generateDirtyRect(dirtyRect,pictureObj.dirtyRect);
+        generateDirtyRect(pictureObj.dirtyRect);
       }
-      #endif/*RNS_SHELL_PARTIAL_UPDATES*/
+#endif/*RNS_SHELL_PARTIAL_UPDATES*/
     }
   }
 
@@ -194,39 +186,44 @@ inline void WindowDelegator::renderToDisplay(std::string pictureCommandKey,Pictu
   paint.setColor(SK_ColorGREEN);
   paint.setStrokeWidth(2);
   paint.setStyle(SkPaint::kStroke_Style);
-  RNS_LOG_INFO(" Count of Dirty Rect :: "<<dirtyRect.size());
-  for(SkIRect rectIt:dirtyRect) {
+  RNS_LOG_INFO(" Count of Dirty Rect :: "<<dirtyRectVec_.size());
+  for(SkIRect rectIt:dirtyRectVec_) {
     windowDelegatorCanvas_->drawIRect(rectIt,paint);
   }
 #endif/*SHOW_DIRTY_RECT*/
-
-  if(backBuffer_)  backBuffer_->flushAndSubmit();
-  if(windowContext_) {
-    windowContext_->swapBuffers(dirtyRect);
+  if(!batchCommit) {
+    if(backBuffer_) {
+      backBuffer_->flushAndSubmit();
+    }
+    if(windowContext_) {
+      windowContext_->swapBuffers(dirtyRectVec_);
+      std::vector<SkIRect> emptyVect;
+      dirtyRectVec_.swap(emptyVect);
+    }
   }
 }
 
 #if USE(RNS_SHELL_PARTIAL_UPDATES)
-inline void WindowDelegator:: generateDirtyRect(std::vector<SkIRect> &dirtyRectVec ,std::vector<SkIRect> &componentDirtRectVec){
+inline void WindowDelegator:: generateDirtyRect(std::vector<SkIRect> &componentDirtRectVec){
   for(SkIRect& comDirtyRect:componentDirtRectVec) {
     bool addToDirtyRect{true};
-    if(!dirtyRectVec.empty()) {
-      std::vector<SkIRect>::iterator it = dirtyRectVec.begin();
-      while( it != dirtyRectVec.end()) {
+    if(!dirtyRectVec_.empty()) {
+      std::vector<SkIRect>::iterator it = dirtyRectVec_.begin();
+      while( it != dirtyRectVec_.end()) {
         SkIRect &dirtyRect = *it;
         if((dirtyRect == comDirtyRect) || dirtyRect.contains(comDirtyRect) ) {
           addToDirtyRect=false;// If same or part of existing ignore
           break;
         }
         if(comDirtyRect.contains(dirtyRect)) {
-          it=dirtyRectVec.erase(it);//Erase existing dirtRect , if it is part of new one
+          it=dirtyRectVec_.erase(it);//Erase existing dirtRect , if it is part of new one
         } else {
           ++it;
         }
       }
     }
     if(addToDirtyRect){
-      dirtyRectVec.push_back(comDirtyRect);
+      dirtyRectVec_.push_back(comDirtyRect);
     }
   }
 }

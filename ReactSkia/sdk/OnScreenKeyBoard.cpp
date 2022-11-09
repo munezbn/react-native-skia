@@ -124,7 +124,7 @@ void  OnScreenKeyboard::updatePlaceHolderString(std::string displayString,int cu
     sem_post(&oskHandle.sigKeyConsumed_);
   }
 #endif
-  oskHandle.triggerRenderRequestFor(OSK_TEXTINPUT_DISPLAY);
+  oskHandle.triggerRenderRequest(OSK_TEXTINPUT_DISPLAY);
 }
 
 void OnScreenKeyboard::launchOSKWindow() {
@@ -588,8 +588,8 @@ inline void OnScreenKeyboard::processKey(rnsKey keyValue) {
         ToggleKeyMap :: iterator keyFunction =toggleKeyMap.find(oskLayout_.keyInfo->at(rowIndex).at(keyIndex).keyName);
         if((keyFunction != toggleKeyMap.end()) && (keyFunction->second != oskLayout_.kbLayoutType)) {
           oskLayout_.kbLayoutType=keyFunction->second;
-          triggerRenderRequestFor(OSK_KEYBOARD_LAYOUT);
-          triggerRenderRequestFor(OSK_KEYS);//Set default Focuss
+          triggerRenderRequest(OSK_KEYBOARD_LAYOUT,true);// Batch this request with below update key render request
+          triggerRenderRequest(OSK_KEYS);//Set default Focuss
         }
       }else {
         OSKkeyValue=oskLayout_.keyInfo->at(rowIndex).at(keyIndex).keyValue;
@@ -632,23 +632,21 @@ inline void OnScreenKeyboard::processKey(rnsKey keyValue) {
 
   RNS_LOG_DEBUG("OSK KEY VALUE RECEIVED : "<<RNSKeyMap[OSKkeyValue]);
 
+  bool validKey=(OSKkeyValue != RNS_KEY_UnKnown);
+
   /* Enable Return Key on Valid Key Event if disabled*/
-  if((OSKkeyValue != RNS_KEY_UnKnown) && autoActivateReturnKey_) {
+  if(validKey && autoActivateReturnKey_) {
     autoActivateReturnKey_=false;
     currentFocussIndex_=oskLayout_.returnKeyIndex;
-    triggerRenderRequestFor(OSK_KEYS);
+    triggerRenderRequest(OSK_KEYS,true);//Batch this render request with Update TextINput request
   }
   if((lastFocussIndex_ != hlCandidate)) {
-/* To reduce the draw call and to avoid the frequency of swap buffer issue in openGL backend,
-   trigger commit only if there is no key emit to client. As in the other case commit will be
-   taken care as part of update string call from client , followed by key emit
-*/
     currentFocussIndex_=hlCandidate;
-    triggerRenderRequestFor(OSK_KEYS);
-   }
+    triggerRenderRequest(OSK_KEYS,validKey);//batch this render request with Update TextINput if the key is valid[displayable character]
+  }
 
   /* Emit only known keys to client*/
-  if(OSKkeyValue != RNS_KEY_UnKnown) {
+  if(validKey) {
 #if ENABLE(FEATURE_KEY_THROTTLING)
     if(onKeyRepeatMode_) {
       waitingForKeyConsumedSignal_=true;
@@ -916,10 +914,10 @@ void OnScreenKeyboard::windowReadyToDrawCB() {
   if(oskState_== OSK_STATE_LAUNCH_INPROGRESS) {
     oskState_=OSK_STATE_ACTIVE;
     setWindowTittle("OSK Window");
-    triggerRenderRequestFor(OSK_BACKGROUND);
-    triggerRenderRequestFor(OSK_TEXTINPUT_DISPLAY);
-    triggerRenderRequestFor(OSK_KEYBOARD_LAYOUT);
-    triggerRenderRequestFor(OSK_KEYS);
+    triggerRenderRequest(OSK_BACKGROUND_AND_TI_TITLE,true);
+    triggerRenderRequest(OSK_TEXTINPUT_DISPLAY,true);
+    triggerRenderRequest(OSK_KEYBOARD_LAYOUT,true);
+    triggerRenderRequest(OSK_KEYS); // Request to batch all the above Render Request with this final one, to reduce rendering
 #if ENABLE(FEATURE_KEY_THROTTLING)
     /*create Queue & KeyHandler for Repeat key Processing */
     sem_init(&sigKeyConsumed_, 0, 0);
@@ -957,18 +955,18 @@ void OnScreenKeyboard::repeatKeyProcessingThread(){
 }
 #endif
 
-void OnScreenKeyboard::triggerRenderRequestFor(OSKComponents components) {
+void OnScreenKeyboard::triggerRenderRequest(OSKComponents components,bool batchRenderRequest) {
   std::scoped_lock lock(oskActiontCtrlMutex_);
   SkPictureRecorder pictureRecorder_;
   std::string commandKey;
   std::vector<SkIRect>   dirtyRect;
   pictureCanvas_ = pictureRecorder_.beginRecording(SkRect::MakeXYWH(0, 0, screenSize_.width(), screenSize_.height()));
-
+  bool invalidateFlag{true}; //to be set to indicate static or dynamic component.
   switch(components) {
-    case OSK_BACKGROUND:
+    case OSK_BACKGROUND_AND_TI_TITLE:
       drawOSKBackGround(dirtyRect);
-      commandKey="OSKBackGround";
-      setBasePicCommand(commandKey);
+      commandKey="OSKBackGroundAndTitle";
+      invalidateFlag=false;
     break;
     case OSK_TEXTINPUT_DISPLAY:
       drawPlaceHolderDisplayString(dirtyRect);
@@ -993,7 +991,7 @@ void OnScreenKeyboard::triggerRenderRequestFor(OSKComponents components) {
     " Dirty Rect Count : "<<dirtyRect.size());
   }
   if(oskState_== OSK_STATE_ACTIVE) {
-    commitDrawCall(commandKey,{dirtyRect,pic});
+    commitDrawCall(commandKey,{dirtyRect,pic,invalidateFlag},batchRenderRequest);
   }
 }
 

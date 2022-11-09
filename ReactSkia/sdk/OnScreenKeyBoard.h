@@ -120,7 +120,7 @@ class OnScreenKeyboard : public WindowDelegator{
       OSK_STATE_INACTIVE,
     };
     enum OSKComponents {
-      OSK_BACKGROUND,
+      OSK_BACKGROUND_AND_TI_TITLE,
       OSK_TEXTINPUT_DISPLAY,
       OSK_KEYBOARD_LAYOUT,
       OSK_KEYS
@@ -163,7 +163,7 @@ class OnScreenKeyboard : public WindowDelegator{
 
     void emitOSKKeyEvent(rnsKey keyValue);
     void windowReadyToDrawCB();
-    void triggerRenderRequestFor(OSKComponents components);
+    void triggerRenderRequest(OSKComponents components,bool batchRenderRequest=false);
 
     void drawHighLightOnKey(std::vector<SkIRect> &dirtyRect);
     void drawOSKBackGround(std::vector<SkIRect> &dirtyRect);
