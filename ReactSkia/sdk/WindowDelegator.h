@@ -37,7 +37,7 @@ class WindowDelegator {
     void createWindow(SkSize windowSize,std::function<void ()> windowReadyTodrawCB,bool runOnTaskRunner=true);
     void closeWindow();
     void setWindowTittle(const char* titleString);
-    void commitDrawCall(std::string pictureCommandKey,PictureObject pictureObj,bool batchCommit);
+    void commitDrawCall(std::string pictureCommandKey,PictureObject pictureObj,bool batchCommit=false);
 
   private:
     void onExposeHandler(RnsShell::Window* window);
@@ -47,6 +47,7 @@ class WindowDelegator {
 #if USE(RNS_SHELL_PARTIAL_UPDATES)
     void generateDirtyRect(std::vector<SkIRect> &componentDirtRectVec);
     bool supportsPartialUpdate_{false};
+    std::vector<SkIRect> fullScreenDirtyRectVec_;
 #endif/*RNS_SHELL_PARTIAL_UPDATES*/
     std::unique_ptr<RnsShell::WindowContext> windowContext_{nullptr};
     RnsShell::Window* window_{nullptr};

@@ -78,6 +78,7 @@ void  WindowDelegator::createNativeWindow() {
       windowDelegatorCanvas_ = backBuffer_->getCanvas();
 #if USE(RNS_SHELL_PARTIAL_UPDATES)
       supportsPartialUpdate_=windowContext_->supportsPartialUpdate();
+      fullScreenDirtyRectVec_.push_back(SkIRect::MakeXYWH (0,0,windowContext_->width(),windowContext_->height()));
 #endif/*RNS_SHELL_PARTIAL_UPDATES*/
       windowActive = true;
       if(displayPlatForm_ == RnsShell::PlatformDisplay::Type::X11) {
@@ -133,31 +134,48 @@ void WindowDelegator::commitDrawCall(std::string pictureCommandKey,PictureObject
 inline void WindowDelegator::renderToDisplay(std::string pictureCommandKey,PictureObject pictureObj,bool batchCommit) {
   if(!windowActive) { return;}
 
+#ifdef SHOW_RENDER_COMMAND_INFO
+RNS_LOG_INFO("Rendering component  : " << pictureCommandKey);
+RNS_LOG_INFO("Count of Dirt Rect   : " <<  pictureObj.dirtyRect.size());
+RNS_LOG_INFO("Draw Command Count   : "<< pictureObj.pictureCommand.get()->approximateOpCount());
+RNS_LOG_INFO(" operations and size : " << pictureObj.pictureCommand.get()->approximateBytesUsed());
+RNS_LOG_INFO(" Batching Request    : "<<batchCommit);
+#endif
+
   std::scoped_lock lock(renderCtrlMutex_);
 
 #if USE(RNS_SHELL_PARTIAL_UPDATES) && defined(RNS_SHELL_HAS_GPU_SUPPORT)
   int bufferAge=windowContext_->bufferAge();
-    if(supportsPartialUpdate_ && !pictureCommandKey.empty() && (bufferAge == 1)) {
-  // Add last updated area of current component to dirty Rect
-      auto iter=recentComponentCommandMap_.find(pictureCommandKey);
-      if(iter != recentComponentCommandMap_.end()) {
-        generateDirtyRect(iter->second.dirtyRect);
-      }
-    }
+
+  if((bufferAge !=1) && batchCommit) {
+    //To avoid reduntant painting   & dirt Rect calculation. Just store the command.
+    //Rest will be handled , when Render Requested by client.
+    recentComponentCommandMap_[pictureCommandKey]=pictureObj;
+    return;
+  }
+
+  // Add current component's old dirty Rect
+  auto iter=recentComponentCommandMap_.find(pictureCommandKey);
+  if((iter != recentComponentCommandMap_.end()) && supportsPartialUpdate_ && (bufferAge!=0)) {
+    generateDirtyRect(iter->second.dirtyRect);
+  }
+
   recentComponentCommandMap_[pictureCommandKey]=pictureObj;
-  RNS_LOG_DEBUG("Count of component for this window :: "<< recentComponentCommandMap_.size());
 
   if(bufferAge != 1) {
-// use Stored History to fill missed frames in the write buffer
+// use Stored commands to fill missed frames in the write buffer
     std::map<std::string,PictureObject>::reverse_iterator it = recentComponentCommandMap_.rbegin();
     bool fullScreenAddedAsDirtyRect{false};
     for( ;it != recentComponentCommandMap_.rend() ;it++ ) {
       if(it->second.pictureCommand.get() ) {
+
         it->second.pictureCommand->playback(windowDelegatorCanvas_);
+
           if(supportsPartialUpdate_ && !fullScreenAddedAsDirtyRect) {
             if(bufferAge ==0 ) {
                 //Update complete Screen if Buffer Age is "0"
-                dirtyRectVec_.push_back(SkIRect::MakeXYWH (0,0,windowContext_->width(),windowContext_->height()));
+                RNS_LOG_DEBUG("Buffer Age is 0, Doing Full Screen Update : ");
+                generateDirtyRect(fullScreenDirtyRectVec_);
                 fullScreenAddedAsDirtyRect=true;
             } else if(it->second.invalidate) {
               RNS_LOG_DEBUG("Updating dirty Rect for component : "<<it->first);
@@ -170,8 +188,6 @@ inline void WindowDelegator::renderToDisplay(std::string pictureCommandKey,Pictu
 #endif/*RNS_SHELL_HAS_GPU_SUPPORT*/
   {
     if(pictureObj.pictureCommand.get()) {
-      RNS_LOG_DEBUG("Rendering component  " << pictureCommandKey << " Command Count : "<<
-                pictureObj.pictureCommand.get()->approximateOpCount() << " operations and size : " << pictureObj.pictureCommand.get()->approximateBytesUsed());
       pictureObj.pictureCommand->playback(windowDelegatorCanvas_);
 #if USE(RNS_SHELL_PARTIAL_UPDATES)
       if(supportsPartialUpdate_) {
@@ -192,6 +208,7 @@ inline void WindowDelegator::renderToDisplay(std::string pictureCommandKey,Pictu
   }
 #endif/*SHOW_DIRTY_RECT*/
   if(!batchCommit) {
+// Render paint only if not  to be batched.
     if(backBuffer_) {
       backBuffer_->flushAndSubmit();
     }
