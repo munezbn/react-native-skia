@@ -79,51 +79,55 @@ void setColor(SharedColor Color,SkPaint *paint)
     paint->setAntiAlias(true);
     paint->setColor(RSkColorFromSharedColor(Color, DEFAULT_COLOUR));
 }
-bool isDrawVisible(SharedColor Color,Float thickness=1.0)
-{
-    return ((colorComponentsFromColor(Color).alpha != 0) && (thickness != 0.0))? true:false;
-}
+inline bool isColorVisible(SharedColor Color){
+    return (Color && colorComponentsFromColor(Color).alpha == 0) ? false:true;
 
-FrameType getFrameBorderType(BorderMetrics borderProps,SharedColor backgroundColor)
+}
+inline bool isBorderVisible(SharedColor Color,Float thickness=1.0)
 {
-    FrameType frameType=InvisibleFrame;
-    if( !borderProps.borderWidths.isUniform() ){
-        frameType=DiscretePath;
-    } else if( borderProps.borderWidths.left ==0) {
-        //Width confirmed to be uniform, make sure it is visible
+    return (isColorVisible(Color) && (thickness != 0.0))? true:false;
+}
+inline bool hasVisibleBorder(BorderColors borderColor,BorderWidths borderWidth)
+{
+    /*Returns true, when atleast one side with  visible colour & thickness*/
+    if((borderWidth.left || borderWidth.right|| borderWidth.top|| borderWidth.bottom) &&
+       (isColorVisible(borderColor.left) || isColorVisible(borderColor.right)||
+        isColorVisible(borderColor.top)|| isColorVisible(borderColor.bottom)))
+    {
+        return true;
+    }
+    return false;
+}
+FrameType detectFrameBorderType(BorderColors borderColor,BorderWidths borderWidth)
+{
+    FrameType frameType;
+    if(!hasVisibleBorder(borderColor,borderWidth)) {
+        //None of the Side has Valid color or visible thickness
         frameType=InvisibleFrame;
+    }else if( !borderWidth.isUniform() ){
+        /*Border are of different thickness*/
+        frameType=DiscretePath;
     } else {
        /*All the sides confirmed to have uniform visble Thickness.
          confirming visible color on ALL sides*/
-        if(borderProps.borderColors.isUniform() && isDrawVisible(borderProps.borderColors.left)){
-            frameType=MonoChromeStrokedRect;
-        } else if(!borderProps.borderColors.isUniform()) {
-        /* Border Color  differs for each Side.So make sure all the side are Visible*/
-            if(isDrawVisible(borderProps.borderColors.left,borderProps.borderWidths.left) &&
-               isDrawVisible(borderProps.borderColors.right,borderProps.borderWidths.right) &&
-               isDrawVisible(borderProps.borderColors.top,borderProps.borderWidths.top) &&
-               isDrawVisible(borderProps.borderColors.bottom,borderProps.borderWidths.bottom)){
+        if(borderColor.isUniform()){
+            frameType=MonoChromeStrokedRect;//Colors are on the sides are uniform
+        } else {
+        /* Border Color  differs for each Side.So check all the sides are Visible*/
+            if(isColorVisible(borderColor.left) &&
+               isColorVisible(borderColor.right) &&
+               isColorVisible(borderColor.top) &&
+               isColorVisible(borderColor.bottom)){
                 frameType=PolyChromeStrokedRect;
             } else {
                 frameType=DiscretePath; // Few of the side/s fully transparent
             }
-        } else {
-            frameType=InvisibleFrame;// All the sides are fully Transparent
         }
     }
     return frameType;
 
 }
-FrameType getFrameType(BorderMetrics borderProps,SharedColor backgroundColor)
-{
-    if(backgroundColor && isDrawVisible(backgroundColor)) {
-        return FilledRect;
-    } else {
-        return getFrameBorderType(borderProps,backgroundColor);
-    }
-}
-
-bool hasUniformBorderEdges(BorderMetrics borderProps)
+inline bool hasUniformBorderEdges(BorderMetrics borderProps)
 {
     return  ( borderProps.borderColors.isUniform() &&  borderProps.borderWidths.isUniform());
 }
@@ -332,18 +336,16 @@ SkPath createAndDrawDiscretePath(BorderEdges borderEdge,SkCanvas *canvas,
 }
 inline void drawDiscretePath( SkCanvas *canvas,Rect frame,BorderMetrics borderProps,sk_sp<SkImageFilter> shadowImageFilter) {
     SkPath path;
-    if(isDrawVisible(borderProps.borderColors.right,borderProps.borderWidths.right)){
-        createAndDrawDiscretePath(RightEdge,canvas,frame,borderProps,shadowImageFilter,true);
-    }
-    if(isDrawVisible(borderProps.borderColors.left,borderProps.borderWidths.left)){
-        createAndDrawDiscretePath(LeftEdge,canvas,frame,borderProps,shadowImageFilter,true);
-    }
-    if(isDrawVisible(borderProps.borderColors.top,borderProps.borderWidths.top)){
-        createAndDrawDiscretePath(TopEdge,canvas,frame,borderProps,shadowImageFilter,true);
-    }
-    if(isDrawVisible(borderProps.borderColors.bottom,borderProps.borderWidths.bottom)){
-        createAndDrawDiscretePath(BottomEdge,canvas,frame,borderProps,shadowImageFilter,true);
-    }
+
+    #define CHECK_SIDE_VISIBILITY_AND_DRAW_SIDE_FOR_DISCRETE_PATH(__SIDE__,__SIDE_COLOR__,__SIDE_WIDTH__)   \
+        if(isBorderVisible(borderProps.borderColors.right,borderProps.borderWidths.right)){ \
+            createAndDrawDiscretePath(RightEdge,canvas,frame,borderProps,shadowImageFilter,true); \
+        }
+
+    CHECK_SIDE_VISIBILITY_AND_DRAW_SIDE_FOR_DISCRETE_PATH(RightEdge,borderProps.borderColors.right,borderProps.borderWidths.right)
+    CHECK_SIDE_VISIBILITY_AND_DRAW_SIDE_FOR_DISCRETE_PATH(LeftEdge,borderProps.borderColors.left,borderProps.borderWidths.left)
+    CHECK_SIDE_VISIBILITY_AND_DRAW_SIDE_FOR_DISCRETE_PATH(TopEdge,borderProps.borderColors.top,borderProps.borderWidths.top)
+    CHECK_SIDE_VISIBILITY_AND_DRAW_SIDE_FOR_DISCRETE_PATH(BottomEdge,borderProps.borderColors.bottom,borderProps.borderWidths.bottom)
     return;
 }
 
@@ -355,7 +357,7 @@ void  drawBackground(SkCanvas *canvas,
                                BorderMetrics borderProps,
                                SharedColor backgroundColor)
 {
-    if(getFrameType(borderProps,backgroundColor) == FilledRect){
+    if(isColorVisible(backgroundColor)){
       drawRect(FilledRect,canvas,frame,borderProps,RSkColorFromSharedColor(backgroundColor, DEFAULT_COLOUR));
     }
 }
@@ -365,31 +367,21 @@ void drawBorder(SkCanvas *canvas,
                                SharedColor backgroundColor)
 {
 
-    FrameType frameType = getFrameBorderType(borderProps,backgroundColor);
+    FrameType frameType = detectFrameBorderType(borderProps.borderColors,borderProps.borderWidths);
+
+    #define CHECK_SIDE_VISIBILITY_AND_DRAW_SIDE_FOR_BORDER(__SIDE__,__SIDE_WIDTH__,__SIDE_COLOR__)   \
+                if((backgroundColor != __SIDE_COLOR__) && \
+                (isBorderVisible(__SIDE_COLOR__,__SIDE_WIDTH__) )){ \
+                    createAndDrawDiscretePath(__SIDE__,canvas,frame,borderProps); \
+                }
 
     if(frameType == MonoChromeStrokedRect) {
         drawRect(MonoChromeStrokedRect,canvas,frame,borderProps,RSkColorFromSharedColor(borderProps.borderColors.left, DEFAULT_COLOUR));
     } else if((frameType == PolyChromeStrokedRect)|| (frameType == DiscretePath)) {
-        /*Draw Right Side*/
-        if((backgroundColor != borderProps.borderColors.right) && \
-                (isDrawVisible(borderProps.borderColors.right,borderProps.borderWidths.right) )){
-            createAndDrawDiscretePath(RightEdge,canvas,frame,borderProps);
-        }
-        /*Draw Left Side*/
-        if((backgroundColor != borderProps.borderColors.left) && \
-                (isDrawVisible(borderProps.borderColors.left,borderProps.borderWidths.left))){
-            createAndDrawDiscretePath(LeftEdge,canvas,frame,borderProps);
-        }
-        /*Draw Top Side*/
-        if((backgroundColor != borderProps.borderColors.top) && \
-                (isDrawVisible(borderProps.borderColors.top,borderProps.borderWidths.top) )){
-            createAndDrawDiscretePath(TopEdge,canvas,frame,borderProps);
-        }
-        /*Draw Bottom Side*/
-        if((backgroundColor != borderProps.borderColors.bottom) && \
-                (isDrawVisible(borderProps.borderColors.bottom,borderProps.borderWidths.bottom))){
-            createAndDrawDiscretePath(BottomEdge,canvas,frame,borderProps);
-        }
+        CHECK_SIDE_VISIBILITY_AND_DRAW_SIDE_FOR_BORDER(RightEdge,borderProps.borderWidths.right,borderProps.borderColors.right)
+        CHECK_SIDE_VISIBILITY_AND_DRAW_SIDE_FOR_BORDER(LeftEdge,borderProps.borderWidths.left,borderProps.borderColors.left)
+        CHECK_SIDE_VISIBILITY_AND_DRAW_SIDE_FOR_BORDER(TopEdge,borderProps.borderWidths.top,borderProps.borderColors.top)
+        CHECK_SIDE_VISIBILITY_AND_DRAW_SIDE_FOR_BORDER(BottomEdge,borderProps.borderWidths.bottom,borderProps.borderColors.bottom)
     }
 }
 bool  drawShadow(SkCanvas* canvas,Rect frame,
@@ -404,7 +396,13 @@ bool  drawShadow(SkCanvas* canvas,Rect frame,
 
     if(shadowOpacity == 0) {return false;} // won't proceed, if shadow is fully transparent
 
-    FrameType frameType = getFrameType(borderProps,backgroundColor);
+    FrameType frameType;
+
+    if(isColorVisible(backgroundColor)) {
+        frameType= FilledRect; // Frame has BackGround. So drawing shadow on the background
+    } else { //No visible background colour. So have to draw shadow on Border
+        frameType=detectFrameBorderType(borderProps.borderColors,borderProps.borderWidths);
+    }
 
     if(frameType == InvisibleFrame) { return true;} // frame doesn't have visible pixel, content in teh frame may have
 
@@ -423,7 +421,7 @@ bool  drawShadow(SkCanvas* canvas,Rect frame,
         saveLayerDone=true;
     }
 /* Apply Clip to avoid draw shadow on NonVisible Area[behind the opaque frames]*/
-    if((frameType == FilledRect) && (!isOpaque(frameOpacity))) {
+    if((frameType == FilledRect) && (isOpaque(frameOpacity))) {
         if(!saveLayerDone) {
             saveLayerDone=true;
             canvas->saveLayer(&frameBounds,nullptr);
