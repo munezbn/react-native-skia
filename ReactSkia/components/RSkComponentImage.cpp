@@ -62,8 +62,11 @@ void RSkComponentImage::OnPaint(SkCanvas *canvas) {
   bool needClipAndRestore =false;
   sk_sp<SkImageFilter> imageFilter;
   auto  layerRef=layer();
-  if(layerRef->shadowVisibility) {
+  if(layerRef->isShadowVisible) {
     /*Draw Shadow on Frame*/
+    //TODO: For Jpeg Image on Hollow frame/No Background, currently Shadow drawn for both Border[if avaialble] &
+    //      Content[Image]. This to be improved  by avoiding reduntant draw either on border or Image,if both frames are same.
+    //      Typically, draw shadow on both Border & content needed, when Image doesn't fill the frame.
     hollowFrame=drawShadow(canvas,frame,imageBorderMetrics,
                               imageProps.backgroundColor,
                               layerRef->shadowColor,layerRef->shadowOffset,layerRef->shadowOpacity,
@@ -91,7 +94,7 @@ void RSkComponentImage::OnPaint(SkCanvas *canvas) {
     }
     /* TODO: Handle filter quality based of configuration. Setting Low Filter Quality as default for now*/
     paint.setFilterQuality(DEFAULT_IMAGE_FILTER_QUALITY);
-    setImageFilters(paint,imageProps,targetRect,frameRect,false,imageData->isOpaque());
+    setPaintFilters(paint,imageProps,targetRect,frameRect,false,imageData->isOpaque());
     canvas->drawImageRect(imageData,targetRect,&paint);
     if(needClipAndRestore) {
       canvas->restore();
@@ -231,17 +234,19 @@ inline void RSkComponentImage::drawContentShadow( SkCanvas *canvas,
   SkRect shadowBounds;
   SkIRect shadowFrame;
   SkRect  frameBound;
-/*On below special cases, Shadow to be drawn on complete frame/Layout instead on Image target frame :
-  ---------------------------------------------------------------------------------------------------
+/*On below special cases, content Shadow to be drawn on complete frame/Layout instead on Image/content frame :
+  ------------------------------------------------------------------------------------------------------------
    1. The target size of Image > Frame's size. In that case, clipping will be done to contain the image
       within the frame, So shadow to be drawn conidering frame size.
-   2. For Repeat mode, Target frame size will be handled by skia and it is not avialbel to teh components.
+   2. For Repeat mode, Target frame size is the size of the frame itself.[Image will be repeated to fill the frame]
 */
   bool shadowOnFrame=(( frameRect.width() < targetRect.width()) || ( frameRect.height() < targetRect.height())||(imageProps.resizeMode == ImageResizeMode::Repeat));
   if(shadowOnFrame) {
+    //Shadow on Frame Boundary
     frameBound=frameRect;
     shadowFrame.setXYWH(frameRect.x() + shadowOffset.width(), frameRect.y() + shadowOffset.height(), frameRect.width(), frameRect.height());
   } else {
+    //Shadow on Image/Content Boundary
     frameBound=targetRect;
     shadowFrame.setXYWH(targetRect.x() + shadowOffset.width(), targetRect.y() + shadowOffset.height(), targetRect.width(), targetRect.height());
   }
@@ -256,7 +261,7 @@ inline void RSkComponentImage::drawContentShadow( SkCanvas *canvas,
   }
 
   SkPaint shadowPaint;
-  setImageFilters(shadowPaint,imageProps,targetRect,frameRect,true,imageData->isOpaque());
+  setPaintFilters(shadowPaint,imageProps,targetRect,frameRect,true,imageData->isOpaque());
 
   if(!imageData->isOpaque() ) {
 //Apply Shadow for transparent image
@@ -287,9 +292,12 @@ inline void RSkComponentImage::drawContentShadow( SkCanvas *canvas,
 #endif
 }
 
-inline void RSkComponentImage::setImageFilters (SkPaint &paintObj,const ImageProps &imageProps,
+inline void RSkComponentImage::setPaintFilters (SkPaint &paintObj,const ImageProps &imageProps,
                                                       SkRect targetRect,SkRect frameRect ,
                                                       bool  setFilterForShadow, bool opaqueImage) {
+  
+  //This function applies appropriate filter on paint to draw Shadow or Image. 
+
    /*  Image Filter will be used on below scenario :
        -------------------------------------------
       1. For shadow on Image with transparent pixel

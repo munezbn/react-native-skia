@@ -83,7 +83,7 @@ inline bool isColorVisible(SharedColor Color){
     return (Color && colorComponentsFromColor(Color).alpha == 0) ? false:true;
 
 }
-inline bool isBorderVisible(SharedColor Color,Float thickness=1.0)
+inline bool isBorderEdgeVisible(SharedColor Color,Float thickness=1.0)
 {
     return (isColorVisible(Color) && (thickness != 0.0))? true:false;
 }
@@ -338,7 +338,7 @@ inline void drawDiscretePath( SkCanvas *canvas,Rect frame,BorderMetrics borderPr
     SkPath path;
 
     #define CHECK_SIDE_VISIBILITY_AND_DRAW_SIDE_FOR_DISCRETE_PATH(__SIDE__,__SIDE_COLOR__,__SIDE_WIDTH__)   \
-        if(isBorderVisible(borderProps.borderColors.right,borderProps.borderWidths.right)){ \
+        if(isBorderEdgeVisible(borderProps.borderColors.right,borderProps.borderWidths.right)){ \
             createAndDrawDiscretePath(RightEdge,canvas,frame,borderProps,shadowImageFilter,true); \
         }
 
@@ -371,7 +371,7 @@ void drawBorder(SkCanvas *canvas,
 
     #define CHECK_SIDE_VISIBILITY_AND_DRAW_SIDE_FOR_BORDER(__SIDE__,__SIDE_WIDTH__,__SIDE_COLOR__)   \
                 if((backgroundColor != __SIDE_COLOR__) && \
-                (isBorderVisible(__SIDE_COLOR__,__SIDE_WIDTH__) )){ \
+                (isBorderEdgeVisible(__SIDE_COLOR__,__SIDE_WIDTH__) )){ \
                     createAndDrawDiscretePath(__SIDE__,canvas,frame,borderProps); \
                 }
 

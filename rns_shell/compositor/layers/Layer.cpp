@@ -42,14 +42,17 @@ void Layer::addDamageRect(PaintContext& context, SkIRect dirtyAbsFrameRect) {
 #endif
 
 inline SkIRect Layer::getFrameBoundsWithShadow(const SkIRect origSrc){
+    // Calculate Frame bound with its shadow.
+    // Preference given to mask filter, as it is more performant w.r.t timing.
     if(shadowMaskFilter){
+        // using Mask Filter
         SkRect storage;
         SkRect ShadowRect=SkRect::MakeXYWH(origSrc.x()+shadowOffset.width(), origSrc.y()+shadowOffset.height(), origSrc.width(), origSrc.height());
         as_MFB(shadowMaskFilter)->computeFastBounds(ShadowRect, &storage);
         storage.join(SkRect::Make(origSrc));
         return  SkIRect::MakeXYWH(storage.x(), storage.y(), storage.width(), storage.height());
-    }
-    if(shadowImageFilter) {
+    } else if(shadowImageFilter) {
+        // using Image Filter
         SkMatrix identityMatrix;
         SkIRect shadowBounds= shadowImageFilter->filterBounds(
                                     origSrc,
@@ -163,7 +166,7 @@ void Layer::preRoll(PaintContext& context, bool forceLayout) {
         absFrame_ = SkIRect::MakeXYWH(mapRect.x(), mapRect.y(), mapRect.width(), mapRect.height());
         SkIRect newBounds = absFrame_;
         frameBounds_ = frame_;
-        if(shadowVisibility) {
+        if(isShadowVisible) {
             SkMatrix identityMatrix;
             frameBounds_=getFrameBoundsWithShadow(frame_);
             //Calculate absolute frame bounds

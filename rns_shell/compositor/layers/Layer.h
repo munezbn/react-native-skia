@@ -85,7 +85,7 @@ public:
     SkSize shadowOffset{0,-3};
     sk_sp<SkImageFilter> shadowImageFilter{nullptr};
     sk_sp<SkMaskFilter> shadowMaskFilter{nullptr};
-    bool  shadowVisibility{false};
+    bool  isShadowVisible{false};
 
     static SharedLayer Create(Client& layerClient, LayerType type = LAYER_TYPE_DEFAULT);
     Layer(Client&, LayerType);

@@ -42,7 +42,7 @@ void RSkComponent::OnPaintShadow(SkCanvas *canvas) {
 
   /* apply view style props */
   auto borderMetrics= viewProps.resolveBorderMetrics(component_.layoutMetrics);
-  if(layer_->shadowVisibility) {
+  if(layer_->isShadowVisible) {
       drawShadow(canvas,component_.layoutMetrics.frame,borderMetrics,
                  layer_->backgroundColor,
                  layer_->shadowColor,layer_->shadowOffset,layer_->shadowOpacity,
@@ -135,7 +135,7 @@ RnsShell::LayerInvalidateMask RSkComponent::updateProps(const ShadowView &newSha
       createShadowFilter=true;
    }
 
-   layer_->shadowVisibility=getshadowVisibility();
+   layer_->isShadowVisible=needsShadowPainting();
 
    if( createShadowFilter ) {
 /*Creating both Skia's Mask & Image filters here.
@@ -335,7 +335,7 @@ const SkIRect RSkComponent::getScreenFrame() {
                               containerScreenFrame.y());
 }
 
-bool RSkComponent::getshadowVisibility() {
+bool RSkComponent::needsShadowPainting() {
 
 
  /*Shadow will not visible on below scenarios

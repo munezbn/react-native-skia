@@ -151,7 +151,7 @@ void RSkComponentTextInput::OnPaint(SkCanvas *canvas) {
     }
   }
   auto layerRef=layer();
-  if(layerRef->shadowVisibility) {
+  if(layerRef->isShadowVisible) {
     drawShadow(canvas, frame, borderMetrics,
                 textInputProps.backgroundColor,
                 layerRef->shadowColor,layerRef->shadowOffset,layerRef->shadowOpacity,

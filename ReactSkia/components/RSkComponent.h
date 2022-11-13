@@ -103,7 +103,7 @@ class RSkComponent : public RnsShell::Layer , public SpatialNavigator::Container
   SpatialNavigator::Container *nearestAncestorContainer();
   bool hasAncestor(const SpatialNavigator::Container* ancestor);
   bool isFocusable();
-  bool getshadowVisibility();
+  bool needsShadowPainting();
 
   void requiresLayer(const ShadowView &shadowView, Layer::Client& layerClient);
   RnsShell::LayerInvalidateMask updateProps(const ShadowView &newShadowView , bool forceUpdate);

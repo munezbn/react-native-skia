@@ -23,7 +23,7 @@ void RSkComponentView::OnPaint(SkCanvas *canvas) {
 
 /*Draw Order : 1. Shadow 2. BackGround 3 Border*/
     auto layerRef=layer();
-    if(layerRef->shadowVisibility) {
+    if(layerRef->isShadowVisible) {
         drawShadow(canvas,frame,borderMetrics,
                     viewProps.backgroundColor,
                     layerRef->shadowColor,layerRef->shadowOffset,layerRef->shadowOpacity,

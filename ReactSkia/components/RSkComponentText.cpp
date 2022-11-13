@@ -102,7 +102,7 @@ void RSkComponentParagraph::OnPaint(SkCanvas *canvas) {
         }
         textLayout.builder = std::static_pointer_cast<ParagraphBuilder>(std::make_shared<ParagraphBuilderImpl>(textLayout.paraStyle,data.layoutManager->collection_));
         auto layerRef=layer(); 
-        if(layerRef->shadowVisibility) {
+        if(layerRef->isShadowVisible) {
             textLayout.shadow={layerRef->shadowColor,SkPoint::Make(layerRef->shadowOffset.width(),layerRef->shadowOffset.height()),layerRef->shadowRadius};
         }
 
@@ -117,7 +117,7 @@ void RSkComponentParagraph::OnPaint(SkCanvas *canvas) {
         /* If the count is 0,means we have no fragment attachments.So paint right away*/
         if(!expectedAttachmentCount) {
 
-            if(layerRef->shadowVisibility) {
+            if(layerRef->isShadowVisible) {
                 drawShadow(canvas,
                           borderFrame,
                           borderMetrics,

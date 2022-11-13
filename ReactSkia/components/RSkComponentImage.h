@@ -53,7 +53,7 @@ class RSkComponentImage final : public RSkComponent {
                               SkSize shadowOffset,
                               SkColor shadowColor,
                               float shadowOpacity);
-  inline void setImageFilters (SkPaint &paintObj,const ImageProps &imageProps,
+  inline void setPaintFilters (SkPaint &paintObj,const ImageProps &imageProps,
                               SkRect targetRect,SkRect frameRect,
                               bool  filterForShadow, bool isOpaque);
   inline void sendErrorEvents();
