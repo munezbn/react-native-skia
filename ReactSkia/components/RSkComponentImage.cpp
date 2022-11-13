@@ -58,16 +58,13 @@ void RSkComponentImage::OnPaint(SkCanvas *canvas) {
   auto const &imageBorderMetrics=imageProps.resolveBorderMetrics(component.layoutMetrics);
 
   // Draw order 1.Shadow 2. Background 3.Image Shadow 4. Image 5.Border
-  bool hollowFrame = false;
+  ShadowDrawnMode drawShadowOnContent{ShadowNone};
   bool needClipAndRestore =false;
   sk_sp<SkImageFilter> imageFilter;
   auto  layerRef=layer();
   if(layerRef->isShadowVisible) {
     /*Draw Shadow on Frame*/
-    //TODO: For Jpeg Image on Hollow frame/No Background, currently Shadow drawn for both Border[if avaialble] &
-    //      Content[Image]. This to be improved  by avoiding reduntant draw either on border or Image,if both frames are same.
-    //      Typically, draw shadow on both Border & content needed, when Image doesn't fill the frame.
-    hollowFrame=drawShadow(canvas,frame,imageBorderMetrics,
+    drawShadowOnContent=drawShadow(canvas,frame,imageBorderMetrics,
                               imageProps.backgroundColor,
                               layerRef->shadowColor,layerRef->shadowOffset,layerRef->shadowOpacity,
                               layerRef->opacity,
@@ -77,14 +74,23 @@ void RSkComponentImage::OnPaint(SkCanvas *canvas) {
   /*Draw Frame BackGround*/
   drawBackground(canvas,frame,imageBorderMetrics,imageProps.backgroundColor);
   if(imageData) {
-    SkRect targetRect = computeTargetRect({imageData->width(),imageData->height()},frameRect,imageProps.resizeMode);
+    SkRect imageTargetRect = computeTargetRect({imageData->width(),imageData->height()},frameRect,imageProps.resizeMode);
     SkPaint paint;
-    /*Draw Image Shadow*/
-    if(hollowFrame) {
-      drawContentShadow(canvas,frameRect,targetRect,imageData,imageProps,layerRef->shadowOffset,layerRef->shadowColor,layerRef->shadowOpacity);
+    /*Draw Image Shadow on below scenario:
+      ------------------------------------
+      1. Has visible shadow. but both border & background not avialble [case of ShadowDrawnMode::ShadowOnContent]
+      2. Shadow Drawn on Border[case of ShadowDrawnMode::ShadowOnBorder], But Image is either transparent  or smaller than the same
+    */
+    if((drawShadowOnContent == ShadowDrawnMode::ShadowOnContent) ||
+        ((drawShadowOnContent == ShadowDrawnMode::ShadowOnBorder) &&
+          needsContentShadow(imageProps.resizeMode,imageData->isOpaque(),frameRect,imageTargetRect))
+    ) {
+        //TODO: For the Image with transparent pixels, currently Shadow drawn for both Border[if avaialble] & Content[Image].
+        //      This behaviour to be cross verified with reference.
+      drawContentShadow(canvas,frameRect,imageTargetRect,imageData,imageProps,layerRef->shadowOffset,layerRef->shadowColor,layerRef->shadowOpacity);
     }
     /*Draw Image */
-    if(( frameRect.width() < targetRect.width()) || ( frameRect.height() < targetRect.height())) {
+    if(( frameRect.width() < imageTargetRect.width()) || ( frameRect.height() < imageTargetRect.height())) {
       needClipAndRestore= true;
     }
     /* clipping logic to be applied if computed Frame is greater than the target.*/
@@ -94,8 +100,8 @@ void RSkComponentImage::OnPaint(SkCanvas *canvas) {
     }
     /* TODO: Handle filter quality based of configuration. Setting Low Filter Quality as default for now*/
     paint.setFilterQuality(DEFAULT_IMAGE_FILTER_QUALITY);
-    setPaintFilters(paint,imageProps,targetRect,frameRect,false,imageData->isOpaque());
-    canvas->drawImageRect(imageData,targetRect,&paint);
+    setPaintFilters(paint,imageProps,imageTargetRect,frameRect,false,imageData->isOpaque());
+    canvas->drawImageRect(imageData,imageTargetRect,&paint);
     if(needClipAndRestore) {
       canvas->restore();
     }
@@ -224,7 +230,7 @@ bool RSkComponentImage::processImageData(const char* path, char* response, int s
 
 inline void RSkComponentImage::drawContentShadow( SkCanvas *canvas,
                             SkRect frameRect,
-                            SkRect targetRect,
+                            SkRect imageTargetRect,
                             sk_sp<SkImage> imageData ,
                             const ImageProps &imageProps,
                             SkSize shadowOffset,
@@ -240,15 +246,15 @@ inline void RSkComponentImage::drawContentShadow( SkCanvas *canvas,
       within the frame, So shadow to be drawn conidering frame size.
    2. For Repeat mode, Target frame size is the size of the frame itself.[Image will be repeated to fill the frame]
 */
-  bool shadowOnFrame=(( frameRect.width() < targetRect.width()) || ( frameRect.height() < targetRect.height())||(imageProps.resizeMode == ImageResizeMode::Repeat));
+  bool shadowOnFrame=(( frameRect.width() < imageTargetRect.width()) || ( frameRect.height() < imageTargetRect.height())||(imageProps.resizeMode == ImageResizeMode::Repeat));
   if(shadowOnFrame) {
     //Shadow on Frame Boundary
     frameBound=frameRect;
     shadowFrame.setXYWH(frameRect.x() + shadowOffset.width(), frameRect.y() + shadowOffset.height(), frameRect.width(), frameRect.height());
   } else {
     //Shadow on Image/Content Boundary
-    frameBound=targetRect;
-    shadowFrame.setXYWH(targetRect.x() + shadowOffset.width(), targetRect.y() + shadowOffset.height(), targetRect.width(), targetRect.height());
+    frameBound=imageTargetRect;
+    shadowFrame.setXYWH(imageTargetRect.x() + shadowOffset.width(), imageTargetRect.y() + shadowOffset.height(), imageTargetRect.width(), imageTargetRect.height());
   }
   SkIRect shadowIBounds=RSkDrawUtils::getShadowBounds(shadowFrame,layer()->shadowMaskFilter,layer()->shadowImageFilter);
   shadowBounds=SkRect::Make(shadowIBounds);
@@ -261,21 +267,19 @@ inline void RSkComponentImage::drawContentShadow( SkCanvas *canvas,
   }
 
   SkPaint shadowPaint;
-  setPaintFilters(shadowPaint,imageProps,targetRect,frameRect,true,imageData->isOpaque());
+  setPaintFilters(shadowPaint,imageProps,imageTargetRect,frameRect,true,imageData->isOpaque());
 
   if(!imageData->isOpaque() ) {
 //Apply Shadow for transparent image
-    canvas->drawImageRect(imageData, targetRect, &shadowPaint);
+    canvas->drawImageRect(imageData, imageTargetRect, &shadowPaint);
   } else {
 //Apply Shadow for opaque image
-    if(isOpaque(layer()->opacity)) {
- // clipping done to avoid drawing on non visible area [Area under opque frame]
-      if(!SaveLayerDone) {
-        canvas->saveLayer(&shadowBounds,&shadowPaint);
-        SaveLayerDone =true;
-      }
-      canvas->clipRect(frameBound,SkClipOp::kDifference);
+    if(!SaveLayerDone) {
+      canvas->saveLayer(&shadowBounds,&shadowPaint);
+      SaveLayerDone =true;
     }
+    // clipping done to avoid drawing on non visible area [Area under opque frame]
+    canvas->clipRect(frameBound,SkClipOp::kDifference);
     shadowPaint.setColor(shadowColor);
     canvas->drawIRect(shadowFrame, shadowPaint);
   }
@@ -293,7 +297,7 @@ inline void RSkComponentImage::drawContentShadow( SkCanvas *canvas,
 }
 
 inline void RSkComponentImage::setPaintFilters (SkPaint &paintObj,const ImageProps &imageProps,
-                                                      SkRect targetRect,SkRect frameRect ,
+                                                      SkRect imageTargetRect,SkRect frameRect ,
                                                       bool  setFilterForShadow, bool opaqueImage) {
   
   //This function applies appropriate filter on paint to draw Shadow or Image. 
@@ -313,7 +317,7 @@ inline void RSkComponentImage::setPaintFilters (SkPaint &paintObj,const ImagePro
          shadowFilter=layer()->shadowImageFilter;
       }
       if(imageProps.resizeMode == ImageResizeMode::Repeat) {
-         shadowFilter = (SkImageFilters::Tile(targetRect,frameRect,shadowFilter ));
+         shadowFilter = (SkImageFilters::Tile(imageTargetRect,frameRect,shadowFilter ));
       }
       if(imageProps.blurRadius > 0) {
         shadowFilter = SkImageFilters::Blur(imageProps.blurRadius, imageProps.blurRadius,shadowFilter);
@@ -322,6 +326,26 @@ inline void RSkComponentImage::setPaintFilters (SkPaint &paintObj,const ImagePro
    } else if(setFilterForShadow && (shadowMaskFilter != nullptr)) {
       paintObj.setMaskFilter(shadowMaskFilter);
   }
+}
+
+inline bool  RSkComponentImage::needsContentShadow(ImageResizeMode resizeMode,
+                                                            bool isOpaque,
+                                                            SkRect frameRect,
+                                                            SkRect imageTargetRect) {
+/* This Function check on whether Image fills the frame or not to decide need for contentShadow 
+   Whether component has visible shadow or not needs to be taken care by the caller.
+*/
+    if(!isOpaque) {
+       /* In case of transparent image, frame size will not be enough to conclude image covers the frame or not
+           So returning false.
+       */
+        return true;
+    } else if((frameRect == imageTargetRect) || /* Frame size and Image target size are same*/
+       imageTargetRect.contains(frameRect)|| /* Image target size > Frame Size, in that clipping will be done to contain image in frame*/
+       (resizeMode == ImageResizeMode::Repeat)) /* IN repeat mode,Image will be repaeted to fill the frame */ {
+        return false;
+    }
+    return true;
 }
 
 inline bool shouldCacheData(std::string cacheControlData) {

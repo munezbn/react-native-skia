@@ -45,9 +45,13 @@ class RSkComponentImage final : public RSkComponent {
   inline string generateUriPath(string path);
   void drawAndSubmit();
   bool processImageData(const char* path, char* response, int size);
+  inline bool needsContentShadow(ImageResizeMode resizeMode,
+                                   bool isOpaque,
+                                   SkRect frameRect,
+                                   SkRect imageTargetRect);
   inline void drawContentShadow(SkCanvas *canvas,
                               SkRect frameRect,/*actual image frame*/
-                              SkRect targetRect,/*area of draw image and shadow*/
+                              SkRect imageTargetRect,/*area of draw image and shadow*/
                               sk_sp<SkImage> imageData,
                               const ImageProps &imageProps,
                               SkSize shadowOffset,
