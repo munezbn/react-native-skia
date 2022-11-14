@@ -262,11 +262,11 @@ inline void RSkComponentImage::drawContentShadow( SkCanvas *canvas,
   SkIRect shadowIBounds=RSkDrawUtils::getShadowBounds(shadowFrame,layer()->shadowMaskFilter,layer()->shadowImageFilter);
   shadowBounds=SkRect::Make(shadowIBounds);
 
-  bool SaveLayerDone=false;
+  bool saveLayerDone=false;
 //Apply Opacity
   if(shadowOpacity) {
     canvas->saveLayerAlpha(&shadowBounds,shadowOpacity);
-    SaveLayerDone=true;
+    saveLayerDone=true;
   }
 
   SkPaint shadowPaint;
@@ -277,16 +277,16 @@ inline void RSkComponentImage::drawContentShadow( SkCanvas *canvas,
     canvas->drawImageRect(imageData, imageTargetRect, &shadowPaint);
   } else {
 //Apply Shadow for opaque image
-    if(!SaveLayerDone) {
+    if(!saveLayerDone) {
       canvas->saveLayer(&shadowBounds,&shadowPaint);
-      SaveLayerDone =true;
+      saveLayerDone =true;
     }
     // clipping done to avoid drawing on non visible area [Area under opque frame]
     canvas->clipRect(frameBound,SkClipOp::kDifference);
     shadowPaint.setColor(shadowColor);
     canvas->drawIRect(shadowFrame, shadowPaint);
   }
-  if(SaveLayerDone) {
+  if(saveLayerDone) {
     canvas->restore();
   }
 #ifdef SHOW_SHADOW_BOUND

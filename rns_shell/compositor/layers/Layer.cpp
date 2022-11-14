@@ -47,8 +47,8 @@ inline SkIRect Layer::getFrameBoundsWithShadow(){
     if(shadowMaskFilter){
         // using Mask Filter
         SkRect storage;
-        SkRect ShadowRect=SkRect::MakeXYWH(frame_.x()+shadowOffset.width(), frame_.y()+shadowOffset.height(), frame_.width(), frame_.height());
-        as_MFB(shadowMaskFilter)->computeFastBounds(ShadowRect, &storage);
+        SkRect shadowRect=SkRect::MakeXYWH(frame_.x()+shadowOffset.width(), frame_.y()+shadowOffset.height(), frame_.width(), frame_.height());
+        as_MFB(shadowMaskFilter)->computeFastBounds(shadowRect, &storage);
         storage.join(SkRect::Make(frame_));
         return  SkIRect::MakeXYWH(storage.x(), storage.y(), storage.width(), storage.height());
     } else if(shadowImageFilter) {
@@ -167,7 +167,6 @@ void Layer::preRoll(PaintContext& context, bool forceLayout) {
         SkIRect newBounds = absFrame_;
         frameBounds_ = frame_;
         if(isShadowVisible) {
-            SkMatrix identityMatrix;
             frameBounds_=getFrameBoundsWithShadow();
             //Calculate absolute frame bounds
             SkRect mapRect=SkRect::Make(frameBounds_);
