@@ -41,28 +41,28 @@ void Layer::addDamageRect(PaintContext& context, SkIRect dirtyAbsFrameRect) {
 }
 #endif
 
-inline SkIRect Layer::getFrameBoundsWithShadow(const SkIRect origSrc){
+inline SkIRect Layer::getFrameBoundsWithShadow(){
     // Calculate Frame bound with its shadow.
     // Preference given to mask filter, as it is more performant w.r.t timing.
     if(shadowMaskFilter){
         // using Mask Filter
         SkRect storage;
-        SkRect ShadowRect=SkRect::MakeXYWH(origSrc.x()+shadowOffset.width(), origSrc.y()+shadowOffset.height(), origSrc.width(), origSrc.height());
+        SkRect ShadowRect=SkRect::MakeXYWH(frame_.x()+shadowOffset.width(), frame_.y()+shadowOffset.height(), frame_.width(), frame_.height());
         as_MFB(shadowMaskFilter)->computeFastBounds(ShadowRect, &storage);
-        storage.join(SkRect::Make(origSrc));
+        storage.join(SkRect::Make(frame_));
         return  SkIRect::MakeXYWH(storage.x(), storage.y(), storage.width(), storage.height());
     } else if(shadowImageFilter) {
         // using Image Filter
         SkMatrix identityMatrix;
         SkIRect shadowBounds= shadowImageFilter->filterBounds(
-                                    origSrc,
+                                    frame_,
                                     identityMatrix,
                                     SkImageFilter::kForward_MapDirection,
                                     nullptr);
-        shadowBounds.join(origSrc);
+        shadowBounds.join(frame_);
         return shadowBounds;
     }
-    return origSrc;
+    return frame_;
 }
 
 SharedLayer Layer::Create(Client& layerClient, LayerType type) {
@@ -168,7 +168,7 @@ void Layer::preRoll(PaintContext& context, bool forceLayout) {
         frameBounds_ = frame_;
         if(isShadowVisible) {
             SkMatrix identityMatrix;
-            frameBounds_=getFrameBoundsWithShadow(frame_);
+            frameBounds_=getFrameBoundsWithShadow();
             //Calculate absolute frame bounds
             SkRect mapRect=SkRect::Make(frameBounds_);
             absoluteTransformMatrix_.mapRect(&mapRect);

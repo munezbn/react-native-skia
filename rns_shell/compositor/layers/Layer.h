@@ -148,7 +148,7 @@ private:
     void applyLayerOpacity(PaintContext& context);
     void applyLayerTransformMatrix(PaintContext& context);
 
-    SkIRect getFrameBoundsWithShadow(const SkIRect origSrc);
+    SkIRect getFrameBoundsWithShadow();
 
     void calculateTransformMatrix();
 

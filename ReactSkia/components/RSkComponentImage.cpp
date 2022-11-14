@@ -236,6 +236,9 @@ inline void RSkComponentImage::drawContentShadow( SkCanvas *canvas,
                             SkSize shadowOffset,
                             SkColor shadowColor,
                             float shadowOpacity){
+  /*TO DO :When Frame doesn't have background, has border with Jpeg Image and no resize.
+    currently drawing shadow for both border and content.
+    Need to cross verify with reference and confirm the behaviour.*/
 
   SkRect shadowBounds;
   SkIRect shadowFrame;
@@ -323,8 +326,8 @@ inline void RSkComponentImage::setPaintFilters (SkPaint &paintObj,const ImagePro
         shadowFilter = SkImageFilters::Blur(imageProps.blurRadius, imageProps.blurRadius,shadowFilter);
       }
       paintObj.setImageFilter(std::move(shadowFilter));
-   } else if(setFilterForShadow && (shadowMaskFilter != nullptr)) {
-      paintObj.setMaskFilter(shadowMaskFilter);
+   } else if(setFilterForShadow && (layer()->shadowMaskFilter != nullptr)) {
+      paintObj.setMaskFilter(layer()->shadowMaskFilter);
   }
 }
 
@@ -337,12 +340,12 @@ inline bool  RSkComponentImage::needsContentShadow(ImageResizeMode resizeMode,
 */
     if(!isOpaque) {
        /* In case of transparent image, frame size will not be enough to conclude image covers the frame or not
-           So returning false.
+           So returning true.
        */
         return true;
     } else if((frameRect == imageTargetRect) || /* Frame size and Image target size are same*/
        imageTargetRect.contains(frameRect)|| /* Image target size > Frame Size, in that clipping will be done to contain image in frame*/
-       (resizeMode == ImageResizeMode::Repeat)) /* IN repeat mode,Image will be repaeted to fill the frame */ {
+       (resizeMode == ImageResizeMode::Repeat)) /* IN repeat mode,Image will be repeated to fill the frame */ {
         return false;
     }
     return true;
