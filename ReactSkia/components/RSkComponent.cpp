@@ -62,14 +62,17 @@ sk_sp<SkPicture> RSkComponent::getPicture(PictureType type) {
   if(canvas) {
      switch(type) {
        case PictureTypeShadow:
-          RNS_PROFILE_API_OFF("Recording Shadow Picture" << component_.componentName << " Paint:", OnPaintShadow(canvas));
+          RNS_LOG_INFO("Recording Shadow Picture" << component_.componentName << " Paint:");
+	  OnPaintShadow(canvas);
           break;
        case PictureTypeBorder:
-          RNS_PROFILE_API_OFF("Recording Border Picture" << component_.componentName << " Paint:", OnPaintBorder(canvas));
+          RNS_LOG_INFO("Recording Border Picture" << component_.componentName << " Paint:");
+	  OnPaintBorder(canvas);
           break;
        case PictureTypeAll:
        default:
-          RNS_PROFILE_API_OFF("Recording " << component_.componentName << " Paint:", OnPaint(canvas));
+          RNS_LOG_INFO("Recording " << component_.componentName << " Paint:");
+	  OnPaint(canvas);
           break;
     }
   } else {
@@ -90,6 +93,13 @@ void RSkComponent::requiresLayer(const ShadowView &shadowView, Layer::Client& la
         layer_ = Layer::Create(layerClient, LAYER_TYPE_SCROLL);
     else
         layer_ = Layer::Create(layerClient, LAYER_TYPE_PICTURE);
+
+    if(layer_->type() == RnsShell::LAYER_TYPE_PICTURE) {
+       RNS_PROFILE_API_OFF(component_.componentName << " getPicture :", static_cast<RnsShell::PictureLayer*>(layer_.get())->setPicture(getPicture()));
+    } else if(layer_->type() == RnsShell::LAYER_TYPE_SCROLL) {
+       RNS_PROFILE_API_OFF(component_.componentName << " getShadowPicture :", static_cast<RnsShell::ScrollLayer*>(layer_.get())->setShadowPicture(getPicture(PictureTypeShadow)));
+       RNS_PROFILE_API_OFF(component_.componentName << " getBorderPicture :", static_cast<RnsShell::ScrollLayer*>(layer_.get())->setBorderPicture(getPicture(PictureTypeBorder)));
+    }
 }
 
 RnsShell::LayerInvalidateMask RSkComponent::updateProps(const ShadowView &newShadowView,bool forceUpdate) {
@@ -104,7 +114,7 @@ RnsShell::LayerInvalidateMask RSkComponent::updateProps(const ShadowView &newSha
    if((forceUpdate) || (oldviewProps.opacity != newviewProps.opacity)) {
       layer_->opacity = ((newviewProps.opacity > 1.0)? 1.0:newviewProps.opacity)*MAX_8BIT;
       /*TODO : To be tested and confirm updateMask need for this Prop*/
-      updateMask =static_cast<RnsShell::LayerInvalidateMask>(updateMask | RnsShell::LayerInvalidateAll);
+      updateMask =static_cast<RnsShell::LayerInvalidateMask>(updateMask | RnsShell::LayerPaintInvalidate);
    }
   //ShadowOpacity
    if ((forceUpdate) || (oldviewProps.shadowOpacity != newviewProps.shadowOpacity)) {
@@ -156,7 +166,7 @@ RnsShell::LayerInvalidateMask RSkComponent::updateProps(const ShadowView &newSha
    if ((forceUpdate) || (oldviewProps.backgroundColor != newviewProps.backgroundColor)) {
       layer_->backgroundColor = RSkColorFromSharedColor(newviewProps.backgroundColor,SK_ColorTRANSPARENT);
       /*TODO : To be tested and confirm updateMask need for this Prop*/
-      updateMask =static_cast<RnsShell::LayerInvalidateMask>(updateMask | RnsShell::LayerInvalidateAll);
+      updateMask =static_cast<RnsShell::LayerInvalidateMask>(updateMask | RnsShell::LayerPaintInvalidate);
    }
   //transform
    if ((forceUpdate) || (oldviewProps.transform != newviewProps.transform)) {
@@ -193,10 +203,8 @@ RnsShell::LayerInvalidateMask RSkComponent::updateProps(const ShadowView &newSha
       /*TODO : To be tested and confirm updateMask need for this Prop*/
       updateMask =static_cast<RnsShell::LayerInvalidateMask>(updateMask | RnsShell::LayerInvalidateAll);
    }
-    /* TODO Add TVOS properties */
-   /*TODO : Return UpdateMask instead of RnsShell::LayerInvalidateAll, once the shadow handling moved to layer
-            and all the layer & component props have been verfied*/
-   return RnsShell::LayerInvalidateAll;
+   /* TODO Add TVOS properties */
+   return updateMask;
 }
 
 void RSkComponent::updateComponentData(const ShadowView &newShadowView,const uint32_t updateMask,bool forceUpdate) {
@@ -204,12 +212,12 @@ void RSkComponent::updateComponentData(const ShadowView &newShadowView,const uin
    RNS_LOG_ASSERT((layer_ && layer_.get()), "Layer Object cannot be null");
    RNS_LOG_DEBUG("->Update " << component_.componentName << " layer(" << layer_->layerId() << ")");
 
-   RnsShell::LayerInvalidateMask invalidateMask=RnsShell::LayerInvalidateNone;
+   RnsShell::LayerInvalidateMask invalidateMask= forceUpdate? RnsShell::LayerInvalidateAll : RnsShell::LayerInvalidateNone;
 
    if(updateMask & ComponentUpdateMaskLayoutMetrics) {
-      RNS_LOG_DEBUG("\tUpdate Layout");
+      RNS_LOG_INFO("\tUpdate Layout");
       component_.layoutMetrics = newShadowView.layoutMetrics;
-      invalidateMask =static_cast<RnsShell::LayerInvalidateMask>(invalidateMask | RnsShell::LayerInvalidateAll);
+      invalidateMask =static_cast<RnsShell::LayerInvalidateMask>(invalidateMask | RnsShell::LayerLayoutInvalidate);
 
       Rect frame = component_.layoutMetrics.frame;
       SkIRect frameIRect = SkIRect::MakeXYWH(frame.origin.x, frame.origin.y, frame.size.width, frame.size.height);
@@ -217,7 +225,7 @@ void RSkComponent::updateComponentData(const ShadowView &newShadowView,const uin
         layer_->setFrame(frameIRect);
    }
    if(updateMask & ComponentUpdateMaskProps) {
-      RNS_LOG_DEBUG("\tUpdate Property");
+      RNS_LOG_INFO("\tUpdate Property");
       invalidateMask = static_cast<RnsShell::LayerInvalidateMask>(invalidateMask | updateProps(newShadowView,forceUpdate));
       component_.props = newShadowView.props;
 
@@ -227,22 +235,24 @@ void RSkComponent::updateComponentData(const ShadowView &newShadowView,const uin
           containerInUpdate->updateComponent(this);
    }
    if(updateMask & ComponentUpdateMaskState){
-      RNS_LOG_DEBUG("\tUpdate State");
+      RNS_LOG_INFO("\tUpdate State");
       invalidateMask =static_cast<RnsShell::LayerInvalidateMask>(invalidateMask | updateComponentState(newShadowView,forceUpdate));
       component_.state = newShadowView.state;
    }
    if(updateMask & ComponentUpdateMaskEventEmitter){
-      RNS_LOG_DEBUG("\tUpdate Emitter");
+      RNS_LOG_INFO("\tUpdate Emitter");
       component_.eventEmitter = newShadowView.eventEmitter;
    }
 
    if(layer_ && layer_.get()) {
      layer_->invalidate(invalidateMask);
-     if(layer_->type() == RnsShell::LAYER_TYPE_PICTURE) {
-       RNS_PROFILE_API_OFF(component_.componentName << " getPicture :", static_cast<RnsShell::PictureLayer*>(layer_.get())->setPicture(getPicture()));
-     } else if(layer_->type() == RnsShell::LAYER_TYPE_SCROLL) {
-       RNS_PROFILE_API_OFF(component_.componentName << " getShadowPicture :", static_cast<RnsShell::ScrollLayer*>(layer_.get())->setShadowPicture(getPicture(PictureTypeShadow)));
-       RNS_PROFILE_API_OFF(component_.componentName << " getBorderPicture :", static_cast<RnsShell::ScrollLayer*>(layer_.get())->setBorderPicture(getPicture(PictureTypeBorder)));
+     if(invalidateMask & RnsShell::LayerPaintInvalidate) {
+       if(layer_->type() == RnsShell::LAYER_TYPE_PICTURE) {
+         RNS_PROFILE_API_OFF(component_.componentName << " getPicture :", static_cast<RnsShell::PictureLayer*>(layer_.get())->setPicture(getPicture()));
+       } else if(layer_->type() == RnsShell::LAYER_TYPE_SCROLL) {
+         RNS_PROFILE_API_OFF(component_.componentName << " getShadowPicture :", static_cast<RnsShell::ScrollLayer*>(layer_.get())->setShadowPicture(getPicture(PictureTypeShadow)));
+         RNS_PROFILE_API_OFF(component_.componentName << " getBorderPicture :", static_cast<RnsShell::ScrollLayer*>(layer_.get())->setBorderPicture(getPicture(PictureTypeBorder)));
+       }
      }
    }
 }

@@ -15,6 +15,7 @@
 #include "rns_shell/compositor/layers/PictureLayer.h"
 
 #include "react/renderer/components/image/ImageEventEmitter.h"
+#include "react/renderer/components/image/ImageState.h"
 
 #include "ReactSkia/components/RSkComponentImage.h"
 #include "ReactSkia/sdk/CurlNetworking.h"
@@ -32,26 +33,10 @@ RSkComponentImage::RSkComponentImage(const ShadowView &shadowView)
 }
 
 void RSkComponentImage::OnPaint(SkCanvas *canvas) {
-  sk_sp<SkImage> imageData{nullptr};
   string path;
   auto component = getComponentData();
   ImageProps const &imageProps = *std::static_pointer_cast<ImageProps const>(component.props);
   //First to check file entry presence. If not exist, generate imageData.
-  do {
-    if(networkImageData_) {
-      imageData = networkImageData_;
-      break;
-    }
-    if(imageProps.sources.empty()) break;
-    imageData = RSkImageCacheManager::getImageCacheManagerInstance()->findImageDataInCache(imageProps.sources[0].uri.c_str());
-    if(imageData) break;
-
-    if (imageProps.sources[0].type == ImageSource::Type::Local) {
-      imageData = getLocalImageData(imageProps.sources[0]);
-    } else if(imageProps.sources[0].type == ImageSource::Type::Remote) {
-      requestNetworkImageData(imageProps.sources[0]);
-    }
-  } while(0);
 
   Rect frame = component.layoutMetrics.frame;
   SkRect frameRect = SkRect::MakeXYWH(frame.origin.x, frame.origin.y, frame.size.width, frame.size.height);
@@ -73,8 +58,8 @@ void RSkComponentImage::OnPaint(SkCanvas *canvas) {
   }
   /*Draw Frame BackGround*/
   drawBackground(canvas,frame,imageBorderMetrics,imageProps.backgroundColor);
-  if(imageData) {
-    SkRect imageTargetRect = computeTargetRect({imageData->width(),imageData->height()},frameRect,imageProps.resizeMode);
+  if(imageData_) {
+    SkRect imageTargetRect = computeTargetRect({imageData_->width(),imageData_->height()},frameRect,imageProps.resizeMode);
     SkPaint paint;
     /*Draw Image Shadow on below scenario:
       ------------------------------------
@@ -83,11 +68,11 @@ void RSkComponentImage::OnPaint(SkCanvas *canvas) {
     */
     if((drawShadowOnContent == ShadowDrawnMode::ShadowOnContent) ||
         ((drawShadowOnContent == ShadowDrawnMode::ShadowOnBorder) &&
-          needsContentShadow(imageProps.resizeMode,imageData->isOpaque(),frameRect,imageTargetRect))
+          needsContentShadow(imageProps.resizeMode,imageData_->isOpaque(),frameRect,imageTargetRect))
     ) {
         //TODO: For the Image with transparent pixels, currently Shadow drawn for both Border[if avaialble] & Content[Image].
         //      This behaviour to be cross verified with reference.
-      drawContentShadow(canvas,frameRect,imageTargetRect,imageData,imageProps,layerRef->shadowOffset,layerRef->shadowColor,layerRef->shadowOpacity);
+      drawContentShadow(canvas,frameRect,imageTargetRect,imageData_,imageProps,layerRef->shadowOffset,layerRef->shadowColor,layerRef->shadowOpacity);
     }
     /*Draw Image */
     if(( frameRect.width() < imageTargetRect.width()) || ( frameRect.height() < imageTargetRect.height())) {
@@ -100,12 +85,11 @@ void RSkComponentImage::OnPaint(SkCanvas *canvas) {
     }
     /* TODO: Handle filter quality based of configuration. Setting Low Filter Quality as default for now*/
     paint.setFilterQuality(DEFAULT_IMAGE_FILTER_QUALITY);
-    setPaintFilters(paint,imageProps,imageTargetRect,frameRect,false,imageData->isOpaque());
-    canvas->drawImageRect(imageData,imageTargetRect,&paint);
+    setPaintFilters(paint,imageProps,imageTargetRect,frameRect,false,imageData_->isOpaque());
+    canvas->drawImageRect(imageData_,imageTargetRect,&paint);
     if(needClipAndRestore) {
       canvas->restore();
     }
-    networkImageData_ = nullptr;
     drawBorder(canvas,frame,imageBorderMetrics,imageProps.backgroundColor);
     // Emitting Load completed Event
     if(hasToTriggerEvent_) sendSuccessEvents();
@@ -164,25 +148,55 @@ inline string RSkComponentImage::generateUriPath(string path) {
 
 RnsShell::LayerInvalidateMask RSkComponentImage::updateComponentProps(const ShadowView &newShadowView,bool forceUpdate) {
 
-    auto const &newimageProps = *std::static_pointer_cast<ImageProps const>(newShadowView.props);
-    auto component = getComponentData();
-    auto const &oldimageProps = *std::static_pointer_cast<ImageProps const>(component.props);
-    RnsShell::LayerInvalidateMask updateMask=RnsShell::LayerInvalidateNone;
+  auto const &newimageProps = *std::static_pointer_cast<ImageProps const>(newShadowView.props);
+  auto component = getComponentData();
+  auto const &oldimageProps = *std::static_pointer_cast<ImageProps const>(component.props);
+  RnsShell::LayerInvalidateMask updateMask=RnsShell::LayerInvalidateNone;
 
-    if((forceUpdate) || (oldimageProps.resizeMode != newimageProps.resizeMode)) {
-      imageProps.resizeMode = newimageProps.resizeMode;
-      updateMask =static_cast<RnsShell::LayerInvalidateMask>(updateMask | RnsShell::LayerInvalidateAll);
-    }
-    if((forceUpdate) || (oldimageProps.tintColor != newimageProps.tintColor )) {
-      /* TODO : Needs implementation*/
-      imageProps.tintColor = RSkColorFromSharedColor(newimageProps.tintColor,SK_ColorTRANSPARENT);
-    }
-    if((forceUpdate) || (oldimageProps.sources[0].uri.compare(newimageProps.sources[0].uri) != 0)) {
+  if((forceUpdate) || (oldimageProps.resizeMode != newimageProps.resizeMode)) {
+    imageProps.resizeMode = newimageProps.resizeMode;
+    updateMask =static_cast<RnsShell::LayerInvalidateMask>(updateMask | RnsShell::LayerInvalidateAll);
+  }
+  if((forceUpdate) || (oldimageProps.tintColor != newimageProps.tintColor )) {
+    /* TODO : Needs implementation*/
+    imageProps.tintColor = RSkColorFromSharedColor(newimageProps.tintColor,SK_ColorTRANSPARENT);
+  }
+  return updateMask;
+}
+
+RnsShell::LayerInvalidateMask RSkComponentImage::updateComponentState(const ShadowView &newShadowView,bool forceUpdate) {
+  auto newState = std::static_pointer_cast<ImageShadowNode::ConcreteStateT const>(newShadowView.state);
+  auto oldState = std::static_pointer_cast<ImageShadowNode::ConcreteStateT const>(getComponentData().state);
+  RnsShell::LayerInvalidateMask updateMask=RnsShell::LayerInvalidateNone;
+
+  auto oldImageSource = oldState->getData().getImageSource();  
+  auto newImageSource = newState->getData().getImageSource(); 
+  if((forceUpdate) || (oldImageSource != newImageSource)) {
+    RNS_LOG_INFO("OldImageSource type:" << ((oldImageSource.type == ImageSource::Type::Remote) ? "Remote" : "Invalid/Local") << " url:" << oldImageSource.uri << " bundle:" << oldImageSource.bundle << " scale:" << oldImageSource.scale ); 
+    RNS_LOG_INFO("NewImageSource type:" << ((newImageSource.type == ImageSource::Type::Remote)? "Remote" : "Invalid/Local") << " url:" << newImageSource.uri << " bundle:" << newImageSource.bundle << " scale:" << newImageSource.scale ); 
+    imageData_.reset();
+    do {
+      if(newImageSource.uri.empty()) break;
+      
       imageEventEmitter_->onLoadStart();
       hasToTriggerEvent_ = true;
-    }
-    return updateMask;
+      imageData_ = RSkImageCacheManager::getImageCacheManagerInstance()->findImageDataInCache(newImageSource.uri.c_str());
+      if(imageData_) break;
+
+      if (newImageSource.type == ImageSource::Type::Local) {
+        imageData_ = getLocalImageData(newImageSource);
+      } else if(newImageSource.type == ImageSource::Type::Remote) {
+        requestNetworkImageData(newImageSource);
+      }
+
+    } while(0);
+
+    updateMask =static_cast<RnsShell::LayerInvalidateMask>(updateMask | RnsShell::LayerInvalidateAll);
+  }
+
+  return updateMask;
 }
+
 
 void RSkComponentImage::drawAndSubmit() {
   layer()->client().notifyFlushBegin();
@@ -221,7 +235,7 @@ bool RSkComponentImage::processImageData(const char* path, char* response, int s
       RSkImageCacheManager::getImageCacheManagerInstance()->imageDataInsertInCache(path, imageCacheData);
     }
     if(strcmp(path,imageProps.sources[0].uri.c_str()) == 0){
-      networkImageData_ = remoteImageData;
+      imageData_ = remoteImageData;
       drawAndSubmit();
     }
   }
@@ -338,17 +352,17 @@ inline bool  RSkComponentImage::needsContentShadow(ImageResizeMode resizeMode,
 /* This Function check on whether Image fills the frame or not to decide need for contentShadow 
    Whether component has visible shadow or not needs to be taken care by the caller.
 */
-    if(!isOpaque) {
-       /* In case of transparent image, frame size will not be enough to conclude image covers the frame or not
-           So returning true.
-       */
-        return true;
-    } else if((frameRect == imageTargetRect) || /* Frame size and Image target size are same*/
-       imageTargetRect.contains(frameRect)|| /* Image target size > Frame Size, in that clipping will be done to contain image in frame*/
-       (resizeMode == ImageResizeMode::Repeat)) /* IN repeat mode,Image will be repeated to fill the frame */ {
-        return false;
-    }
+  if(!isOpaque) {
+    /* In case of transparent image, frame size will not be enough to conclude image covers the frame or not
+       So returning true.
+    */
     return true;
+  } else if((frameRect == imageTargetRect) || /* Frame size and Image target size are same*/
+             imageTargetRect.contains(frameRect)|| /* Image target size > Frame Size, in that clipping will be done to contain image in frame*/
+             (resizeMode == ImageResizeMode::Repeat)) /* IN repeat mode,Image will be repeated to fill the frame */ {
+    return false;
+  }
+  return true;
 }
 
 inline bool shouldCacheData(std::string cacheControlData) {

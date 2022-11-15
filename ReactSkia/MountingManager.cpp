@@ -116,7 +116,7 @@ void MountingManager::ProcessMutations(
   nativeRenderDelegate_.begin();
 
   for (auto const &mutation : mutations) {
-    RNS_LOG_DEBUG("\n============\n Mutation type : "<< mutation.type <<
+    RNS_LOG_INFO("\n============\n Mutation type : "<< mutation.type <<
                  "\n ParentShadowView" <<
                  "\n\tTag:" << mutation.parentShadowView.tag <<
                  "\n\tName:" << (mutation.parentShadowView.componentName?mutation.parentShadowView.componentName : "null") <<
@@ -232,6 +232,7 @@ void MountingManager::UpdateMountInstruction(
     if(oldChildShadowView.layoutMetrics != newChildShadowView.layoutMetrics)
       updateMask |= ComponentUpdateMaskLayoutMetrics;
 
+    RNS_LOG_INFO("UpdateMountInstruction updateMask:" << updateMask);
     if(updateMask != ComponentUpdateMaskNone)
       newChildComponent->updateComponentData(mutation.newChildShadowView,updateMask,false);
   }
