@@ -20,7 +20,10 @@
 #include "ReactSkia/sdk/CurlNetworking.h"
 #include "ReactSkia/views/common/RSkImageUtils.h"
 #include "ReactSkia/views/common/RSkConversion.h"
+#include<mutex>
 
+#define MILLSEC_CONVERTER(time) time*1000
+mutex mlock;
 namespace facebook {
 namespace react {
 
@@ -347,8 +350,14 @@ inline double getCacheMaxAgeDuration(std::string cacheControlData) {
 
 void RSkComponentImage::requestNetworkImageData(string sourceUri) {
   auto sharedCurlNetworking = CurlNetworking::sharedCurlNetworking();
-  std::shared_ptr<CurlRequest> remoteCurlRequest = std::make_shared<CurlRequest>(nullptr,sourceUri,0,"GET");
-
+  mlock.lock();
+  if(isRequestinProgress_ == true && remoteCurlRequest_!=nullptr  && (remoteCurlRequest_->handle !=NULL)){
+    sharedCurlNetworking->abortRequest(remoteCurlRequest_);
+    isRequestinProgress_=false;
+  }
+  mlock.unlock();
+  std::shared_ptr<CurlRequest> remoteCurlRequest = std::make_shared<CurlRequest>(nullptr,source.uri,0,"GET");
+  
   folly::dynamic query = folly::dynamic::object();
 
   //Before network request, reset the cache info with default values
@@ -356,7 +365,11 @@ void RSkComponentImage::requestNetworkImageData(string sourceUri) {
   cacheExpiryTime_ = DEFAULT_MAX_CACHE_EXPIRY_TIME;
 
   // headercallback lambda fuction
-  auto headerCallback =  [this, remoteCurlRequest](void* curlresponseData,void *userdata)->bool {
+  auto headerCallback =  [this, weakThis = this->weak_from_this(), remoteCurlRequest](void* curlresponseData,void *userdata)->bool {
+    if(weakThis.expired()) {
+      RNS_LOG_WARN("This object is already destroyed. ignoring the completion callback");
+      return 0;
+    }
     CurlResponse *responseData =  (CurlResponse *)curlresponseData;
     CurlRequest *curlRequest = (CurlRequest *) userdata;
 
@@ -371,14 +384,24 @@ void RSkComponentImage::requestNetworkImageData(string sourceUri) {
 
     // TODO : Parse request headers and retrieve caching details
 
-    cacheExpiryTime_ = std::min(responseMaxAgeTime,static_cast<double>(DEFAULT_MAX_CACHE_EXPIRY_TIME));
+    cacheExpiryTime_ = std::min(MILLSEC_CONVERTER(responseMaxAgeTime),static_cast<double>(DEFAULT_MAX_CACHE_EXPIRY_TIME));
     RNS_LOG_DEBUG("url [" << responseData->responseurl << "] canCacheData[" << canCacheData_ << "] cacheExpiryTime[" << cacheExpiryTime_ << "]");
     return 0;
   };
 
 
   // completioncallback lambda fuction
-  auto completionCallback =  [this, remoteCurlRequest](void* curlresponseData,void *userdata)->bool {
+  auto completionCallback =  [this, weakThis = this->weak_from_this(), remoteCurlRequest](void* curlresponseData,void *userdata)->bool {
+    double total=0;
+    if(weakThis.expired()) {
+      RNS_LOG_WARN("This object is already destroyed. ignoring the completion callback");
+      return 0;
+    }
+    RNS_LOG_WARN(" recieved the curl response "<<remoteCurlRequest->URL);
+    mlock.lock();
+    isRequestinProgress_=false;
+    mlock.unlock();
+    RNS_LOG_INFO("Total time taken to serve the previous request"<<total);
     CurlResponse *responseData =  (CurlResponse *)curlresponseData;
     CurlRequest * curlRequest = (CurlRequest *) userdata;
     if((!responseData
@@ -389,6 +412,7 @@ void RSkComponentImage::requestNetworkImageData(string sourceUri) {
     // and gets auto destructored after the completion callback.
     remoteCurlRequest->curldelegator.CURLNetworkingHeaderCallback = nullptr;
     remoteCurlRequest->curldelegator.CURLNetworkingCompletionCallback = nullptr;
+    RNS_LOG_INFO("Total time taken to serve the previous request"<<total);
     return 0;
   };
 
@@ -399,7 +423,12 @@ void RSkComponentImage::requestNetworkImageData(string sourceUri) {
     imageEventEmitter_->onLoadStart();
     hasToTriggerEvent_ = true;
   }
+  mlock.lock();
+  //remoteCurlRequest_ = remoteCurlRequest;
+  RNS_LOG_WARN("sending the curl Request "<<remoteCurlRequest->URL);
   sharedCurlNetworking->sendRequest(remoteCurlRequest,query);
+  isRequestinProgress_ = true;
+  mlock.unlock();
 }
 
 inline void RSkComponentImage::sendErrorEvents() {
@@ -413,6 +442,15 @@ inline void RSkComponentImage::sendSuccessEvents() {
   imageEventEmitter_->onLoadEnd();
   hasToTriggerEvent_ = false;
 }
-
+RSkComponentImage::~RSkComponentImage(){
+  RNS_LOG_DEBUG("calling destructor in Image component");
+  auto sharedCurlNetworking = CurlNetworking::sharedCurlNetworking();
+  mlock.lock();
+  if(isRequestinProgress_==true && remoteCurlRequest_!=nullptr &&  (remoteCurlRequest_->handle)){
+    sharedCurlNetworking->abortRequest(remoteCurlRequest_);
+    isRequestinProgress_=false;
+  }
+  mlock.unlock();
+}
 } // namespace react
 } // namespace facebook
