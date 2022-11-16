@@ -81,22 +81,22 @@ void setColor(SharedColor Color,SkPaint *paint)
 }
 inline bool isBorderColorVisible(SharedColor Color)
 {
-// Shared Color is an optional varaible, '0' defines value not specified
-// When color not specified for Border, default color is fully opaque black
-// If color specified check on it's aplha for transparency.
-
-    return ((!Color) || (colorComponentsFromColor(Color).alpha != 0.0)) ? true:false;
+    return ((!Color) || //default color is fully opaque black for Border,when color not specifed, so returning true
+            (colorComponentsFromColor(Color).alpha != 0.0)
+            ) ? true:false;
 }
 inline bool isBorderEdgeVisible(SharedColor Color,Float thickness=1.0)
 {
-// Check ON has Visible Thickness & Color
-    return (thickness && isBorderColorVisible(Color))? true:false;
+
+//Note::Default color for border is fully opaque black, When Color not Specifeid but has visible width/thickness
+
+    return (thickness &&
+            isBorderColorVisible(Color)
+           )? true:false;
 }
 inline bool hasVisibleBorder(BorderColors borderColor,BorderWidths borderWidth)
 {
     /*Returns true, when atleast one side with visible thickness & color*/
-
-    //Note::Default color for border is fully opaque black, When Color not Specifeid but has visible width
 
     if(isBorderEdgeVisible(borderColor.left,borderWidth.left) ||
        isBorderEdgeVisible(borderColor.right,borderWidth.right) ||
@@ -401,7 +401,7 @@ void drawBorder(SkCanvas *canvas,
         CHECK_SIDE_VISIBILITY_AND_DRAW_SIDE_FOR_BORDER(BottomEdge,borderProps.borderWidths.bottom,borderProps.borderColors.bottom)
     }
 }
-ShadowDrawnMode  drawShadow(SkCanvas* canvas,Rect frame,
+bool  drawShadow(SkCanvas* canvas,Rect frame,
                         BorderMetrics borderProps,
                         SharedColor backgroundColor,
                         SkColor shadowColor,
@@ -411,7 +411,7 @@ ShadowDrawnMode  drawShadow(SkCanvas* canvas,Rect frame,
                         sk_sp<SkImageFilter> shadowImageFilter,
                         sk_sp<SkMaskFilter> shadowMaskFilter) {
 
-    if(shadowOpacity == 0) {return ShadowNone;} // won't proceed, if shadow is fully transparent
+    if(shadowOpacity == 0) {return false;} // won't proceed, if shadow is fully transparent
 
     FrameType frameType;
 
@@ -421,7 +421,7 @@ ShadowDrawnMode  drawShadow(SkCanvas* canvas,Rect frame,
         frameType=detectFrameBorderType(borderProps.borderColors,borderProps.borderWidths);
     }
 
-    if(frameType == InvisibleFrame) { return ShadowOnContent;} // frame doesn't have visible pixel, content in the frame may have
+    if(frameType == InvisibleFrame) { return true;} // frame doesn't have visible pixel, content in the frame may have
 
     Rect shadowFrame{{frame.origin.x+shadowOffset.width(),
                      frame.origin.y+shadowOffset.height()},
@@ -466,7 +466,7 @@ ShadowDrawnMode  drawShadow(SkCanvas* canvas,Rect frame,
     if(saveLayerDone) {
         canvas->restore();
     }
-    return (frameType != FilledRect) ? ShadowOnBorder:ShadowOnBackGround; // true for hollow frames to proceed with content Shadow
+    return (frameType != FilledRect) ? true:false; // true for hollow frames to proceed with content Shadow
 }
 
 void drawUnderline(SkCanvas *canvas,Rect frame,SharedColor underlineColor){
