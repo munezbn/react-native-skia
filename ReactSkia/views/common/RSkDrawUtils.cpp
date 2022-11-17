@@ -17,7 +17,9 @@
 #include "RSkConversion.h"
 #include "ReactSkia/utils/RnsLog.h"
 
-#define DEFAULT_COLOUR   SK_ColorBLACK /*Black*/
+#define DEFAULT_BACKGROUND_COLOUR  SK_ColorTRANSPARENT /*Transaprent*/
+#define DEFAULT_COLOUR             SK_ColorBLACK /*Black*/
+
 #define UNDERLINEWIDTH   1
 #define BOTTOMALIGNMENT 3
 
@@ -73,11 +75,6 @@ void setStyle(int strokeWidth,SkPaint::Style style,BorderStyle borderStyle,SkPai
     if((borderStyle == BorderStyle::Dashed )|| (borderStyle == BorderStyle::Dotted)){
         setPathEffect(borderStyle,strokeWidth,paint);
     }
-}
-void setColor(SharedColor Color,SkPaint *paint)
-{
-    paint->setAntiAlias(true);
-    paint->setColor(RSkColorFromSharedColor(Color, DEFAULT_COLOUR));
 }
 inline bool isBorderColorVisible(SharedColor Color)
 {
@@ -198,7 +195,8 @@ void drawRect(FrameType frameType,SkCanvas *canvas,
 inline void drawPath(SkCanvas *canvas,SkPath &path,SharedColor Color,sk_sp<SkImageFilter> shadowImageFilter=nullptr)
 {
     SkPaint paint;
-    setColor(Color,&paint);
+    paint.setAntiAlias(true);
+    paint.setColor(RSkColorFromSharedColor(Color, DEFAULT_COLOUR));
     path.setFillType(SkPathFillType::kEvenOdd);
     if(shadowImageFilter != nullptr) {
         paint.setImageFilter(shadowImageFilter);
@@ -375,7 +373,7 @@ void  drawBackground(SkCanvas *canvas,
                                SharedColor backgroundColor)
 {
     if(hasVisibleBackGround(backgroundColor)){
-      drawRect(FilledRect,canvas,frame,borderProps,RSkColorFromSharedColor(backgroundColor, DEFAULT_COLOUR));
+      drawRect(FilledRect,canvas,frame,borderProps,RSkColorFromSharedColor(backgroundColor, DEFAULT_BACKGROUND_COLOUR));
     }
 }
 void drawBorder(SkCanvas *canvas,
@@ -387,10 +385,13 @@ void drawBorder(SkCanvas *canvas,
     FrameType frameType = detectFrameBorderType(borderProps.borderColors,borderProps.borderWidths);
 
     #define CHECK_SIDE_VISIBILITY_AND_DRAW_SIDE_FOR_BORDER(side,sideWidth,sideColor)   \
-                if((backgroundColor != sideColor) && \
-                (isBorderEdgeVisible(sideColor,(sideWidth)) )){ \
-                    createAndDrawDiscretePath(side,canvas,frame,borderProps); \
-                }
+        /* Draw Side, if it has visble color & thickness & color different from background colour*/ \
+        if(((!sideColor && (*backgroundColor != *blackColor())) || /* Default border color is fully opaque balck*/ \
+             (sideColor && (*sideColor != *backgroundColor)))  /* Border & BackGround Color are different*/ \
+              && isBorderEdgeVisible(sideColor,(sideWidth)) /*Side has Visible color & thickness*/ \
+         ){ \
+            createAndDrawDiscretePath(side,canvas,frame,borderProps); \
+        }
 
     if(frameType == MonoChromeStrokedRect) {
         drawRect(MonoChromeStrokedRect,canvas,frame,borderProps,RSkColorFromSharedColor(borderProps.borderColors.left, DEFAULT_COLOUR));
@@ -471,8 +472,8 @@ bool  drawShadow(SkCanvas* canvas,Rect frame,
 
 void drawUnderline(SkCanvas *canvas,Rect frame,SharedColor underlineColor){
     SkPaint paint;
-    setColor(underlineColor, &paint);
     paint.setAntiAlias(true);
+    paint.setColor(RSkColorFromSharedColor(underlineColor, DEFAULT_COLOUR));
     paint.setStyle(SkPaint::kStroke_Style);
     paint.setStrokeWidth(UNDERLINEWIDTH);
     auto frameOrigin = frame.origin;
