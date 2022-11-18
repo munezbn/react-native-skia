@@ -97,9 +97,6 @@ void WindowDelegator::closeWindow() {
   if(ownsTaskrunner_){
    windowTaskRunner_->stop();
   }
-  if(ownsTaskrunner_) {
-    windowTaskRunner_->stop();
-  }
   if (workerThread_.joinable() ) {
     workerThread_.join();
   }
