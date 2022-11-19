@@ -351,7 +351,7 @@ inline double getCacheMaxAgeDuration(std::string cacheControlData) {
 void RSkComponentImage::requestNetworkImageData(string sourceUri) {
   auto sharedCurlNetworking = CurlNetworking::sharedCurlNetworking();
   mlock.lock();
-  if(isRequestinProgress_ == true && remoteCurlRequest_!=nullptr  && (remoteCurlRequest_->handle !=NULL)){
+  if(isRequestinProgress_ == true && remoteCurlRequest_!=nullptr ){
     sharedCurlNetworking->abortRequest(remoteCurlRequest_);
     isRequestinProgress_=false;
   }
@@ -424,7 +424,7 @@ void RSkComponentImage::requestNetworkImageData(string sourceUri) {
     hasToTriggerEvent_ = true;
   }
   mlock.lock();
-  //remoteCurlRequest_ = remoteCurlRequest;
+  remoteCurlRequest_ = remoteCurlRequest;
   RNS_LOG_WARN("sending the curl Request "<<remoteCurlRequest->URL);
   sharedCurlNetworking->sendRequest(remoteCurlRequest,query);
   isRequestinProgress_ = true;
@@ -443,10 +443,10 @@ inline void RSkComponentImage::sendSuccessEvents() {
   hasToTriggerEvent_ = false;
 }
 RSkComponentImage::~RSkComponentImage(){
-  RNS_LOG_DEBUG("calling destructor in Image component");
+  RNS_LOG_INFO("calling destructor in Image component");
   auto sharedCurlNetworking = CurlNetworking::sharedCurlNetworking();
   mlock.lock();
-  if(isRequestinProgress_==true && remoteCurlRequest_!=nullptr &&  (remoteCurlRequest_->handle)){
+  if(isRequestinProgress_ && !remoteCurlRequest_){
     sharedCurlNetworking->abortRequest(remoteCurlRequest_);
     isRequestinProgress_=false;
   }

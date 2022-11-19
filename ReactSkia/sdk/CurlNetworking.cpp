@@ -101,10 +101,15 @@ void CurlNetworking::processNetworkRequest(CURLM *curlMultiHandle) {
   int msgsLeft = 0;
 
   do {
-    res = curl_multi_perform(curlMultiHandle, &stillAlive);
+    {
+      std::lock_guard<std::mutex> lock(mutex_);
+      res = curl_multi_perform(curlMultiHandle, &stillAlive);
+    }
     while((msg = curl_multi_info_read(curlMultiHandle, &msgsLeft))) {
       if(msg->msg == CURLMSG_DONE) {
         CURL *curlHandle = msg->easy_handle;
+        if(!curlHandle) // check valid curl handle or not
+          break;        // if invalid break the loop. 
         CurlRequest *curlRequest = nullptr;
         curl_easy_getinfo(curlHandle, CURLINFO_PRIVATE, &curlRequest);
         res == CURLM_OK ?
@@ -331,8 +336,9 @@ bool CurlNetworking::sendRequest(shared_ptr<CurlRequest> curlRequest, folly::dyn
   return status;
 } 
 bool CurlNetworking::abortRequest(shared_ptr<CurlRequest> curlRequest) {
+  std::scoped_lock lock(mutex_);
   if(curlRequest->handle) {
-    //curl_multi_remove_handle(curlMultihandle_, curlRequest->handle);
+    curl_multi_remove_handle(curlMultihandle_, curlRequest->handle);
     curl_easy_cleanup(curlRequest->handle);
     curlRequest->handle = NULL;
     return true;
