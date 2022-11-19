@@ -132,10 +132,8 @@ void CurlNetworking::processNetworkRequest(CURLM *curlMultiHandle) {
             }
           }
         }
-        if(curlRequest->curldelegator.CURLNetworkingCompletionCallback){
-          RNS_LOG_WARN("***** calling completion call back "<< curlRequest->URL);
+        if(curlRequest->curldelegator.CURLNetworkingCompletionCallback)
           curlRequest->curldelegator.CURLNetworkingCompletionCallback(curlRequest->curlResponse.get(),curlRequest->curldelegator.delegatorData);
-        }
         curl_easy_cleanup(curlHandle);
       } else {
         RNS_LOG_ERROR("Unknown critical error: CURLMsg" << msg->msg);
@@ -244,8 +242,7 @@ size_t CurlNetworking::headerCallbackCurlWrapper(char* buffer, size_t size, size
     RNS_LOG_DEBUG("Header buffer content size:" << curlRequest->curlResponse->headerBuffer.size());
     for( auto const &header : curlRequest->curlResponse->headerBuffer.items())
        RNS_LOG_DEBUG("KEY[" << header.first << "] Value["<< header.second << "]");
-#endif
-    RNS_LOG_WARN("Header before calling Header callback " << curlRequest->URL <<" status"<< curlRequest->curlResponse->statusCode); 
+#endif 
     curlRequest->curldelegator.CURLNetworkingHeaderCallback(curlRequest->curlResponse.get(),curlRequest->curldelegator.delegatorData);
   }
   curlRequest->curlResponse->headerBufferSize += (size*nitems);
@@ -272,7 +269,6 @@ bool CurlNetworking::sendRequest(shared_ptr<CurlRequest> curlRequest, folly::dyn
   CURL *curl = nullptr;
   CURLcode res = CURLE_FAILED_INIT;
 
-  RNS_LOG_WARN("***** sendRequest "<< curlRequest->URL);
   auto cacheData = networkCache_->getCacheData(curlRequest->URL);
   if(cacheData.has_value()) {
     curlRequest->curlResponse = cacheData.value();
