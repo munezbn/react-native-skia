@@ -25,13 +25,9 @@ class Alert : public WindowDelegator {
   public :
     struct AlertInfo {
       std::string alertTitle;
-      std::string alertMsg;
+      std::string alertMessage;
     };
     typedef struct AlertInfo alertInfo;
-    enum AlertAction {
-      SHOW_ALERT,
-      REMOVE_ALERT
-    };
 
     static Alert* getAlertHandler(); // Interface to Instantiate & get Alert singleton class object
     static bool showAlert(alertInfo &alertData);
@@ -45,7 +41,7 @@ class Alert : public WindowDelegator {
 
     std::list<alertInfo> alertInfoList_;
     static Alert* alertHandler_;
-    static std::mutex alertThreadRaceHandlerMutex_;
+    static std::mutex alertThreadRaceCtrlMutex_;
     std::mutex msgHandlerMutex_;
     SkSize alertWindowSize_;
     unsigned int idOfMessageOnDisplay_{0};

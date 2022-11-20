@@ -32,6 +32,8 @@ class RSkAlertManager : public TurboModule {
         const facebook::jsi::Value *args,
         size_t count);
 
+    private:
+
     jsi::Value processAlertMessages(rns::sdk::Alert::alertInfo &alertProps);
 
 };

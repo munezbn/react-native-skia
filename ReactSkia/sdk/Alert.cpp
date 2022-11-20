@@ -14,7 +14,7 @@ namespace rns {
 namespace sdk {
 
 Alert* Alert::alertHandler_{nullptr};
-std::mutex Alert::alertThreadRaceHandlerMutex_;
+std::mutex Alert::alertThreadRaceCtrlMutex_;
 
 Alert* Alert::getAlertHandler() {
   if(alertHandler_ == nullptr ) {
@@ -25,7 +25,7 @@ Alert* Alert::getAlertHandler() {
 
 bool Alert::showAlert(alertInfo &alertData){
 
-  std::lock_guard<std::mutex> lock(alertThreadRaceHandlerMutex_);
+  std::lock_guard<std::mutex> lock(alertThreadRaceCtrlMutex_);
 
   Alert* alertHnadle=Alert::getAlertHandler();
 
@@ -111,7 +111,7 @@ void Alert::onHWKeyHandler(KeyInput keyInput) {
   msgPendingToBeRemoved_=true;
   unsigned int msgIndex=idOfMessageOnDisplay_;
 
-  std::lock_guard<std::mutex> lock(alertThreadRaceHandlerMutex_);
+  std::lock_guard<std::mutex> lock(alertThreadRaceCtrlMutex_);
 
   PopFromAlertContainer(msgIndex);
   msgPendingToBeRemoved_=false;
@@ -148,23 +148,23 @@ inline void Alert::drawRecentAlert() {
     RNS_LOG_DEBUG(" drawAlert Title :: "<<alertRef.alertTitle.c_str());
   }
 
-  if (!alertRef.alertMsg.empty()) {
+  if (!alertRef.alertMessage.empty()) {
 
-    double messageWidth=font_.measureText( alertRef.alertMsg.c_str(),
-                                         alertRef.alertMsg.length(),
+    double messageWidth=font_.measureText( alertRef.alertMessage.c_str(),
+                                         alertRef.alertMessage.length(),
                                          SkTextEncoding::kUTF8);
     drawStartPointY += textFontSize_ + lineSpacing_;
     drawStartPointX=(alertWindowSize_.width() - messageWidth)/2;
 
     windowDelegatorCanvas->drawSimpleText(
-                            alertRef.alertMsg.c_str(),
-                            alertRef.alertMsg.length(),
+                            alertRef.alertMessage.c_str(),
+                            alertRef.alertMessage.length(),
                             SkTextEncoding::kUTF8,
                             drawStartPointX,
                             drawStartPointY,
                             font_,
                             paint_);
-    RNS_LOG_DEBUG(" drawAlert Msg :: "<<alertRef.alertMsg.c_str());
+    RNS_LOG_DEBUG(" drawAlert Msg :: "<<alertRef.alertMessage.c_str());
   }
   idOfMessageOnDisplay_ = alertInfoList_.size();
 

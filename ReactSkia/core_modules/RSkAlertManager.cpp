@@ -35,10 +35,10 @@ facebook::jsi::Value RSkAlertManager::alertWithArgsWrapper(
     // Argument 2:: Alert Callback
     Alert::alertInfo alertInfo;
     alertInfo.alertTitle.assign(dataArg["title"].getString());
-    alertInfo.alertMsg.assign(dataArg["message"].getString());
+    alertInfo.alertMessage.assign(dataArg["message"].getString());
     
     RNS_LOG_DEBUG(" Alert Title   :: "<<alertInfo.alertTitle.c_str());
-    RNS_LOG_DEBUG(" Alert Message :: "<<alertInfo.alertMsg.c_str());
+    RNS_LOG_DEBUG(" Alert Message :: "<<alertInfo.alertMessage.c_str());
     // Call the specific non-static Class object
     return self.processAlertMessages(alertInfo);
 }
