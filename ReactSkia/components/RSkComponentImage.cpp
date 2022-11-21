@@ -179,6 +179,7 @@ RnsShell::LayerInvalidateMask RSkComponentImage::updateComponentProps(const Shad
       imageEventEmitter_->onLoadStart();
       hasToTriggerEvent_ = true;
     }
+    oldUri_ = oldimageProps.sources[0].uri;
     return updateMask;
 }
 
@@ -348,14 +349,12 @@ inline double getCacheMaxAgeDuration(std::string cacheControlData) {
 
 void RSkComponentImage::requestNetworkImageData(string sourceUri) {
   auto sharedCurlNetworking = CurlNetworking::sharedCurlNetworking();
-  networkRequestMutex_.lock();
-  if((isRequestInProgress_ == true) && (remoteCurlRequest_!=nullptr)){
+  if( (oldUri_.compare(source.uri) != 0) && isRequestInProgress_ && remoteCurlRequest_){
     // if url is changed, image component is get component property update.
     // calncel the onging request and made new request to network.  
     sharedCurlNetworking->abortRequest(remoteCurlRequest_);
     isRequestInProgress_=false;
   }
-  networkRequestMutex_.unlock();
   std::shared_ptr<CurlRequest> remoteCurlRequest = std::make_shared<CurlRequest>(nullptr,source.uri,0,"GET");
   
   folly::dynamic query = folly::dynamic::object();
@@ -399,9 +398,7 @@ void RSkComponentImage::requestNetworkImageData(string sourceUri) {
       RNS_LOG_WARN("This object is already destroyed. ignoring the completion callback");
       return 0;
     }
-    networkRequestMutex_.lock();
     isRequestInProgress_=false;
-    networkRequestMutex_.unlock();
     CurlResponse *responseData =  (CurlResponse *)curlresponseData;
     CurlRequest * curlRequest = (CurlRequest *) userdata;
     if((!responseData
@@ -422,11 +419,9 @@ void RSkComponentImage::requestNetworkImageData(string sourceUri) {
     imageEventEmitter_->onLoadStart();
     hasToTriggerEvent_ = true;
   }
-  networkRequestMutex_.lock();
   remoteCurlRequest_ = remoteCurlRequest;
   sharedCurlNetworking->sendRequest(remoteCurlRequest,query);
   isRequestInProgress_ = true;
-  networkRequestMutex_.unlock();
 }
 
 inline void RSkComponentImage::sendErrorEvents() {
@@ -446,12 +441,11 @@ RSkComponentImage::~RSkComponentImage(){
   // still the network component will process the request, by calling abort.
   // will reduces the load on network and improve the performance. 
   auto sharedCurlNetworking = CurlNetworking::sharedCurlNetworking();
-  networkRequestMutex_.lock();
   if(isRequestInProgress_ && remoteCurlRequest_){
     sharedCurlNetworking->abortRequest(remoteCurlRequest_);
     isRequestInProgress_=false;
   }
-  networkRequestMutex_.unlock();
 }
+
 } // namespace react
 } // namespace facebook

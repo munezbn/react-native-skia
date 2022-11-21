@@ -38,8 +38,7 @@ class RSkComponentImage final : public RSkComponent {
   ImgProps imageProps;
   std::shared_ptr<CurlRequest> remoteCurlRequest_{nullptr};
   sk_sp<SkImage> networkImageData_;
-  std::mutex networkRequestMutex_;
-  bool isRequestInProgress_{false};
+  atomic<bool> isRequestInProgress_{false};
   bool hasToTriggerEvent_{false};
   bool canCacheData_{true};
   double cacheExpiryTime_{DEFAULT_MAX_CACHE_EXPIRY_TIME};
