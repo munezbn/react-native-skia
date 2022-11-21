@@ -35,50 +35,82 @@ Alert* Alert::getAlertHandler() {
   return alertHandler_;
 }
 
-bool Alert::showAlert(alertInfo &alertData){
+void Alert::showAlert(alertInfo &alertData){
 
   Alert* alertHandle=Alert::getAlertHandler();
 
-  alertHandle->addAlertToAlertList(alertData);
+  std::lock_guard<std::mutex> lock(alertHandle->alertListAccessCtrlMutex_);
 
-  if(alertHandle->alertWindowState_ == ALERT_WINDOW_DESTRUCTED) {
-      // Create Sub Window for Alert
-      alertHandle->alertWindowState_ = ALERT_WINDOW_ON_CREATION;
-      alertHandle->createAlertWindow();
-    } else {
-      alertHandle->displayRecentAlert();
-    }
+  alertHandle->alertInfoList_.push_back(alertData);
+  alertHandle->triggerRenderRequest(ALERT_TITLE_AND_MESSAGE);
 
-  return true;//On Success
 }
 
-void Alert::displayRecentAlert() {
+void Alert::drawRecentAlertTitleAndMsg(std::vector<SkIRect> &dirtyRect) {
 
-  if((alertWindowState_ != ALERT_WINDOW_ACTIVE) || msgPendingToBeRemoved_) {
+  if((alertInfoList_.empty()) || (ALERT_WINDOW_ACTIVE != alertWindowState_) || (msgPendingToBeChanged_)) {
     return;
   }
 
-  std::lock_guard<std::mutex> lock(msgHandlerMutex_);
+  alertInfo alertRef=alertInfoList_.back();
+  idOfMessageOnDisplay_= alertInfoList_.size();
+  double drawStartPointX{0},drawStartPointY{0};
 
-  if (alertInfoList_.empty()) {
-    // Close Window , When No Message Left
-    closeWindow();
-    alertWindowState_=ALERT_WINDOW_DESTRUCTED;
-  } else {
-    // Else Present Latest Alert Message
-    triggerRenderRequest(ALERT_TITLE_AND_MESSAGE);
+  SkIRect msgAndTitleDirtyRect;
+  pictureCanvas_->clear(DARK_THEME_BACKGROUND_COLOR);
+
+  if (!alertRef.alertTitle.empty()) {
+
+    double titleWidth=font_.measureText( alertRef.alertTitle.c_str(),
+                                         alertRef.alertTitle.length(),
+                                         SkTextEncoding::kUTF8);
+    drawStartPointX=(alertWindowSize_.width() - titleWidth)/2;
+    drawStartPointY=(alertWindowSize_.height() - textFontSize_) / 2;
+
+    pictureCanvas_->drawSimpleText(
+                              alertRef.alertTitle.c_str(),
+                              alertRef.alertTitle.length(),
+                              SkTextEncoding::kUTF8,
+                              drawStartPointX,
+                              drawStartPointY,
+                              font_,
+                              paint_);
+    setWindowTittle(alertRef.alertTitle.c_str());
+
+    msgAndTitleDirtyRect =SkIRect::MakeXYWH(drawStartPointX,
+                                            drawStartPointY-textFontSize_,
+                                            titleWidth,
+                                            textFontSize_+lineSpacing_);
+
+    RNS_LOG_DEBUG(" drawAlert Title :: "<<alertRef.alertTitle.c_str());
   }
-}
 
-inline void Alert::addAlertToAlertList(alertInfo &alertData) {
-    std::lock_guard<std::mutex> lock(alertListAccessCtrlMutex_);
+  if (!alertRef.alertMessage.empty()) {
 
-    alertInfoList_.push_back(alertData);
+    double messageWidth=font_.measureText( alertRef.alertMessage.c_str(),
+                                         alertRef.alertMessage.length(),
+                                         SkTextEncoding::kUTF8);
+    drawStartPointY += textFontSize_ + lineSpacing_;
+    drawStartPointX=(alertWindowSize_.width() - messageWidth)/2;
+
+    pictureCanvas_->drawSimpleText(
+                            alertRef.alertMessage.c_str(),
+                            alertRef.alertMessage.length(),
+                            SkTextEncoding::kUTF8,
+                            drawStartPointX,
+                            drawStartPointY,
+                            font_,
+                            paint_);
+
+    msgAndTitleDirtyRect.join(SkIRect::MakeXYWH(drawStartPointX,drawStartPointY-textFontSize_,
+                               messageWidth,textFontSize_+lineSpacing_));
+    RNS_LOG_DEBUG(" drawAlert Msg :: "<<alertRef.alertMessage.c_str());
+  }
+
+  dirtyRect.push_back(msgAndTitleDirtyRect);
 }
 
 inline void Alert::removeAlertFromAlertList(unsigned int msgIndex) {
-
-  std::lock_guard<std::mutex> lock(alertListAccessCtrlMutex_);
 
   if(alertInfoList_.empty() || (msgIndex > alertInfoList_.size())) {
     return;
@@ -93,15 +125,6 @@ inline void Alert::removeAlertFromAlertList(unsigned int msgIndex) {
     std::advance(it, msgIndex);
     alertInfoList_.erase(it);
   }
-}
-
-inline int Alert::getRecentAlertInfo(alertInfo &alertData) {
-  std::lock_guard<std::mutex> lock(alertListAccessCtrlMutex_);
-  if(alertInfoList_.empty()) {
-    return -1;
-  }
-  alertData = alertInfoList_.back();
-  return alertInfoList_.size();
 }
 
 void Alert::windowReadyToDrawCB() {
@@ -135,76 +158,19 @@ void Alert::onHWKeyHandler(KeyInput keyInput) {
   if ((keyInput.action != RNS_KEY_Press) || (RNS_KEY_Select != keyInput.key) || (keyInput.repeat) ) {
     return;
   }
-
   if(idOfMessageOnDisplay_ == -1) {
     return;// No Valid Index, nothing to remove from display
   }
 
-  msgPendingToBeRemoved_=true;
+  msgPendingToBeChanged_=true;
   unsigned int msgIndex=idOfMessageOnDisplay_;
+
+  std::lock_guard<std::mutex> lock(alertListAccessCtrlMutex_);
+
   removeAlertFromAlertList(msgIndex);
-  msgPendingToBeRemoved_=false;
+  msgPendingToBeChanged_=false;
 
-  displayRecentAlert();
-}
-
-inline void Alert::drawRecentAlertTitleAndMsg(std::vector<SkIRect> &dirtyRect) {
-
-  alertInfo alertRef;
-  int alertIndex= getRecentAlertInfo(alertRef);
-  if((alertIndex == -1) || (ALERT_WINDOW_ACTIVE != alertWindowState_)) {
-    return;
-  }
-
-  double drawStartPointX{0},drawStartPointY{0};
-
-  if (!alertRef.alertTitle.empty()) {
-
-    double titleWidth=font_.measureText( alertRef.alertTitle.c_str(),
-                                         alertRef.alertTitle.length(),
-                                         SkTextEncoding::kUTF8);
-    drawStartPointX=(alertWindowSize_.width() - titleWidth)/2;
-    drawStartPointY=(alertWindowSize_.height() - textFontSize_) / 2;
-
-    pictureCanvas_->drawSimpleText(
-                              alertRef.alertTitle.c_str(),
-                              alertRef.alertTitle.length(),
-                              SkTextEncoding::kUTF8,
-                              drawStartPointX,
-                              drawStartPointY,
-                              font_,
-                              paint_);
-    setWindowTittle(alertRef.alertTitle.c_str());
-
-    dirtyRect.push_back(SkIRect::MakeXYWH(drawStartPointX,drawStartPointY,
-                               titleWidth,textFontSize_));
-
-    RNS_LOG_DEBUG(" drawAlert Title :: "<<alertRef.alertTitle.c_str());
-  }
-
-  if (!alertRef.alertMessage.empty()) {
-
-    double messageWidth=font_.measureText( alertRef.alertMessage.c_str(),
-                                         alertRef.alertMessage.length(),
-                                         SkTextEncoding::kUTF8);
-    drawStartPointY += textFontSize_ + lineSpacing_;
-    drawStartPointX=(alertWindowSize_.width() - messageWidth)/2;
-
-    pictureCanvas_->drawSimpleText(
-                            alertRef.alertMessage.c_str(),
-                            alertRef.alertMessage.length(),
-                            SkTextEncoding::kUTF8,
-                            drawStartPointX,
-                            drawStartPointY,
-                            font_,
-                            paint_);
-
-    dirtyRect.push_back(SkIRect::MakeXYWH(drawStartPointX,drawStartPointY,
-                               messageWidth,textFontSize_));
-    RNS_LOG_DEBUG(" drawAlert Msg :: "<<alertRef.alertMessage.c_str());
-  }
-
-  idOfMessageOnDisplay_=alertIndex;
+  triggerRenderRequest(ALERT_TITLE_AND_MESSAGE);
 
 }
 
@@ -215,16 +181,29 @@ void Alert::triggerRenderRequest(AlertComponents components,bool batchRenderRequ
   std::vector<SkIRect>   dirtyRect;
   pictureCanvas_ = pictureRecorder_.beginRecording(SkRect::MakeXYWH(0, 0, alertWindowSize_.width(), alertWindowSize_.height()));
   bool invalidateFlag{true}; //to be set to indicate static or dynamic component.
+
+  if(alertWindowState_ != ALERT_WINDOW_ACTIVE) {
+      // Create Sub Window for Alert
+      alertWindowState_ = ALERT_WINDOW_ON_CREATION;
+      createAlertWindow();
+      return; //continue processing on receiving window Ready CB
+  } else if (alertInfoList_.empty() && (alertWindowState_ != ALERT_WINDOW_DESTRUCTED)) {
+    // Close Window , When No Message Left
+    closeWindow();
+    alertWindowState_=ALERT_WINDOW_DESTRUCTED;
+    return;// Nothing to process furter.
+  }
+
   switch(components) {
     case ALERT_BACKGROUND:
       pictureCanvas_->clear(DARK_THEME_BACKGROUND_COLOR);
       dirtyRect.push_back(SkIRect::MakeXYWH(0, 0, alertWindowSize_.width(), alertWindowSize_.height()));
-      commandKey="AlertBackGround";
+      commandKey="1AlertBackGround";
       invalidateFlag=false;
     break;
     case ALERT_TITLE_AND_MESSAGE:
       drawRecentAlertTitleAndMsg(dirtyRect);
-      commandKey="AlertTitleAndMessage";
+      commandKey="2AlertTitleAndMessage";
       break;
     default:
     break;

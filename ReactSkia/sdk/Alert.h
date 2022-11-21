@@ -30,7 +30,7 @@ class Alert : public WindowDelegator {
     typedef struct AlertInfo alertInfo;
 
     static Alert* getAlertHandler(); // Interface to Instantiate & get Alert singleton class object
-    static bool showAlert(alertInfo &alertData);
+    static void showAlert(alertInfo &alertData);
 
   private:
     enum AlertWindowState {
@@ -46,11 +46,10 @@ class Alert : public WindowDelegator {
     std::list<alertInfo> alertInfoList_;
     static Alert* alertHandler_;
     std::mutex alertListAccessCtrlMutex_;
-    std::mutex msgHandlerMutex_;
     std::mutex alertActiontCtrlMutex_;
     SkSize alertWindowSize_;
     int idOfMessageOnDisplay_{-1};
-    std::atomic<bool> msgPendingToBeRemoved_{false};
+    std::atomic<bool> msgPendingToBeChanged_{false};
     AlertWindowState alertWindowState_{ALERT_WINDOW_DESTRUCTED};
     double textFontSize_;
     double lineSpacing_;
@@ -65,12 +64,8 @@ class Alert : public WindowDelegator {
     void createAlertWindow();
     void onHWKeyHandler(KeyInput keyInput);
     void triggerRenderRequest(AlertComponents components,bool batchRenderRequest=false);
-    void displayRecentAlert();
-    inline void drawRecentAlertTitleAndMsg(std::vector<SkIRect> &dirtyRect);
+    void drawRecentAlertTitleAndMsg(std::vector<SkIRect> &dirtyRect);
     inline void removeAlertFromAlertList(unsigned int msgIndex);
-    inline void addAlertToAlertList(alertInfo &alertData);
-    inline int getRecentAlertInfo(alertInfo &alertData);
-
 };
 
 }//sdk

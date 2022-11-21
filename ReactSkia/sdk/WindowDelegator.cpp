@@ -150,9 +150,10 @@ inline void WindowDelegator::renderToDisplay(std::string pictureCommandKey,Pictu
 #ifdef SHOW_RENDER_COMMAND_INFO
    RNS_LOG_INFO("Rendering component  : " << pictureCommandKey);
    RNS_LOG_INFO("Count of Dirt Rect   : " <<  pictureObj.dirtyRect.size());
+   RNS_LOG_INFO("Invalidate Flag      : " <<  pictureObj.invalidate);
    RNS_LOG_INFO("Draw Command Count   : "<< pictureObj.pictureCommand.get()->approximateOpCount());
-   RNS_LOG_INFO(" operations and size : " << pictureObj.pictureCommand.get()->approximateBytesUsed());
-   RNS_LOG_INFO(" Batching Request    : "<<batchCommit);
+   RNS_LOG_INFO("Operations and size : " << pictureObj.pictureCommand.get()->approximateBytesUsed());
+   RNS_LOG_INFO("Batching Request    : "<<batchCommit);
 #endif
 
   std::scoped_lock lock(renderCtrlMutex_);
@@ -177,9 +178,9 @@ inline void WindowDelegator::renderToDisplay(std::string pictureCommandKey,Pictu
 
   if(bufferAge != 1) {
 // use Stored commands to fill missed frames in the write buffer
-    std::map<std::string,PictureObject>::reverse_iterator it = recentComponentCommandMap_.rbegin();
+    std::map<std::string,PictureObject>::iterator it = recentComponentCommandMap_.begin();
     bool fullScreenAddedAsDirtyRect{false};
-    for( ;it != recentComponentCommandMap_.rend() ;it++ ) {
+    for( ;it != recentComponentCommandMap_.end() ;it++ ) {
       if(it->second.pictureCommand.get() ) {
 
         it->second.pictureCommand->playback(windowDelegatorCanvas_);

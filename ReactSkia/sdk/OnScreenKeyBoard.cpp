@@ -953,19 +953,19 @@ void OnScreenKeyboard::triggerRenderRequest(OSKComponents components,bool batchR
   switch(components) {
     case OSK_BACKGROUND_AND_TI_TITLE:
       drawOSKBackGround(dirtyRect);
-      commandKey="OSKBackGroundAndTitle";
+      commandKey="1OSKBackGroundAndTitle";
       invalidateFlag=false;
     break;
     case OSK_TEXTINPUT_DISPLAY:
       drawPlaceHolderDisplayString(dirtyRect);
-      commandKey="EmbededTIString";
+      commandKey="2EmbededTIString";
       break;
      case OSK_KEYS:
-       commandKey="HighLight";
+       commandKey="4HighLight";
        drawHighLightOnKey(dirtyRect);
      break;
     case OSK_KEYBOARD_LAYOUT:
-      commandKey="KeyBoardLayout";
+      commandKey="3KeyBoardLayout";
       drawKBLayout(dirtyRect);
      break;
     default:
