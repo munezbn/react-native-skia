@@ -20,6 +20,7 @@
 #endif
 
 #define MAX_PARALLEL_CONNECTION 6L
+#define SECTOMILLSECCONVERTER(time) time*1000
 
 namespace facebook {
 namespace react {

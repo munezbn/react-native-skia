@@ -8,7 +8,7 @@
 #include <semaphore.h>
 #include "ReactSkia/utils/RnsLog.h"
 #include "CurlNetworking.h"
-#define MILLSEC_CONVERTER(time) time*1000
+
 using namespace std;
 namespace facebook {
 namespace react {
@@ -19,7 +19,7 @@ CurlNetworking::CurlNetworking() {
   curl_global_init(CURL_GLOBAL_ALL);
   sem_init(&networkRequestSem_, 0, 0);
   curlMultihandle_ = curl_multi_init();
-  /* Limit the amount of simultaneous connections curl should allow: */
+  // we are limiting the number of connection per host(sever) to 6. 
   curl_multi_setopt(curlMultihandle_, CURLMOPT_MAX_HOST_CONNECTIONS, (long)MAX_PARALLEL_CONNECTION);
   multiNetworkThread_ = std::thread([this]() {
     while(!exitLoop_){
@@ -33,6 +33,7 @@ CurlNetworking::CurlNetworking() {
   });
 
 }
+
 CurlNetworking* CurlNetworking::sharedCurlNetworking() {
   std::lock_guard<std::mutex> lock(mutex_);
   if(sharedCurlNetworking_ == nullptr) {
@@ -40,6 +41,7 @@ CurlNetworking* CurlNetworking::sharedCurlNetworking() {
   }
     return sharedCurlNetworking_;
 }
+
 CurlRequest::CurlRequest(CURL *lhandle, std::string lURL, size_t ltimeout, std::string lmethod):
   handle(lhandle),
   URL(lURL),
@@ -84,7 +86,7 @@ inline bool CurlRequest::shouldCacheData() {
           if(responseMaxAgeTime == 0) {
             return false;
           }
-          curlResponse->cacheExpiryTime = Timer::getCurrentTimeMSecs() + std::min(std::min(MILLSEC_CONVERTER(responseMaxAgeTime),requestMaxAgeTime),static_cast<double>(DEFAULT_MAX_CACHE_EXPIRY_TIME));
+          curlResponse->cacheExpiryTime = Timer::getCurrentTimeMSecs() + std::min(std::min(SECTOMILLSECCONVERTER(responseMaxAgeTime),requestMaxAgeTime),static_cast<double>(DEFAULT_MAX_CACHE_EXPIRY_TIME));
           return true;
         }
       }
@@ -210,6 +212,7 @@ size_t CurlNetworking::writeCallbackCurlWrapper(void* buffer, size_t size, size_
   }
   return size*nitems;
 }
+
 size_t CurlNetworking::progressCallbackCurlWrapper(void *clientp, double dltotal, double dlnow, double ultotal, double ulnow) {
   CurlRequest *curlRequest = (CurlRequest *)clientp;
   if(curlRequest){
@@ -217,7 +220,8 @@ size_t CurlNetworking::progressCallbackCurlWrapper(void *clientp, double dltotal
     curlRequest->curldelegator.CURLNetworkingProgressCallback(dltotal, dlnow, ultotal, ulnow, curlRequest->curldelegator.delegatorData);
   }
   return 0;
-} 
+}
+
 size_t CurlNetworking::headerCallbackCurlWrapper(char* buffer, size_t size, size_t nitems, void* userData) {
   CurlRequest *curlRequest = (CurlRequest *)userData;
 
@@ -331,9 +335,11 @@ bool CurlNetworking::sendRequest(shared_ptr<CurlRequest> curlRequest, folly::dyn
   safe_return :
   return status;
 } 
+
 bool CurlNetworking::abortRequest(shared_ptr<CurlRequest> curlRequest) {
   std::scoped_lock lock(mutex_);
   if(curlRequest->handle) {
+    // remove the handle from the multihandle and cleanup the curl handle.
     curl_multi_remove_handle(curlMultihandle_, curlRequest->handle);
     curl_easy_cleanup(curlRequest->handle);
     curlRequest->handle = NULL;

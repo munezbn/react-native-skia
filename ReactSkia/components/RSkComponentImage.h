@@ -6,6 +6,7 @@
 */
 #pragma once
 
+#include<mutex> 
 #include "include/core/SkRect.h"
 
 #include "react/renderer/components/image/ImageShadowNode.h"
@@ -37,7 +38,8 @@ class RSkComponentImage final : public RSkComponent {
   ImgProps imageProps;
   std::shared_ptr<CurlRequest> remoteCurlRequest_{nullptr};
   sk_sp<SkImage> networkImageData_;
-  bool isRequestinProgress_{false};
+  std::mutex networkRequestMutex_;
+  bool isRequestInProgress_{false};
   bool hasToTriggerEvent_{false};
   bool canCacheData_{true};
   double cacheExpiryTime_{DEFAULT_MAX_CACHE_EXPIRY_TIME};
