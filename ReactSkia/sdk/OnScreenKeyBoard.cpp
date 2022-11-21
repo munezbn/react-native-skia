@@ -919,10 +919,8 @@ void OnScreenKeyboard::windowReadyToDrawCB() {
     repeatKeyQueue_ =  std::make_unique<ThreadSafeQueue<rnsKey>>();
     repeatKeyHandler_ = std::thread(&OnScreenKeyboard::repeatKeyProcessingThread, this);
 #endif
-      onScreenKeyboardEventEmit(std::string("keyboardDidShow"));
     }
     onScreenKeyboardEventEmit(std::string("keyboardDidShow"));
-  }
 }
 
 void OnScreenKeyboard::onScreenKeyboardEventEmit(std::string eventType){

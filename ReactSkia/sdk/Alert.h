@@ -38,19 +38,25 @@ class Alert : public WindowDelegator {
       ALERT_WINDOW_ACTIVE, // Window created & ready To draw
       ALERT_WINDOW_DESTRUCTED // Window Destroyed
     };
+    enum AlertComponents {
+      ALERT_BACKGROUND,
+      ALERT_TITLE_AND_MESSAGE,
+    };
 
     std::list<alertInfo> alertInfoList_;
     static Alert* alertHandler_;
-    static std::mutex alertThreadRaceCtrlMutex_;
+    std::mutex alertListAccessCtrlMutex_;
     std::mutex msgHandlerMutex_;
+    std::mutex alertActiontCtrlMutex_;
     SkSize alertWindowSize_;
-    unsigned int idOfMessageOnDisplay_{0};
+    int idOfMessageOnDisplay_{-1};
     std::atomic<bool> msgPendingToBeRemoved_{false};
     AlertWindowState alertWindowState_{ALERT_WINDOW_DESTRUCTED};
     double textFontSize_;
     double lineSpacing_;
     SkFont font_;
     SkPaint paint_;
+    SkCanvas*     pictureCanvas_{nullptr};
 
     Alert()=default;
     ~Alert()=default;
@@ -58,9 +64,13 @@ class Alert : public WindowDelegator {
     void windowReadyToDrawCB();
     void createAlertWindow();
     void onHWKeyHandler(KeyInput keyInput);
-    inline void drawRecentAlert();
-    void handleAlertMsg();
-    inline void PopFromAlertContainer(unsigned int msgIndex);
+    void triggerRenderRequest(AlertComponents components,bool batchRenderRequest=false);
+    void displayRecentAlert();
+    inline void drawRecentAlertTitleAndMsg(std::vector<SkIRect> &dirtyRect);
+    inline void removeAlertFromAlertList(unsigned int msgIndex);
+    inline void addAlertToAlertList(alertInfo &alertData);
+    inline int getRecentAlertInfo(alertInfo &alertData);
+
 };
 
 }//sdk
