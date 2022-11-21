@@ -32,7 +32,7 @@ const TestCase_FrameTypes = [
     {Title:"BG +InVisible Border",backgroundColor:'burlywood',borderColor:'red',borderWidth:0,AdditionDescription:'BorderWidth :0, Color:Valid'},
     {Title:"BG +InVisible Border",backgroundColor:'burlywood',borderColor:'#ff000000',AdditionDescription:'BorderWidth :valid & transparent Color'},
     {Title:"BG +Discrete Border",backgroundColor:'burlywood',borderRightWidth:0,borderLeftWidth:0,AdditionDescription:'Border width invalid for missing sides + Border Color Not specified'},
-    {Title:"Discrete Border",borderRightWidth:15,borderBottomWidth:5,borderTopWidth:5,borderBottomColor:'red',borderRightColor:'yellow',AdditionDescription:'Border with varying width'},
+    {Title:"Discrete Border",borderRightWidth:15,borderBottomWidth:5,borderTopWidth:5,borderBottomColor:'red',borderRightColor:'yellow',AdditionDescription:'NO BG+ Border with varying width'},
 ];
 
 var FramesPerRow = 3; 
@@ -44,9 +44,9 @@ const shadowProperty={
 const TestCase_ShadowOnView = [
     {Title:"BG + Rounded Rect Border",backgroundColor:'burlywood',borderColor:'red',AdditionDescription:''},
     {Title:"No BG + Rect Border ",borderRadius : 0,borderColor:'red',AdditionDescription:'BorderWidth :Valid, BackGround Color:Not Specified'},
-    {Title:"polyChrome Rect Border",borderBottomColor:'red',AdditionDescription:'BorderWidth : Non Zero, Color:Not Specified'},
-    {Title:"Discrete Border",borderBottomColor:'red',borderRightColor:'yellow',AdditionDescription:'Borders with varying color & uniform width'},
-    {Title:"Discrete Border",borderRightWidth:0,borderLeftWidth:0,AdditionDescription:'Borders with varying/invisible width'},
+    {Title:"polyChrome Rect Border",borderBottomColor:'red',AdditionDescription:'NO BG + BorderWidth : Non Zero, Color:Not Specified'},
+    {Title:"Discrete Border",borderBottomColor:'red',borderRightColor:'yellow',AdditionDescription:'NO BG + Borders with varying color & uniform width'},
+    {Title:"Discrete Border",borderRightWidth:0,borderLeftWidth:0,AdditionDescription:'NO BG + Borders with varying/invisible width'},
     {Title:"InVisible BG+Border",borderColor:'#ff000000',AdditionDescription:'Background color : Not Specified+ BorderColor : has Alpha Zero'},
 ];
 
