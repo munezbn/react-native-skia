@@ -350,6 +350,8 @@ void RSkComponentImage::requestNetworkImageData(string sourceUri) {
   auto sharedCurlNetworking = CurlNetworking::sharedCurlNetworking();
   networkRequestMutex_.lock();
   if((isRequestInProgress_ == true) && (remoteCurlRequest_!=nullptr)){
+    // if url is changed, image component is get component property update.
+    // calncel the onging request and made new request to network.  
     sharedCurlNetworking->abortRequest(remoteCurlRequest_);
     isRequestInProgress_=false;
   }
@@ -445,7 +447,7 @@ RSkComponentImage::~RSkComponentImage(){
   // will reduces the load on network and improve the performance. 
   auto sharedCurlNetworking = CurlNetworking::sharedCurlNetworking();
   networkRequestMutex_.lock();
-  if(isRequestInProgress_ && !remoteCurlRequest_){
+  if(isRequestInProgress_ && remoteCurlRequest_){
     sharedCurlNetworking->abortRequest(remoteCurlRequest_);
     isRequestInProgress_=false;
   }
