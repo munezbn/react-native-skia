@@ -8,8 +8,8 @@
 
 #include "ReactSkia/utils/RnsUtils.h"
 #include "ReactSkia/utils/RnsLog.h"
+#include "ReactSkia/sdk/RNSKeyCodeMapping.h"
 #include "ReactSkia/views/common/RSkDrawUtils.h"
-#include "ReactSkia/sdk/KeyCodeMapping.h"
 
 #include "rns_shell/compositor/layers/Layer.h"
 

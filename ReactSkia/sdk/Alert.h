@@ -14,7 +14,7 @@
 #include "third_party/skia/include/core/SkFont.h"
 #include "third_party/skia/include/core/SkFontMgr.h"
 
-#include "KeyCodeMapping.h"
+#include "RNSKeyCodeMapping.h"
 #include "WindowDelegator.h"
 
 namespace rns {

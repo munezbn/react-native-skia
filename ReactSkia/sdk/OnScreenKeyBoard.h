@@ -14,7 +14,7 @@
 #include "include/core/SkColor.h"
 
 #include "NotificationCenter.h"
-#include "KeyCodeMapping.h"
+#include "RNSKeyCodeMapping.h"
 #if ENABLE(FEATURE_KEY_THROTTLING)
 #include "ThreadSafeQueue.h"
 #endif /*ENABLE_FEATURE_KEY_THROTTLING*/
