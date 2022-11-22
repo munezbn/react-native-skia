@@ -204,12 +204,12 @@ void Alert::triggerRenderRequest(AlertComponents components,bool batchRenderRequ
     case ALERT_BACKGROUND:
       pictureCanvas_->clear(DARK_THEME_BACKGROUND_COLOR);
       dirtyRect.push_back(SkIRect::MakeXYWH(0, 0, alertWindowSize_.width(), alertWindowSize_.height()));
-      commandKey="1AlertBackGround";
+      commandKey="AlertBackGround";
       invalidateFlag=false;
     break;
     case ALERT_TITLE_AND_MESSAGE:
       drawRecentAlertTitleAndMsg(dirtyRect);
-      commandKey="2AlertTitleAndMessage";
+      commandKey="AlertTitleAndMessage";
       break;
     default:
     break;

@@ -937,8 +937,9 @@ void OnScreenKeyboard::windowReadyToDrawCB() {
                                                                        std::placeholders::_2,
                                                                        std::placeholders::_3);
       subWindowKeyEventId_ = NotificationCenter::subWindowCenter().addListener("onHWKeyEvent", handler);
-      onScreenKeyboardEventEmit(std::string("keyboardDidShow"));
     }
+    onScreenKeyboardEventEmit(std::string("keyboardDidShow"));
+  }
 }
 
 void OnScreenKeyboard::onScreenKeyboardEventEmit(std::string eventType){
@@ -971,19 +972,19 @@ void OnScreenKeyboard::triggerRenderRequest(OSKComponents components,bool batchR
   switch(components) {
     case OSK_BACKGROUND_AND_TI_TITLE:
       drawOSKBackGround(dirtyRect);
-      commandKey="1OSKBackGroundAndTitle";
+      commandKey="OSKBackGroundAndTitle";
       invalidateFlag=false;
     break;
     case OSK_TEXTINPUT_DISPLAY:
       drawPlaceHolderDisplayString(dirtyRect);
-      commandKey="2EmbededTIString";
+      commandKey="EmbededTIString";
       break;
      case OSK_KEYS:
-       commandKey="4HighLight";
+       commandKey="HighLight";
        drawHighLightOnKey(dirtyRect);
      break;
     case OSK_KEYBOARD_LAYOUT:
-      commandKey="3KeyBoardLayout";
+      commandKey="KeyBoardLayout";
       drawKBLayout(dirtyRect);
      break;
     default:

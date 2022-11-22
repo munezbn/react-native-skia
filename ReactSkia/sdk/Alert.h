@@ -65,7 +65,7 @@ class Alert : public WindowDelegator {
     void createAlertWindow();
     void triggerRenderRequest(AlertComponents components,bool batchRenderRequest=false);
     void drawRecentAlertTitleAndMsg(std::vector<SkIRect> &dirtyRect);
-    inline void removeAlertFromAlertList(unsigned int msgIndex);
+    void removeAlertFromAlertList(unsigned int msgIndex);
     void onHWKeyHandler(rnsKey key, rnsKeyAction eventKeyAction,RnsShell::Window *window);
 };
 

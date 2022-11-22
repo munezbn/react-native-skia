@@ -131,8 +131,7 @@ void WindowDelegator::closeNativeWindow() {
   }
   windowDelegatorCanvas_=nullptr;
   windowReadyTodrawCB_=nullptr;
-  std::map<std::string,PictureObject> emptyMap;
-  recentComponentCommandMap_.swap(emptyMap);
+  recentComponentCommandVec_.clear();
 }
 
 void WindowDelegator::commitDrawCall(std::string pictureCommandKey,PictureObject pictureObj,bool batchCommit) {
@@ -165,25 +164,27 @@ inline void WindowDelegator::renderToDisplay(std::string pictureCommandKey,Pictu
   if((bufferAge !=1) && batchCommit) {
     //To avoid reduntant painting   & dirt Rect calculation. Just store the command.
     //Rest will be handled , when Render Requested by client.
-    recentComponentCommandMap_[pictureCommandKey]=pictureObj;
+    updateRecentCommand(pictureCommandKey,pictureObj);
     return;
   }
 
   // Add current component's old dirty Rect
-  auto iter=recentComponentCommandMap_.find(pictureCommandKey);
-  if((iter != recentComponentCommandMap_.end()) && supportsPartialUpdate_ && (bufferAge!=0)) {
+  auto iter=findInComponentCommandVec(pictureCommandKey);
+  if((iter != recentComponentCommandVec_.end()) && supportsPartialUpdate_ && (bufferAge!=0)) {
     generateDirtyRect(iter->second.dirtyRect);
   }
 
-  recentComponentCommandMap_[pictureCommandKey]=pictureObj;
+  updateRecentCommand(pictureCommandKey,pictureObj);
 
   if(bufferAge != 1) {
-// use Stored commands to fill missed frames in the write buffer
-    std::map<std::string,PictureObject>::iterator it = recentComponentCommandMap_.begin();
-    bool fullScreenAddedAsDirtyRect{false};
-    for( ;it != recentComponentCommandMap_.end() ;it++ ) {
-      if(it->second.pictureCommand.get() ) {
+// use Stored commands to fill missed frames in the write buffer in the order it received.
 
+    PictureCommandPairVec::iterator it = recentComponentCommandVec_.begin();
+    bool fullScreenAddedAsDirtyRect{false};
+
+    for( ;it != recentComponentCommandVec_.end() ;it++ ) {
+      if(it->second.pictureCommand.get() ) {
+        RNS_LOG_DEBUG("playback PictureCommand for component : "<<it->first);
         it->second.pictureCommand->playback(windowDelegatorCanvas_);
 
           if(supportsPartialUpdate_ && !fullScreenAddedAsDirtyRect) {
@@ -232,6 +233,31 @@ inline void WindowDelegator::renderToDisplay(std::string pictureCommandKey,Pictu
       std::vector<SkIRect> emptyVect;
       dirtyRectVec_.swap(emptyVect);
     }
+  }
+}
+
+inline PictureCommandPairVec::iterator WindowDelegator::findInComponentCommandVec(std::string pictureCommandKey) {
+
+  auto it = std::find_if(recentComponentCommandVec_.begin(), recentComponentCommandVec_.end(),
+                        [&] (PictureCommandPair cmdPair) {
+      if(cmdPair.first == pictureCommandKey) {
+        return true;
+      }
+      return false;
+  });
+  return it;
+}
+
+void WindowDelegator::updateRecentCommand(std::string pictureCommandKey,PictureObject &pictureObj) {
+
+  PictureCommandPair commandPair=std::make_pair(pictureCommandKey,pictureObj);
+
+  auto it = findInComponentCommandVec(pictureCommandKey);
+
+  if(it != recentComponentCommandVec_.end()) {
+    *it=commandPair;
+  } else {
+    recentComponentCommandVec_.push_back(commandPair);
   }
 }
 

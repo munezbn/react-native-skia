@@ -7,7 +7,6 @@
 
 #include <semaphore.h>
 #include <thread>
-#include <map>
 
 #include "include/core/SkCanvas.h"
 #include "include/core/SkPictureRecorder.h"
@@ -26,8 +25,11 @@ struct pictureCommand {
   sk_sp<SkPicture> pictureCommand;
   bool invalidate;
 };
-
 typedef struct pictureCommand PictureObject;
+
+typedef std::pair<std::string,PictureObject> PictureCommandPair;
+typedef std::vector<PictureCommandPair>  PictureCommandPairVec;
+
 class WindowDelegator {
   public:
 
@@ -39,12 +41,15 @@ class WindowDelegator {
     void closeNativeWindow();
     void setWindowTittle(const char* titleString);
     void commitDrawCall(std::string pictureCommandKey,PictureObject pictureObj,bool batchCommit=false);
+    RnsShell::Window* getWindow(){ return window_;}
   
   private:
     void onExposeHandler(RnsShell::Window* window);
     void windowWorkerThread();
     void createNativeWindow();
     void renderToDisplay(std::string pictureCommandKey,PictureObject pictureObj,bool batchCommit);
+    void updateRecentCommand(std::string pictureCommandKey,PictureObject & pictureObj);
+    PictureCommandPairVec::iterator findInComponentCommandVec(std::string pictureCommandKey);
 #if USE(RNS_SHELL_PARTIAL_UPDATES)
     void generateDirtyRect(std::vector<SkIRect> &componentDirtRectVec);
     bool supportsPartialUpdate_{false};
@@ -71,7 +76,7 @@ class WindowDelegator {
     SkSize windowSize_;
     bool windowActive{false};
 
-    std::map<std::string,PictureObject> recentComponentCommandMap_;
+    PictureCommandPairVec recentComponentCommandVec_;
 };
 
 } // namespace sdk
