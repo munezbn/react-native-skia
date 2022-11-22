@@ -15,6 +15,7 @@
 #include "ReactSkia/components/RSkComponentProviderTextInput.h"
 #include "ReactSkia/components/RSkComponentProviderUnimplementedView.h"
 #include "ReactSkia/components/RSkComponentProviderView.h"
+#include "ReactSkia/components/RSkComponentProviderActivityIndicator.h"
 
 #if defined (OS_MACOSX)
 #include "ReactSkia/platform/macosx/MainRunLoopEventBeat.h"
@@ -254,6 +255,8 @@ void RNInstance::RegisterComponents() {
       std::make_unique<RSkComponentProviderTextInput>());
   componentViewRegistry_->Register(
       std::make_unique<RSkComponentProviderScrollView>());
+  componentViewRegistry_->Register(
+      std::make_unique<RSkComponentProviderActivityIndicator>());
 
   // Provider request callback which is called when it doesnt find a viewManagerProvider in componentViewRegistry
   componentViewRegistry_->providerRegistry().setComponentDescriptorProviderRequest(

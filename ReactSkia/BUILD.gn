@@ -104,7 +104,6 @@ rn_cxx_component("textinput") {
   public_configs = [":textinput_config"]
 }
 
-
 source_set("ReactSkia") {
   sources = [
     "ComponentViewRegistry.cpp",
@@ -147,9 +146,13 @@ source_set("ReactSkia") {
     "RSkSurfaceWindow.h",
     "components/RSkComponent.cpp",
     "components/RSkComponent.h",
+    "components/RSkComponentActivityIndicator.cpp",
+    "components/RSkComponentActivityIndicator.h",
     "components/RSkComponentImage.cpp",
     "components/RSkComponentImage.h",
     "components/RSkComponentProvider.h",
+    "components/RSkComponentProviderActivityIndicator.cpp",
+    "components/RSkComponentProviderActivityIndicator.h",
     "components/RSkComponentProviderImage.cpp",
     "components/RSkComponentProviderImage.h",
     "components/RSkComponentProviderRootView.cpp",
@@ -211,6 +214,16 @@ source_set("ReactSkia") {
     "LegacyNativeModules/LegacyNativeModule.h",
     "LegacyNativeModules/uimanager/UiManagerModule.cpp",
     "LegacyNativeModules/uimanager/UiManagerModule.h",
+  ]
+
+  # Activity Indicator Native Component
+  sources += [
+    "activityindicator/react/renderer/components/activityindicator/ActivityIndicatorComponentDescriptor.h",
+    "activityindicator/react/renderer/components/activityindicator/ActivityIndicatorProps.cpp",
+    "activityindicator/react/renderer/components/activityindicator/ActivityIndicatorProps.h",
+    "activityindicator/react/renderer/components/activityindicator/ActivityIndicatorShadowNode.cpp",
+    "activityindicator/react/renderer/components/activityindicator/ActivityIndicatorShadowNode.h",
+    "activityindicator/react/renderer/components/activityindicator/ActivityIndicatorState.h",
   ]
 
   # Thirdparty Codegen Fabric Components and Native modules
