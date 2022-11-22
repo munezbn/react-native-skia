@@ -22,6 +22,8 @@
 #include "Window.h"
 #include "PlatformDisplay.h"
 
+#include "ReactSkia/sdk/RNSKeyCodeMapping.h"
+#include "ReactSkia/sdk/NotificationCenter.h"
 typedef Window XWindow;
 
 namespace RnsShell {
@@ -69,6 +71,7 @@ public:
     void setRequestedDisplayParams(const DisplayParams&, bool allowReattach) override;
 
 private:
+    void onKey(rnsKey eventKeyType, rnsKeyAction eventKeyAction);
     void onExpose();
     rnsKey  keyIdentifierForX11KeyCode(KeySym keycode);
 
