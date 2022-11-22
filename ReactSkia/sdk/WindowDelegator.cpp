@@ -91,6 +91,7 @@ void  WindowDelegator::createNativeWindow() {
 }
 
 void WindowDelegator::closeWindow() {
+  RNS_LOG_TODO("Sync between rendering & Exit to be handled ");
   windowActive = false;
 
   if(ownsTaskrunner_) {

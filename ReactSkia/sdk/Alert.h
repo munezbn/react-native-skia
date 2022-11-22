@@ -62,10 +62,10 @@ class Alert : public WindowDelegator {
 
     void windowReadyToDrawCB();
     void createAlertWindow();
-    void onHWKeyHandler(KeyInput keyInput);
     void triggerRenderRequest(AlertComponents components,bool batchRenderRequest=false);
     void drawRecentAlertTitleAndMsg(std::vector<SkIRect> &dirtyRect);
     inline void removeAlertFromAlertList(unsigned int msgIndex);
+    void onHWKeyHandler(rnsKey key, rnsKeyAction eventKeyAction);
 };
 
 }//sdk

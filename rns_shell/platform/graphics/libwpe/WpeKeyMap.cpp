@@ -1,4 +1,5 @@
 #include <wpe/wpe.h>
+#include "ReactSkia/sdk/RNSKeyCodeMapping.h"
 #include "WindowLibWPE.h"
 using namespace std;
 rnsKey  RnsShell::WindowLibWPE::keyIdentifierForWPEKeyCode(int keyCode){

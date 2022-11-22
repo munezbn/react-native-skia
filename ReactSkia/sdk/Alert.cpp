@@ -147,15 +147,15 @@ void Alert::windowReadyToDrawCB() {
 void Alert::createAlertWindow() {
   alertWindowSize_ = RnsShell::Window::getMainWindowSize();
   std::function<void()> createWindowCB = std::bind(&Alert::windowReadyToDrawCB, this);
-  std::function<void(KeyInput)> windowKeyEventCB = std::bind( &Alert::onHWKeyHandler,this,
-                                                      std::placeholders::_1);
-  createWindow(alertWindowSize_, createWindowCB,windowKeyEventCB);
+  std::function<void(rnsKey, rnsKeyAction)> windowKeyEventCB = std::bind( &Alert::onHWKeyHandler,this,
+                                std::placeholders::_1,  // KeyValue
+                                std::placeholders::_2);  // eventKeyAction
+  createWindow(alertWindowSize_, createWindowCB);
 }
 
-void Alert::onHWKeyHandler(KeyInput keyInput) {
-  RNS_LOG_DEBUG("rnsKey: "<<RNSKeyMap[keyInput.key]<<" rnsKeyaction: "<<((keyInput.action ==0) ? "RNS_KEY_Press ": "RNS_KEY_Release ")<<"Key repeat : "<<keyInput.repeat);
-
-  if ((keyInput.action != RNS_KEY_Press) || (RNS_KEY_Select != keyInput.key) || (keyInput.repeat) ) {
+void Alert::onHWKeyHandler(rnsKey keyValue,rnsKeyAction eventKeyAction) {
+  RNS_LOG_DEBUG("KEY RECEIVED : " << RNSKeyMap[keyValue]);
+  if ((eventKeyAction != RNS_KEY_Press) || (RNS_KEY_Select != keyValue) ) {
     return;
   }
   if(idOfMessageOnDisplay_ == -1) {

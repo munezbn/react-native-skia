@@ -8,6 +8,7 @@
 #include "ReactSkia/components/RSkComponent.h"
 
 static bool keyRepeat;
+static rnsKey previousKeyType;
 
 namespace facebook{
 namespace react {
@@ -17,16 +18,18 @@ static unsigned int subWindowEventId_;
 RSkInputEventManager* RSkInputEventManager::sharedInputEventManager_{nullptr};
 RSkInputEventManager::RSkInputEventManager(){
 #if ENABLE(FEATURE_KEY_THROTTLING)
-  keyQueue_ =  std::make_unique<ThreadSafeQueue<KeyInput>>();
+  keyQueue_ =  std::make_unique<ThreadSafeQueue<RskKeyInput>>();
 #endif
-  std::function<void(KeyInput)> handler = std::bind(&RSkInputEventManager::keyHandler, this,
-                                                              std::placeholders::_1);
+  std::function<void(rnsKey, rnsKeyAction)> handler = std::bind(&RSkInputEventManager::keyHandler, this,
+                                                              std::placeholders::_1, // rnsKey
+                                                              std::placeholders::_2);
   eventId_ = NotificationCenter::defaultCenter().addListener("onHWKeyEvent", handler);
 #if ENABLE(FEATURE_ONSCREEN_KEYBOARD)
   subWindowEventId_ = NotificationCenter::subWindowCenter().addListener("onOSKKeyEvent", handler);
 #endif/*FEATURE_ONSCREEN_KEYBOARD*/
-  keyRepeat=false;
   spatialNavigator_ =  SpatialNavigator::RSkSpatialNavigator::sharedSpatialNavigator();
+  keyRepeat=false;
+  previousKeyType=RNS_KEY_UnKnown;
 #if ENABLE(FEATURE_KEY_THROTTLING)
   inputWorkerThread_ = std::thread(&RSkInputEventManager::inputWorkerThreadFunction, this);
   sem_init(&keyEventPost_, 0, 1);
@@ -57,12 +60,12 @@ RSkInputEventManager::~RSkInputEventManager(){
 
 #if ENABLE(FEATURE_KEY_THROTTLING)
 void RSkInputEventManager::inputWorkerThreadFunction() {
-  KeyInput keyInput;
+  RskKeyInput keyInput;
   while(true) {
     while(activeInputClients_ > 0) // If there are clients who are still processing previous key then wait..
       sem_wait(&keyEventPost_);
     keyQueue_->pop(keyInput); // Blocks if empty. TODO better to use timed pop to avoid unforseen block issues ??
-    RNS_LOG_DEBUG("Process input from queue,  Key : " << keyInput.key << " Action : " <<keyInput.action << ", Repeat : " <<keyInput.repeat);
+    RNS_LOG_DEBUG("Process input from queue,  Key : " << keyInput.key_ << " Action : " <<keyInput.action_ << ", Repeat : " <<keyInput.repeat_);
     processKey(keyInput);
   }
 }
@@ -78,10 +81,15 @@ void RSkInputEventManager::onEventComplete() {
 }
 #endif
 
-void RSkInputEventManager::keyHandler(KeyInput keyInput){
-  RNS_LOG_DEBUG("[keyHandler] Key Repeat" << keyInput.repeat<<"  eventKey  " <<keyInput.key << "  eventaction  " << keyInput.action);
+void RSkInputEventManager::keyHandler(rnsKey eventKeyType, rnsKeyAction eventKeyAction){
+  RNS_LOG_DEBUG("[keyHandler] Key Repeat" << keyRepeat<<"  eventKeyType  " <<eventKeyType << " previousKeyType " <<previousKeyType <<"  eventKeyAction  " << eventKeyAction);
 
-  if(keyInput.action == RNS_KEY_Release) {
+  if(previousKeyType == eventKeyType  && eventKeyAction == RNS_KEY_Press){
+    keyRepeat = true;
+  }
+
+  if(eventKeyAction == RNS_KEY_Release) {
+    previousKeyType = RNS_KEY_UnKnown;
     if(keyRepeat == true) {
       keyRepeat = false;
 #if ENABLE(FEATURE_KEY_THROTTLING)
@@ -92,8 +100,9 @@ void RSkInputEventManager::keyHandler(KeyInput keyInput){
       return;// ignore key release 
     }
   } else {
+    RskKeyInput keyInput(eventKeyType, eventKeyAction, keyRepeat);
+    previousKeyType = eventKeyType;
 #if ENABLE(FEATURE_KEY_THROTTLING)
-    keyRepeat = keyInput.repeat;
     keyQueue_->push(keyInput);
 #else
     processKey(keyInput);
@@ -101,24 +110,24 @@ void RSkInputEventManager::keyHandler(KeyInput keyInput){
   }
 }
 
-void RSkInputEventManager::processKey(KeyInput &keyInput) {
+void RSkInputEventManager::processKey(RskKeyInput &keyInput) {
   bool stopPropagate = false;
 
-  RNS_LOG_DEBUG("[Process Key] Key Repeat " << keyInput.repeat << " eventKeyType  " << keyInput.key );
+  RNS_LOG_DEBUG("[Process Key] Key Repeat " << keyInput.repeat_ << " eventKeyType  " << keyInput.key_ << " previousKeyType " << previousKeyType);
   auto currentFocused = spatialNavigator_->getCurrentFocusElement();
   if(currentFocused){ // send key to Focused component.
-    currentFocused->onHandleKey(keyInput.key, keyInput.repeat, &stopPropagate);
+    currentFocused->onHandleKey(keyInput.key_, keyInput.repeat_, &stopPropagate);
     if(stopPropagate){
       return;//don't propagate key further
     }
   }
 #if defined(TARGET_OS_TV) && TARGET_OS_TV
   sendNotificationWithEventType(
-      RNSKeyMap[keyInput.key],
+      RNSKeyMap[keyInput.key_],
       currentFocused ? currentFocused->getComponentData().tag : -1,
-      keyInput.action, nullptr);
+      keyInput.action_, nullptr);
 #endif //TARGET_OS_TV
-  spatialNavigator_->handleKeyEvent(keyInput.key, keyInput.action);
+  spatialNavigator_->handleKeyEvent(keyInput.key_, keyInput.action_);
 }
 
 RSkInputEventManager* RSkInputEventManager::getInputKeyEventManager(){

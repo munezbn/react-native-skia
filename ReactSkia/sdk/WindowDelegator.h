@@ -38,7 +38,6 @@ class WindowDelegator {
 
     void createWindow(SkSize windowSize,
                       std::function<void ()> windowReadyTodrawCB,
-                      std::function<void (KeyInput)> keyEventCB=nullptr,
                       bool runOnTaskRunner=true
                     );
     void closeWindow();
@@ -71,7 +70,7 @@ class WindowDelegator {
     std::thread workerThread_;
 
     std::function<void ()> windowReadyTodrawCB_{nullptr};
-    std::function<void (KeyInput)> windowKeyEventCB_{nullptr};
+    std::function<void (rnsKey,rnsKeyAction)> windowKeyEventCB_{nullptr};
 
     RnsShell::PlatformDisplay::Type displayPlatForm_;
     int exposeEventID_{-1};

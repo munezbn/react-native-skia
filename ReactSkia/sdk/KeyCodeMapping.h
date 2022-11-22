@@ -334,17 +334,4 @@ static std::string RNSKeyMap[RNS_KEY_End]={
     "insert",
     "unKnown"
 };
-
-struct KeyInput {
-  KeyInput() = default;
-  ~KeyInput() = default;
-  KeyInput(rnsKey keyValue, rnsKeyAction keyAction, bool keyRepeat)
-      : key(keyValue),
-        action(keyAction),
-        repeat(keyRepeat) { }
-  rnsKey key;
-  rnsKeyAction action {RNS_KEY_UnknownAction};
-  bool repeat {false};
-};
-
 #endif// __KeyCodeMapping_h__

@@ -92,8 +92,7 @@ void OnScreenKeyboard::exit() {
       sem_post(&oskHandle.sigKeyConsumed_);
     } else {
       //post a dummy message to avoid dead lock on waiting for key Input.
-      KeyInput keyInput(RNS_KEY_UnKnown,RNS_KEY_Press,false);
-      oskHandle.repeatKeyQueue_->push(keyInput);
+      oskHandle.repeatKeyQueue_->push(RNS_KEY_UnKnown);
     }
   }
   // Finally ensure the thread exit.
@@ -101,6 +100,7 @@ void OnScreenKeyboard::exit() {
     oskHandle.repeatKeyHandler_.join();
   }
   oskHandle.onKeyRepeatMode_=false;
+  oskHandle.previousKey_=RNS_KEY_UnKnown;
   oskHandle.waitingForKeyConsumedSignal_=false;
   sem_destroy(&oskHandle.sigKeyConsumed_);
   oskHandle.repeatKeyQueue_=nullptr;
@@ -185,10 +185,10 @@ void OnScreenKeyboard::launchOSKWindow() {
 
 //Finally Creating OSK Window
   std::function<void()> createWindowCB = std::bind(&OnScreenKeyboard::windowReadyToDrawCB,this);
-  std::function<void(KeyInput)> windowKeyEventCB = std::bind(&OnScreenKeyboard::onHWkeyHandler,this,
-                                                                       std::placeholders::_1);
+  std::function<void(rnsKey, rnsKeyAction)> windowKeyEventCB = std::bind(&OnScreenKeyboard::onHWkeyHandler,this,
+                                                                       std::placeholders::_1,
+                                                                       std::placeholders::_2);
   createWindow(screenSize_,createWindowCB,windowKeyEventCB);
-
 }
 
 void OnScreenKeyboard::drawPlaceHolderDisplayString(std::vector<SkIRect> &dirtyRect) {
@@ -516,40 +516,45 @@ void OnScreenKeyboard ::drawHighLightOnKey(std::vector<SkIRect> &dirtyRect) {
 }
 
 
-void OnScreenKeyboard::onHWkeyHandler(KeyInput keyInput) {
+void OnScreenKeyboard::onHWkeyHandler(rnsKey keyValue, rnsKeyAction eventKeyAction) {
 
-  RNS_LOG_DEBUG("rnsKey: "<<RNSKeyMap[keyInput.key]<<" rnsKeyaction: "<<((keyInput.action ==0) ? "RNS_KEY_Press ": "RNS_KEY_Release ")<<"Key repeat : "<<keyInput.repeat);
+  RNS_LOG_INFO("rnsKey: "<<RNSKeyMap[keyValue]<<" rnsKeyAction: "<<((eventKeyAction ==0) ? "RNS_KEY_Press ": "RNS_KEY_Release ") );
 
-  if(keyInput.action == RNS_KEY_Release) {
+  if(eventKeyAction == RNS_KEY_Release) {
 #if ENABLE(FEATURE_KEY_THROTTLING)
     if(onKeyRepeatMode_) {
-      onKeyRepeatMode_=false;
       if(!repeatKeyQueue_->isEmpty()) {
         repeatKeyQueue_->clear();
       }
     }
+    previousKey_ = RNS_KEY_UnKnown;
+    onKeyRepeatMode_ = false;
 #endif /*ENABLE_FEATURE_KEY_THROTTLING*/
     if(emittedOSKKey_ != RNS_KEY_UnKnown) {
-      keyInput.key=emittedOSKKey_;
+      NotificationCenter::subWindowCenter().emit("onOSKKeyEvent", emittedOSKKey_, RNS_KEY_Release);
+    } else {
+      NotificationCenter::subWindowCenter().emit("onOSKKeyEvent", keyValue, RNS_KEY_Release);
     }
-    NotificationCenter::subWindowCenter().emit("onOSKKeyEvent", keyInput);
     return;
   }
 
   if(oskState_ != OSK_STATE_ACTIVE) { return;}
 #if ENABLE(FEATURE_KEY_THROTTLING)
-  onKeyRepeatMode_=keyInput.repeat;
-  if(onKeyRepeatMode_) {
-    repeatKeyQueue_->push(keyInput);
+  if(previousKey_ == keyValue  && eventKeyAction == RNS_KEY_Press) {
+    onKeyRepeatMode_ = true;
+    repeatKeyQueue_->push(keyValue);
   } else
 #endif /*ENABLE_FEATURE_KEY_THROTTLING*/
   {
-    processKey(keyInput);
+    processKey(keyValue);
   }
+#if ENABLE(FEATURE_KEY_THROTTLING)
+  previousKey_=keyValue;
+#endif/*ENABLE_FEATURE_KEY_THROTTLING*/
 }
 
-inline void OnScreenKeyboard::processKey(KeyInput &keyInput) {
-  if(keyInput.key == RNS_KEY_UnKnown){
+inline void OnScreenKeyboard::processKey(rnsKey keyValue) {
+  if(keyValue == RNS_KEY_UnKnown){
     return;
   }
   if(oskState_ != OSK_STATE_ACTIVE) {return;}
@@ -558,8 +563,8 @@ inline void OnScreenKeyboard::processKey(KeyInput &keyInput) {
   hlCandidate=lastFocussIndex_=currentFocussIndex_;
   rnsKey OSKkeyValue{RNS_KEY_UnKnown};
   unsigned int rowIndex=currentFocussIndex_.y(),keyIndex=currentFocussIndex_.x();
-  RNS_LOG_DEBUG("KEY RECEIVED : "<<RNSKeyMap[keyInput.key]);
-  switch( keyInput.key ) {
+  RNS_LOG_DEBUG("KEY RECEIVED : "<<RNSKeyMap[keyValue]);
+  switch( keyValue ) {
 /* Case  1: Process Navigation Keys*/
     case RNS_KEY_Right:
       hlCandidate= oskLayout_.siblingInfo->at(rowIndex).at(keyIndex).siblingRight;
@@ -601,8 +606,8 @@ inline void OnScreenKeyboard::processKey(KeyInput &keyInput) {
     {
       bool keyFound=false;
       /*Process only KB keys*/
-      if(( keyInput.key == RNS_KEY_Select) ||
-         ((keyInput.key < RNS_KEY_UnKnown ) && (keyInput.key >= RNS_KEY_1))) {
+      if(( keyValue == RNS_KEY_Select) ||
+         ((keyValue < RNS_KEY_UnKnown ) && (keyValue >= RNS_KEY_1))) {
         rnsKey layoutKeyValue{RNS_KEY_UnKnown};
         for (unsigned int rowIndex=0; (rowIndex < oskLayout_.keyInfo->size()) && (!keyFound);rowIndex++) {
           for (unsigned int keyIndex=0; keyIndex<oskLayout_.keyInfo->at(rowIndex).size();keyIndex++) {
@@ -612,10 +617,10 @@ inline void OnScreenKeyboard::processKey(KeyInput &keyInput) {
                (isalpha(*oskLayout_.keyInfo->at(rowIndex).at(keyIndex).keyName))) {
                   layoutKeyValue = static_cast<rnsKey>(layoutKeyValue-26);
             }
-            if(layoutKeyValue == keyInput.key) {
+            if(layoutKeyValue == keyValue) {
               hlCandidate.set(keyIndex,rowIndex);
               keyFound=true;
-              OSKkeyValue =keyInput.key;
+              OSKkeyValue =keyValue;
               break;
             }
           }
@@ -647,8 +652,8 @@ inline void OnScreenKeyboard::processKey(KeyInput &keyInput) {
       waitingForKeyConsumedSignal_=true;
     }
 #endif
-    keyInput.key=emittedOSKKey_=OSKkeyValue;
-    NotificationCenter::subWindowCenter().emit("onOSKKeyEvent", keyInput);
+    emittedOSKKey_=OSKkeyValue;
+    NotificationCenter::subWindowCenter().emit("onOSKKeyEvent", OSKkeyValue, RNS_KEY_Press);
   }
 }
 
@@ -929,15 +934,15 @@ void OnScreenKeyboard::onScreenKeyboardEventEmit(std::string eventType){
 
 #if ENABLE(FEATURE_KEY_THROTTLING)
 void OnScreenKeyboard::repeatKeyProcessingThread(){
-  KeyInput keyInput;
+  rnsKey eventKeyType;
   while(oskState_ == OSK_STATE_ACTIVE) {
     if(waitingForKeyConsumedSignal_) {
       sem_wait(&sigKeyConsumed_);
       waitingForKeyConsumedSignal_=false;
     }
     if(oskState_ == OSK_STATE_ACTIVE) {
-      repeatKeyQueue_->pop(keyInput);
-      processKey(keyInput);
+      repeatKeyQueue_->pop(eventKeyType);
+      processKey(eventKeyType);
     }
   }
 }
