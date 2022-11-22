@@ -46,9 +46,7 @@ GrDirectContext* Window::directContext() const {
 void Window::onKey(rnsKey eventKeyType, rnsKeyAction eventKeyAction){
 #if ENABLE(FEATURE_ONSCREEN_KEYBOARD)
     if(winType == SubWindow) {
-        if(windowKeyEventCB_) {
-            windowKeyEventCB_(eventKeyType, eventKeyAction);
-        }
+        NotificationCenter::subWindowCenter().emit("onHWKeyEvent", eventKeyType, eventKeyAction,this);
     } else
 #endif/*FEATURE_ONSCREEN_KEYBOARD*/
     {

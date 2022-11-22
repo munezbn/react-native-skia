@@ -123,7 +123,7 @@ void WindowDelegator::closeNativeWindow() {
     exposeEventID_=-1;
   }
   if(window_) {
-    window_->closeNativeWindow();
+    window_->closeWindow();
     delete window_;
     window_=nullptr;
     windowContext_ = nullptr;

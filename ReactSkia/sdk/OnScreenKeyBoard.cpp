@@ -70,6 +70,12 @@ void OnScreenKeyboard::exit() {
   std::scoped_lock lock(oskHandle.oskActiontCtrlMutex_);
   onScreenKeyboardEventEmit(std::string("keyboardWillHide"));
   oskHandle.closeWindow();
+
+  /* Stop Listening for Hw Key Event*/
+  if(oskHandle.subWindowKeyEventId_ != -1) {
+      NotificationCenter::subWindowCenter().removeListener(oskHandle.subWindowKeyEventId_);
+      oskHandle.subWindowKeyEventId_= -1;
+  }
   onScreenKeyboardEventEmit(std::string("keyboardDidHide"));
 
 /*Resetting old values & States*/
@@ -185,10 +191,7 @@ void OnScreenKeyboard::launchOSKWindow() {
 
 //Finally Creating OSK Window
   std::function<void()> createWindowCB = std::bind(&OnScreenKeyboard::windowReadyToDrawCB,this);
-  std::function<void(rnsKey, rnsKeyAction)> windowKeyEventCB = std::bind(&OnScreenKeyboard::onHWkeyHandler,this,
-                                                                       std::placeholders::_1,
-                                                                       std::placeholders::_2);
-  createWindow(screenSize_,createWindowCB,windowKeyEventCB);
+  createWindow(screenSize_,createWindowCB);
 }
 
 void OnScreenKeyboard::drawPlaceHolderDisplayString(std::vector<SkIRect> &dirtyRect) {
@@ -515,10 +518,13 @@ void OnScreenKeyboard ::drawHighLightOnKey(std::vector<SkIRect> &dirtyRect) {
   RNS_PROFILE_END(" Highlight Completion : ",HighlightOSKKey)
 }
 
-
-void OnScreenKeyboard::onHWkeyHandler(rnsKey keyValue, rnsKeyAction eventKeyAction) {
-
-  RNS_LOG_INFO("rnsKey: "<<RNSKeyMap[keyValue]<<" rnsKeyAction: "<<((eventKeyAction ==0) ? "RNS_KEY_Press ": "RNS_KEY_Release ") );
+void OnScreenKeyboard::onHWkeyHandler(rnsKey keyValue, rnsKeyAction eventKeyAction,RnsShell::Window *window) {
+  if(getWindow() != window) {
+    /*TODO: As a Temp Fix: passing window object to the client to ensure it's correspendent Window
+            Need to handle this window itself */
+    return;//Key not generated from OSK Window
+  }
+  RNS_LOG_DEBUG("rnsKey: "<<RNSKeyMap[keyValue]<<" rnsKeyAction: "<<((eventKeyAction ==0) ? "RNS_KEY_Press ": "RNS_KEY_Release ") );
 
   if(eventKeyAction == RNS_KEY_Release) {
 #if ENABLE(FEATURE_KEY_THROTTLING)
@@ -924,8 +930,15 @@ void OnScreenKeyboard::windowReadyToDrawCB() {
     repeatKeyQueue_ =  std::make_unique<ThreadSafeQueue<rnsKey>>();
     repeatKeyHandler_ = std::thread(&OnScreenKeyboard::repeatKeyProcessingThread, this);
 #endif
+    /*Listen for  Key Press event */
+    if(subWindowKeyEventId_ == -1) {
+      std::function<void(rnsKey, rnsKeyAction,RnsShell::Window*)> handler = std::bind(&OnScreenKeyboard::onHWkeyHandler,this,
+                                                                       std::placeholders::_1,
+                                                                       std::placeholders::_2,
+                                                                       std::placeholders::_3);
+      subWindowKeyEventId_ = NotificationCenter::subWindowCenter().addListener("onHWKeyEvent", handler);
+      onScreenKeyboardEventEmit(std::string("keyboardDidShow"));
     }
-    onScreenKeyboardEventEmit(std::string("keyboardDidShow"));
 }
 
 void OnScreenKeyboard::onScreenKeyboardEventEmit(std::string eventType){

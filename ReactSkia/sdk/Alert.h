@@ -50,6 +50,7 @@ class Alert : public WindowDelegator {
     SkSize alertWindowSize_;
     int idOfMessageOnDisplay_{-1};
     std::atomic<bool> msgPendingToBeChanged_{false};
+    int subWindowKeyEventId_{-1};
     AlertWindowState alertWindowState_{ALERT_WINDOW_DESTRUCTED};
     double textFontSize_;
     double lineSpacing_;
@@ -65,7 +66,7 @@ class Alert : public WindowDelegator {
     void triggerRenderRequest(AlertComponents components,bool batchRenderRequest=false);
     void drawRecentAlertTitleAndMsg(std::vector<SkIRect> &dirtyRect);
     inline void removeAlertFromAlertList(unsigned int msgIndex);
-    void onHWKeyHandler(rnsKey key, rnsKeyAction eventKeyAction);
+    void onHWKeyHandler(rnsKey key, rnsKeyAction eventKeyAction,RnsShell::Window *window);
 };
 
 }//sdk
