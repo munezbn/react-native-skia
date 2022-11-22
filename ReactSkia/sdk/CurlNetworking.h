@@ -20,7 +20,8 @@
 #endif
 
 #define MAX_PARALLEL_CONNECTION 6L
-#define SECTOMILLSECCONVERTER(time) time*1000
+#define MAX_TOTAL_CONNECTIONS_ALLOWED 17L
+#define CONVERT_SEC_TO_MS(time) time*1000
 
 namespace facebook {
 namespace react {
@@ -69,7 +70,7 @@ class CurlRequest {
   Curldelegator curldelegator;
   shared_ptr<CurlResponse> curlResponse;
   std::mutex bufferLock;
-  inline bool shouldCacheData();
+  bool shouldCacheData();
   CurlRequest(CURL *lhandle, std::string lURL, size_t ltimeout, std::string lmethod);
 };
 
@@ -91,7 +92,7 @@ class CurlNetworking {
   CURLM* curlMultihandle_ = nullptr;
   bool exitLoop_ = false;
   std::thread multiNetworkThread_;
-  static std::mutex mutex_;
+  static std::mutex curlSingletonProtectMutex_;
   void processNetworkRequest(CURLM *cm);
   bool preparePostRequest(shared_ptr<CurlRequest> curlRequest, folly::dynamic data);
   void sendResponseCacheData(shared_ptr<CurlRequest> curlRequest);

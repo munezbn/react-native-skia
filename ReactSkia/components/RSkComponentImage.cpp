@@ -176,10 +176,16 @@ RnsShell::LayerInvalidateMask RSkComponentImage::updateComponentProps(const Shad
       imageProps.tintColor = RSkColorFromSharedColor(newimageProps.tintColor,SK_ColorTRANSPARENT);
     }
     if((forceUpdate) || (oldimageProps.sources[0].uri.compare(newimageProps.sources[0].uri) != 0)) {
+      if( isRequestInProgress_ && remoteCurlRequest_){
+        auto sharedCurlNetworking = CurlNetworking::sharedCurlNetworking();
+        // if url is changed, image component is get component property update.
+        // calncel the onging request and made new request to network.  
+        sharedCurlNetworking->abortRequest(remoteCurlRequest_);
+        isRequestInProgress_=false;
+      }
       imageEventEmitter_->onLoadStart();
       hasToTriggerEvent_ = true;
     }
-    oldUri_ = oldimageProps.sources[0].uri;
     return updateMask;
 }
 
@@ -330,12 +336,24 @@ inline void RSkComponentImage::setPaintFilters (SkPaint &paintObj,const ImagePro
   }
 }
 
-inline bool shouldCacheData(std::string cacheControlData) {
-  if(cacheControlData.find(RNS_NO_CACHE_STR) != std::string::npos) return false;
-  else if(cacheControlData.find(RNS_NO_STORE_STR) != std::string::npos) return false;
-  else if(cacheControlData.find(RNS_MAX_AGE_0_STR) != std::string::npos) return false;
-
-  return true;
+inline bool  RSkComponentImage::needsContentShadow(ImageResizeMode resizeMode,
+                                                            bool isOpaque,
+                                                            SkRect frameRect,
+                                                            SkRect imageTargetRect) {
+/* This Function check on whether Image fills the frame or not to decide need for contentShadow 
+   Whether component has visible shadow or not needs to be taken care by the caller.
+*/
+    if(!isOpaque) {
+       /* In case of transparent image, frame size will not be enough to conclude image covers the frame or not
+           So returning true.
+       */
+        return true;
+    } else if((frameRect == imageTargetRect) || /* Frame size and Image target size are same*/
+       imageTargetRect.contains(frameRect)|| /* Image target size > Frame Size, in that clipping will be done to contain image in frame*/
+       (resizeMode == ImageResizeMode::Repeat)) /* IN repeat mode,Image will be repeated to fill the frame */ {
+        return false;
+    }
+    return true;
 }
 
 inline double getCacheMaxAgeDuration(std::string cacheControlData) {
@@ -349,12 +367,6 @@ inline double getCacheMaxAgeDuration(std::string cacheControlData) {
 
 void RSkComponentImage::requestNetworkImageData(string sourceUri) {
   auto sharedCurlNetworking = CurlNetworking::sharedCurlNetworking();
-  if( (oldUri_.compare(source.uri) != 0) && isRequestInProgress_ && remoteCurlRequest_){
-    // if url is changed, image component is get component property update.
-    // calncel the onging request and made new request to network.  
-    sharedCurlNetworking->abortRequest(remoteCurlRequest_);
-    isRequestInProgress_=false;
-  }
   std::shared_ptr<CurlRequest> remoteCurlRequest = std::make_shared<CurlRequest>(nullptr,source.uri,0,"GET");
   
   folly::dynamic query = folly::dynamic::object();
@@ -379,13 +391,12 @@ void RSkComponentImage::requestNetworkImageData(string sourceUri) {
     auto responseCacheControlData = responseData->headerBuffer.find("Cache-Control");
     if(responseCacheControlData != responseData->headerBuffer.items().end()) {
       std::string responseCacheControlString = responseCacheControlData->second.asString();
-      canCacheData_ = shouldCacheData(responseCacheControlString);
+      canCacheData_ = remoteCurlRequest->shouldCacheData();
       if(canCacheData_) responseMaxAgeTime = getCacheMaxAgeDuration(responseCacheControlString);
     }
 
     // TODO : Parse request headers and retrieve caching details
-
-    cacheExpiryTime_ = std::min(SECTOMILLSECCONVERTER(responseMaxAgeTime),static_cast<double>(DEFAULT_MAX_CACHE_EXPIRY_TIME));
+    cacheExpiryTime_ = std::min(CONVERT_SEC_TO_MS(responseMaxAgeTime),static_cast<double>(DEFAULT_MAX_CACHE_EXPIRY_TIME));
     RNS_LOG_DEBUG("url [" << responseData->responseurl << "] canCacheData[" << canCacheData_ << "] cacheExpiryTime[" << cacheExpiryTime_ << "]");
     return 0;
   };
@@ -439,7 +450,7 @@ inline void RSkComponentImage::sendSuccessEvents() {
 RSkComponentImage::~RSkComponentImage(){
   // Image component is request send to network by then component is deleted.
   // still the network component will process the request, by calling abort.
-  // will reduces the load on network and improve the performance. 
+  // will reduces the load on network and improve the performance.
   auto sharedCurlNetworking = CurlNetworking::sharedCurlNetworking();
   if(isRequestInProgress_ && remoteCurlRequest_){
     sharedCurlNetworking->abortRequest(remoteCurlRequest_);
