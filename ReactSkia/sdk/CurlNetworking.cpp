@@ -13,15 +13,15 @@ using namespace std;
 namespace facebook {
 namespace react {
 CurlNetworking* CurlNetworking::sharedCurlNetworking_{nullptr};
-std::mutex CurlNetworking::curlSingletonProtectMutex_;
+std::mutex CurlNetworking::curlInstanceProtectorMutex_;
 CurlNetworking::CurlNetworking() {
   networkCache_ = new ThreadSafeCache<string,shared_ptr<CurlResponse>>();
   curl_global_init(CURL_GLOBAL_ALL);
   sem_init(&networkRequestSem_, 0, 0);
   curlMultihandle_ = curl_multi_init();
-  // we are limiting the number of max number of connection to 17.
+  // we are limiting the number of max number of connection to MAX_TOTAL_CONNECTIONS_ALLOWED.
   curl_multi_setopt(curlMultihandle_, CURLMOPT_MAX_TOTAL_CONNECTIONS, (long)MAX_TOTAL_CONNECTIONS_ALLOWED);
-  // we are limiting the number of connection per host(sever) to 6. 
+  // we are limiting the number of connection per host(sever) to MAX_PARALLEL_CONNECTION. 
   curl_multi_setopt(curlMultihandle_, CURLMOPT_MAX_HOST_CONNECTIONS, (long)MAX_PARALLEL_CONNECTION);
   multiNetworkThread_ = std::thread([this]() {
     while(!exitLoop_){
@@ -37,7 +37,7 @@ CurlNetworking::CurlNetworking() {
 }
 
 CurlNetworking* CurlNetworking::sharedCurlNetworking() {
-  std::lock_guard<std::mutex> lock(curlSingletonProtectMutex_);
+  std::lock_guard<std::mutex> lock(curlInstanceProtectorMutex_);
   if(sharedCurlNetworking_ == nullptr) {
     sharedCurlNetworking_ = new CurlNetworking();
   }
@@ -59,7 +59,7 @@ CurlNetworking::~CurlNetworking() {
     curl_multi_cleanup(curlMultihandle_);
     curl_global_cleanup();
   }
-  std::lock_guard<std::mutex> lock(curlSingletonProtectMutex_);
+  std::lock_guard<std::mutex> lock(curlInstanceProtectorMutex_);
   if(this == sharedCurlNetworking_)
     sharedCurlNetworking_ = nullptr;
 };
@@ -106,7 +106,7 @@ void CurlNetworking::processNetworkRequest(CURLM *curlMultiHandle) {
 
   do {
     {
-      std::lock_guard<std::mutex> lock(curlSingletonProtectMutex_);
+      std::lock_guard<std::mutex> lock(curlInstanceProtectorMutex_);
       res = curl_multi_perform(curlMultiHandle, &stillAlive);
     }
     while((msg = curl_multi_info_read(curlMultiHandle, &msgsLeft))) {
@@ -341,7 +341,7 @@ bool CurlNetworking::sendRequest(shared_ptr<CurlRequest> curlRequest, folly::dyn
 
 bool CurlNetworking::abortRequest(shared_ptr<CurlRequest> curlRequest) {
   if(curlRequest->handle) {
-    std::scoped_lock lock(curlSingletonProtectMutex_);
+    std::scoped_lock lock(curlInstanceProtectorMutex_);
     // remove the handle from the multihandle and cleanup the curl handle.
     curl_multi_remove_handle(curlMultihandle_, curlRequest->handle);
     curl_easy_cleanup(curlRequest->handle);

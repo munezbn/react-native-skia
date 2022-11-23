@@ -380,6 +380,8 @@ void RSkComponentImage::requestNetworkImageData(string sourceUri) {
     auto isAlive = weakThis.lock();
     if(!isAlive) {
        RNS_LOG_WARN("This object is already destroyed. ignoring the completion callback");
+       remoteCurlRequest->curldelegator.CURLNetworkingHeaderCallback = nullptr;
+       remoteCurlRequest->curldelegator.CURLNetworkingCompletionCallback = nullptr;
        return 0;
      }
 
@@ -392,11 +394,8 @@ void RSkComponentImage::requestNetworkImageData(string sourceUri) {
     if(responseCacheControlData != responseData->headerBuffer.items().end()) {
       std::string responseCacheControlString = responseCacheControlData->second.asString();
       canCacheData_ = remoteCurlRequest->shouldCacheData();
-      if(canCacheData_) responseMaxAgeTime = getCacheMaxAgeDuration(responseCacheControlString);
+      cacheExpiryTime_ = responseData->cacheExpiryTime;
     }
-
-    // TODO : Parse request headers and retrieve caching details
-    cacheExpiryTime_ = std::min(CONVERT_SEC_TO_MS(responseMaxAgeTime),static_cast<double>(DEFAULT_MAX_CACHE_EXPIRY_TIME));
     RNS_LOG_DEBUG("url [" << responseData->responseurl << "] canCacheData[" << canCacheData_ << "] cacheExpiryTime[" << cacheExpiryTime_ << "]");
     return 0;
   };
@@ -407,6 +406,8 @@ void RSkComponentImage::requestNetworkImageData(string sourceUri) {
     auto isAlive = weakThis.lock();
     if(!isAlive) {
       RNS_LOG_WARN("This object is already destroyed. ignoring the completion callback");
+      remoteCurlRequest->curldelegator.CURLNetworkingHeaderCallback = nullptr;
+      remoteCurlRequest->curldelegator.CURLNetworkingCompletionCallback = nullptr;
       return 0;
     }
     isRequestInProgress_=false;
@@ -453,6 +454,7 @@ RSkComponentImage::~RSkComponentImage(){
   // will reduces the load on network and improve the performance.
   auto sharedCurlNetworking = CurlNetworking::sharedCurlNetworking();
   if(isRequestInProgress_ && remoteCurlRequest_){
+    //TODO - need to send the onEnd event to APP if it is abort. 
     sharedCurlNetworking->abortRequest(remoteCurlRequest_);
     isRequestInProgress_=false;
   }

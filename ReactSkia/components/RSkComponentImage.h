@@ -12,8 +12,8 @@
 #include "react/renderer/components/image/ImageShadowNode.h"
 
 #include "ReactSkia/components/RSkComponent.h"
-#include "ReactSkia/views/common/RSkImageCacheManager.h"
 #include "ReactSkia/sdk/CurlNetworking.h"
+#include "ReactSkia/views/common/RSkImageCacheManager.h"
 
 #define DEFAULT_IMAGE_FILTER_QUALITY kLow_SkFilterQuality /*Skia's Defualt is kNone_SkFilterQuality*/
 #define DEFAULT_MAX_CACHE_EXPIRY_TIME 1800000 // 30mins in milliseconds 1800000
