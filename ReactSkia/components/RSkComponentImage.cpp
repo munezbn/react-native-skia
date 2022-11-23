@@ -181,6 +181,8 @@ RnsShell::LayerInvalidateMask RSkComponentImage::updateComponentProps(const Shad
         // if url is changed, image component is get component property update.
         // calncel the onging request and made new request to network.  
         sharedCurlNetworking->abortRequest(remoteCurlRequest_);
+        remoteCurlRequest_ = nullptr;
+        //TODO - need to send the onEnd event to APP if it is abort.
         isRequestInProgress_=false;
       }
       imageEventEmitter_->onLoadStart();
@@ -367,7 +369,7 @@ inline double getCacheMaxAgeDuration(std::string cacheControlData) {
 
 void RSkComponentImage::requestNetworkImageData(string sourceUri) {
   auto sharedCurlNetworking = CurlNetworking::sharedCurlNetworking();
-  std::shared_ptr<CurlRequest> remoteCurlRequest = std::make_shared<CurlRequest>(nullptr,source.uri,0,"GET");
+  remoteCurlRequest_ = std::make_shared<CurlRequest>(nullptr,source.uri,0,"GET");
   
   folly::dynamic query = folly::dynamic::object();
 
@@ -376,12 +378,10 @@ void RSkComponentImage::requestNetworkImageData(string sourceUri) {
   cacheExpiryTime_ = DEFAULT_MAX_CACHE_EXPIRY_TIME;
 
   // headercallback lambda fuction
-  auto headerCallback =  [this, weakThis = this->weak_from_this(), remoteCurlRequest](void* curlresponseData,void *userdata)->size_t {
+  auto headerCallback =  [this, weakThis = this->weak_from_this()](void* curlresponseData,void *userdata)->size_t {
     auto isAlive = weakThis.lock();
     if(!isAlive) {
        RNS_LOG_WARN("This object is already destroyed. ignoring the completion callback");
-       remoteCurlRequest->curldelegator.CURLNetworkingHeaderCallback = nullptr;
-       remoteCurlRequest->curldelegator.CURLNetworkingCompletionCallback = nullptr;
        return 0;
      }
 
@@ -393,8 +393,8 @@ void RSkComponentImage::requestNetworkImageData(string sourceUri) {
     auto responseCacheControlData = responseData->headerBuffer.find("Cache-Control");
     if(responseCacheControlData != responseData->headerBuffer.items().end()) {
       std::string responseCacheControlString = responseCacheControlData->second.asString();
-      canCacheData_ = remoteCurlRequest->shouldCacheData();
-      cacheExpiryTime_ = responseData->cacheExpiryTime;
+      canCacheData_ = remoteCurlRequest_->shouldCacheData();
+      if(canCacheData_) cacheExpiryTime_ = responseData->cacheExpiryTime;
     }
     RNS_LOG_DEBUG("url [" << responseData->responseurl << "] canCacheData[" << canCacheData_ << "] cacheExpiryTime[" << cacheExpiryTime_ << "]");
     return 0;
@@ -402,12 +402,10 @@ void RSkComponentImage::requestNetworkImageData(string sourceUri) {
 
 
   // completioncallback lambda fuction
-  auto completionCallback =  [this, weakThis = this->weak_from_this(), remoteCurlRequest](void* curlresponseData,void *userdata)->bool {
+  auto completionCallback =  [this, weakThis = this->weak_from_this()](void* curlresponseData,void *userdata)->bool {
     auto isAlive = weakThis.lock();
     if(!isAlive) {
       RNS_LOG_WARN("This object is already destroyed. ignoring the completion callback");
-      remoteCurlRequest->curldelegator.CURLNetworkingHeaderCallback = nullptr;
-      remoteCurlRequest->curldelegator.CURLNetworkingCompletionCallback = nullptr;
       return 0;
     }
     isRequestInProgress_=false;
@@ -417,22 +415,18 @@ void RSkComponentImage::requestNetworkImageData(string sourceUri) {
         || !processImageData(curlRequest->URL.c_str(),responseData->responseBuffer,responseData->contentSize)) && (hasToTriggerEvent_)) {
       sendErrorEvents();
     }
-    //Reset the lamda callback so that curlRequest shared pointer dereffered from the lamda 
-    // and gets auto destructored after the completion callback.
-    remoteCurlRequest->curldelegator.CURLNetworkingHeaderCallback = nullptr;
-    remoteCurlRequest->curldelegator.CURLNetworkingCompletionCallback = nullptr;
+    remoteCurlRequest_ = nullptr;
     return 0;
   };
 
-  remoteCurlRequest->curldelegator.delegatorData = remoteCurlRequest.get();
-  remoteCurlRequest->curldelegator.CURLNetworkingHeaderCallback = headerCallback;
-  remoteCurlRequest->curldelegator.CURLNetworkingCompletionCallback=completionCallback;
+  remoteCurlRequest_->curldelegator.delegatorData = remoteCurlRequest_.get();
+  remoteCurlRequest_->curldelegator.CURLNetworkingHeaderCallback = headerCallback;
+  remoteCurlRequest_->curldelegator.CURLNetworkingCompletionCallback=completionCallback;
   if(!hasToTriggerEvent_) {
     imageEventEmitter_->onLoadStart();
     hasToTriggerEvent_ = true;
   }
-  remoteCurlRequest_ = remoteCurlRequest;
-  sharedCurlNetworking->sendRequest(remoteCurlRequest,query);
+  sharedCurlNetworking->sendRequest(remoteCurlRequest_,query);
   isRequestInProgress_ = true;
 }
 

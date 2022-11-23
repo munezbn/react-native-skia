@@ -45,7 +45,6 @@ typedef struct CurlResponse {
   }
   ~CurlResponse() {
     if(responseBuffer) {
-      RNS_LOG_INFO("******* calling the duscustor***** of CurlResponse"<<responseurl);
       free(responseBuffer);
       responseBuffer = NULL;
     }
@@ -73,10 +72,6 @@ class CurlRequest {
   std::mutex bufferLock;
   bool shouldCacheData();
   CurlRequest(CURL *lhandle, std::string lURL, size_t ltimeout, std::string lmethod);
-  
-  ~CurlRequest(){
-   RNS_LOG_INFO("@@@@@@@@@@ calling distructor @@@@@@@@@@" << URL);
-  }
 };
 
 class CurlNetworking {

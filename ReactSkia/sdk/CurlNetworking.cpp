@@ -103,7 +103,7 @@ void CurlNetworking::processNetworkRequest(CURLM *curlMultiHandle) {
   CURLMsg *msg;
   int stillAlive = 0;
   int msgsLeft = 0;
-
+  RNS_LOG_INFO("calling processNetworkRequest");
   do {
     {
       std::lock_guard<std::mutex> lock(curlInstanceProtectorMutex_);
@@ -137,8 +137,9 @@ void CurlNetworking::processNetworkRequest(CURLM *curlMultiHandle) {
             }
           }
         }
-        if(curlRequest->curldelegator.CURLNetworkingCompletionCallback)
+        if(curlRequest->curldelegator.CURLNetworkingCompletionCallback){
           curlRequest->curldelegator.CURLNetworkingCompletionCallback(curlRequest->curlResponse.get(),curlRequest->curldelegator.delegatorData);
+        }
         curl_easy_cleanup(curlHandle);
       } else {
         RNS_LOG_ERROR("Unknown critical error: CURLMsg" << msg->msg);
@@ -227,7 +228,6 @@ size_t CurlNetworking::progressCallbackCurlWrapper(void *clientp, double dltotal
 
 size_t CurlNetworking::headerCallbackCurlWrapper(char* buffer, size_t size, size_t nitems, void* userData) {
   CurlRequest *curlRequest = (CurlRequest *)userData;
-
   // Each headerInfo line comes as a seperate callback
   std::string str((unsigned char*)buffer, (unsigned char*)buffer + nitems);
   size_t keyEndpos = str.find(": ");
@@ -273,6 +273,7 @@ bool CurlNetworking::sendRequest(shared_ptr<CurlRequest> curlRequest, folly::dyn
   auto headers = query["headers"];
   auto data = query["data"];
   bool status = false;
+  int value = 0XFFFFFFFF;
   CURL *curl = nullptr;
   CURLcode res = CURLE_FAILED_INIT;
 
@@ -333,7 +334,10 @@ bool CurlNetworking::sendRequest(shared_ptr<CurlRequest> curlRequest, folly::dyn
       goto safe_return;
   }
   curl_multi_add_handle(curlMultihandle_, curl);
-  sem_post(&networkRequestSem_);
+  sem_getvalue(&networkRequestSem_, &value);
+  if(!value){
+    sem_post(&networkRequestSem_);
+  }
   status = true;
   safe_return :
   return status;
