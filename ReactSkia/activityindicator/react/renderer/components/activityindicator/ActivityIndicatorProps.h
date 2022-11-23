@@ -10,7 +10,6 @@
 namespace facebook {
 namespace react {
 
-// TODO (T28334063): Consider for codegen.
 class ActivityIndicatorProps final : public ViewProps {
  public:
   ActivityIndicatorProps() = default;

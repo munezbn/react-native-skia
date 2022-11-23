@@ -8,6 +8,7 @@
 #include "ReactSkia/MountingManager.h"
 #include "ReactSkia/RSkSurfaceWindow.h"
 #include "ReactSkia/RSkThirdPartyFabricComponentsProvider.h"
+#include "ReactSkia/components/RSkComponentProviderActivityIndicator.h"
 #include "ReactSkia/components/RSkComponentProviderImage.h"
 #include "ReactSkia/components/RSkComponentProviderRootView.h"
 #include "ReactSkia/components/RSkComponentProviderScrollView.h"
@@ -15,7 +16,6 @@
 #include "ReactSkia/components/RSkComponentProviderTextInput.h"
 #include "ReactSkia/components/RSkComponentProviderUnimplementedView.h"
 #include "ReactSkia/components/RSkComponentProviderView.h"
-#include "ReactSkia/components/RSkComponentProviderActivityIndicator.h"
 
 #if defined (OS_MACOSX)
 #include "ReactSkia/platform/macosx/MainRunLoopEventBeat.h"
