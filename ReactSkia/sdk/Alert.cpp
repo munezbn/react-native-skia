@@ -161,6 +161,8 @@ void Alert::createAlertWindow() {
 
 void Alert::onHWKeyHandler(rnsKey keyValue,rnsKeyAction eventKeyAction,RnsShell::Window *window) {
   RNS_LOG_DEBUG("KEY RECEIVED : " << RNSKeyMap[keyValue]);
+  //TODO: Long KeyPress[OnRepeat Key Mode] will close all the Alert windows.
+  //      This behaviour needs to be verified with reference and match it.
   if ((getWindow() != window) || (eventKeyAction != RNS_KEY_Press) || (RNS_KEY_Select != keyValue) ) {
     return;
   }

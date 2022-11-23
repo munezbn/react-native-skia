@@ -1,5 +1,5 @@
 import * as React from 'react';
-import { View, AppRegistry, Image, Text } from 'react-native';
+import { View, AppRegistry,StyleSheet, Image, Text } from 'react-native';
 
 const SimpleViewApp = React.Node = () => {
   return (
@@ -9,6 +9,12 @@ const SimpleViewApp = React.Node = () => {
                justifyContent: 'center',
                alignItems: 'center',
                backgroundColor: '#444' }}>
+          <Text style ={ {color:'blue',
+                         fontWeight:'bold'}}>" Outer " {'\n'}
+                   <Text style ={styles.TextStyle}>"Title"{'\n'}{'\n'}</Text>
+                   <Text style ={styles.TextStyle}>"Descrition"{'\n'}</Text>
+          </Text>
+
       <Image
         style={{ width: 512, height: 512 }}
         source={require('react-native/Libraries/NewAppScreen/components/logo.png')}
@@ -19,5 +25,13 @@ const SimpleViewApp = React.Node = () => {
     </View>
   );
 };
+
+const styles = StyleSheet.create({
+    TextStyle: {
+        textAlign:'center'
+    },
+
+
+});
 
 AppRegistry.registerComponent('SimpleViewApp', () => SimpleViewApp);
