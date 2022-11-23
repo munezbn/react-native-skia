@@ -28,7 +28,7 @@ struct pictureCommand {
 typedef struct pictureCommand PictureObject;
 
 typedef std::pair<std::string,PictureObject> PictureCommandPair;
-typedef std::vector<PictureCommandPair>  PictureCommandPairVec;
+typedef std::vector<PictureCommandPair>  PictureCommandPairs;
 
 class WindowDelegator {
   public:
@@ -48,18 +48,17 @@ class WindowDelegator {
     void windowWorkerThread();
     void createNativeWindow();
     void renderToDisplay(std::string pictureCommandKey,PictureObject pictureObj,bool batchCommit);
-    void updateRecentCommand(std::string pictureCommandKey,PictureObject & pictureObj);
-    PictureCommandPairVec::iterator findInComponentCommandVec(std::string pictureCommandKey);
+    void updateRecentCommand(std::string pictureCommandKey,PictureObject & pictureObj,int bufferAge=0,bool isUpdateDirtyRect=false);
 #if USE(RNS_SHELL_PARTIAL_UPDATES)
-    void generateDirtyRect(std::vector<SkIRect> &componentDirtRectVec);
+    void generateDirtyRect(std::vector<SkIRect> &componentDirtRects);
     bool supportsPartialUpdate_{false};
-    std::vector<SkIRect> fullScreenDirtyRectVec_;
+    std::vector<SkIRect> fullScreenDirtyRects_;
 #endif/*RNS_SHELL_PARTIAL_UPDATES*/
     std::unique_ptr<RnsShell::WindowContext> windowContext_{nullptr};
     RnsShell::Window* window_{nullptr};
     sk_sp<SkSurface>  backBuffer_;
     SkCanvas *windowDelegatorCanvas_{nullptr};
-    std::vector<SkIRect> dirtyRectVec_;
+    std::vector<SkIRect> dirtyRects_;
 
 /*To fulfill OpenGl requirement of create & rendering to be handled from same thread context*/
     std::unique_ptr<RnsShell::TaskLoop> windowTaskRunner_{nullptr};
@@ -76,7 +75,7 @@ class WindowDelegator {
     SkSize windowSize_;
     bool windowActive{false};
 
-    PictureCommandPairVec recentComponentCommandVec_;
+    PictureCommandPairs recentComponentCommands_;
 };
 
 } // namespace sdk
