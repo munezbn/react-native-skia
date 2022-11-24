@@ -134,7 +134,7 @@ const getFramesDescription = (FrameProps) => {
    var headerStyle = Object.assign({}, styles.TextStyle,
                                       {color:'blue',
                                        fontWeight:'bold'});
-    return   (     <Text style={{backgroundColor:'green'}}>
+    return   (     <Text>
                    <Text style ={headerStyle}>{FrameProps.Title}{'\n'}{'\n'}</Text>
                    <Text style ={styles.TextStyle}>{FrameProps.AdditionDescription}{'\n'}</Text>
                   </Text>

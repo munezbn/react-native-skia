@@ -91,7 +91,6 @@ void  WindowDelegator::createNativeWindow() {
 }
 
 void WindowDelegator::closeWindow() {
-  RNS_LOG_TODO("Sync between rendering & Exit to be handled ");
   windowActive = false;
 
   if(ownsTaskrunner_) {
@@ -231,17 +230,17 @@ inline void WindowDelegator::renderToDisplay(std::string pictureCommandKey,Pictu
 }
 
 void WindowDelegator::updateRecentCommand(std::string pictureCommandKey,PictureObject &pictureObj,
-                                                                               int bufferAge,bool isUpdateDirtyRect) {
+                                                  int bufferAge,bool isUpdateDirtyRect) {
 
   PictureCommandPair commandPair=std::make_pair(pictureCommandKey,pictureObj);
 
   auto it = std::find_if(recentComponentCommands_.begin(), recentComponentCommands_.end(),
-                        [&] (PictureCommandPair cmdPair) {
-      if(cmdPair.first == pictureCommandKey) {
-        return true;
-      }
-      return false;
-  });
+                            [&] (PictureCommandPair cmdPair) {
+              if(cmdPair.first == pictureCommandKey) {
+                return true;
+              }
+              return false;
+            });
 
   if(it != recentComponentCommands_.end()) {
 #if USE(RNS_SHELL_PARTIAL_UPDATES)
