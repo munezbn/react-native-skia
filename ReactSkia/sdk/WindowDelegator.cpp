@@ -78,7 +78,7 @@ void  WindowDelegator::createNativeWindow() {
       windowDelegatorCanvas_ = backBuffer_->getCanvas();
 #if USE(RNS_SHELL_PARTIAL_UPDATES)
       supportsPartialUpdate_=windowContext_->supportsPartialUpdate();
-      fullScreenDirtyRects_.push_back(SkIRect::MakeXYWH (0,0,windowContext_->width(),windowContext_->height()));
+      fullScreenDirtyRectVec_.push_back(SkIRect::MakeXYWH (0,0,windowContext_->width(),windowContext_->height()));
 #endif/*RNS_SHELL_PARTIAL_UPDATES*/
       windowActive = true;
       if(displayPlatForm_ == RnsShell::PlatformDisplay::Type::X11) {
@@ -131,7 +131,7 @@ void WindowDelegator::closeNativeWindow() {
   }
   windowDelegatorCanvas_=nullptr;
   windowReadyTodrawCB_=nullptr;
-  recentComponentCommands_.clear();
+  recentComponentCommandVec_.clear();
 }
 
 void WindowDelegator::commitDrawCall(std::string pictureCommandKey,PictureObject pictureObj,bool batchCommit) {
@@ -168,15 +168,21 @@ inline void WindowDelegator::renderToDisplay(std::string pictureCommandKey,Pictu
     return;
   }
 
-  updateRecentCommand(pictureCommandKey,pictureObj,bufferAge,true);
+  // Add current component's old dirty Rect
+  auto iter=findInComponentCommandVec(pictureCommandKey);
+  if((iter != recentComponentCommandVec_.end()) && supportsPartialUpdate_ && (bufferAge!=0)) {
+    generateDirtyRect(iter->second.dirtyRect);
+  }
+
+  updateRecentCommand(pictureCommandKey,pictureObj);
 
   if(bufferAge != 1) {
 // use Stored commands to fill missed frames in the write buffer in the order it received.
 
-    PictureCommandPairs::iterator it = recentComponentCommands_.begin();
+    PictureCommandPairVec::iterator it = recentComponentCommandVec_.begin();
     bool fullScreenAddedAsDirtyRect{false};
 
-    for( ;it != recentComponentCommands_.end() ;it++ ) {
+    for( ;it != recentComponentCommandVec_.end() ;it++ ) {
       if(it->second.pictureCommand.get() ) {
         RNS_LOG_DEBUG("playback PictureCommand for component : "<<it->first);
         it->second.pictureCommand->playback(windowDelegatorCanvas_);
@@ -185,7 +191,7 @@ inline void WindowDelegator::renderToDisplay(std::string pictureCommandKey,Pictu
             if(bufferAge ==0 ) {
                 //Update complete Screen if Buffer Age is "0"
                 RNS_LOG_DEBUG("Buffer Age is 0, Doing Full Screen Update : ");
-                generateDirtyRect(fullScreenDirtyRects_);
+                generateDirtyRect(fullScreenDirtyRectVec_);
                 fullScreenAddedAsDirtyRect=true;
             } else if(it->second.invalidate) {
               RNS_LOG_DEBUG("Updating dirty Rect for component : "<<it->first);
@@ -212,8 +218,8 @@ inline void WindowDelegator::renderToDisplay(std::string pictureCommandKey,Pictu
   paint.setColor(SK_ColorGREEN);
   paint.setStrokeWidth(2);
   paint.setStyle(SkPaint::kStroke_Style);
-  RNS_LOG_INFO(" Count of Dirty Rect :: "<<dirtyRects_.size());
-  for(SkIRect rectIt:dirtyRects_) {
+  RNS_LOG_INFO(" Count of Dirty Rect :: "<<dirtyRectVec_.size());
+  for(SkIRect rectIt:dirtyRectVec_) {
     windowDelegatorCanvas_->drawIRect(rectIt,paint);
   }
 #endif/*SHOW_DIRTY_RECT*/
@@ -223,60 +229,59 @@ inline void WindowDelegator::renderToDisplay(std::string pictureCommandKey,Pictu
       backBuffer_->flushAndSubmit();
     }
     if(windowContext_) {
-      windowContext_->swapBuffers(dirtyRects_);
+      windowContext_->swapBuffers(dirtyRectVec_);
       std::vector<SkIRect> emptyVect;
-      dirtyRects_.swap(emptyVect);
+      dirtyRectVec_.swap(emptyVect);
     }
   }
 }
 
-void WindowDelegator::updateRecentCommand(std::string pictureCommandKey,PictureObject &pictureObj,
-                                                                               int bufferAge,bool isUpdateDirtyRect) {
+inline PictureCommandPairVec::iterator WindowDelegator::findInComponentCommandVec(std::string pictureCommandKey) {
 
-  PictureCommandPair commandPair=std::make_pair(pictureCommandKey,pictureObj);
-
-  auto it = std::find_if(recentComponentCommands_.begin(), recentComponentCommands_.end(),
+  auto it = std::find_if(recentComponentCommandVec_.begin(), recentComponentCommandVec_.end(),
                         [&] (PictureCommandPair cmdPair) {
       if(cmdPair.first == pictureCommandKey) {
         return true;
       }
       return false;
   });
+  return it;
+}
 
-  if(it != recentComponentCommands_.end()) {
-#if USE(RNS_SHELL_PARTIAL_UPDATES)
-    //Update component's current dirtyRect on screen
-    if(isUpdateDirtyRect && supportsPartialUpdate_ && (bufferAge!=0)) {
-      generateDirtyRect(it->second.dirtyRect);
-    }
-#endif//RNS_SHELL_PARTIAL_UPDATES
+void WindowDelegator::updateRecentCommand(std::string pictureCommandKey,PictureObject &pictureObj) {
+
+  PictureCommandPair commandPair=std::make_pair(pictureCommandKey,pictureObj);
+
+  auto it = findInComponentCommandVec(pictureCommandKey);
+
+  if(it != recentComponentCommandVec_.end()) {
     *it=commandPair;
   } else {
-    recentComponentCommands_.push_back(commandPair);
+    recentComponentCommandVec_.push_back(commandPair);
   }
 }
 
 #if USE(RNS_SHELL_PARTIAL_UPDATES)
-inline void WindowDelegator:: generateDirtyRect(std::vector<SkIRect> &componentDirtRects){
-  for(SkIRect& comDirtyRect:componentDirtRects) {
+inline void WindowDelegator:: generateDirtyRect(std::vector<SkIRect> &componentDirtRectVec){
+  for(SkIRect& comDirtyRect:componentDirtRectVec) {
     bool addToDirtyRect{true};
-    if(!dirtyRects_.empty()) {
-      std::vector<SkIRect>::iterator it = dirtyRects_.begin();
-      while( it != dirtyRects_.end()) {
+    if(!dirtyRectVec_.empty()) {
+      std::vector<SkIRect>::iterator it = dirtyRectVec_.begin();
+      while( it != dirtyRectVec_.end()) {
         SkIRect &dirtyRect = *it;
         if((dirtyRect == comDirtyRect) || dirtyRect.contains(comDirtyRect) ) {
           addToDirtyRect=false;// If same or part of existing ignore
           break;
         }
         if(comDirtyRect.contains(dirtyRect)) {
-          it=dirtyRects_.erase(it);//Erase existing dirtRect , if it is part of new one
+          it=dirtyRectVec_.erase(it);//Erase existing dirtRect , if it is part of new one
         } else {
           ++it;
         }
       }
     }
     if(addToDirtyRect){
-      dirtyRects_.push_back(comDirtyRect);
+      dirtyRectVec_.push_back(comDirtyRect);
     }
   }
 }

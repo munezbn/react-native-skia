@@ -521,8 +521,8 @@ void OnScreenKeyboard ::drawHighLightOnKey(std::vector<SkIRect> &dirtyRect) {
 void OnScreenKeyboard::onHWkeyHandler(rnsKey keyValue, rnsKeyAction eventKeyAction,RnsShell::Window *window) {
   if(getWindow() != window) {
     /*TODO: As a Temp Fix: passing window object to the client to ensure it's correspendent Window
-            Need to handle this in window itself */
-    return;
+            Need to handle this window itself */
+    return;//Key not generated from OSK Window
   }
   RNS_LOG_DEBUG("rnsKey: "<<RNSKeyMap[keyValue]<<" rnsKeyAction: "<<((eventKeyAction ==0) ? "RNS_KEY_Press ": "RNS_KEY_Release ") );
 

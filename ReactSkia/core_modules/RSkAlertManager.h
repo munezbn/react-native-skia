@@ -17,7 +17,7 @@ namespace facebook {
 namespace react {
 
 class RSkAlertManager : public TurboModule {
-  public:
+	public:
 
     RSkAlertManager(
     	const std::string &name,
@@ -32,7 +32,7 @@ class RSkAlertManager : public TurboModule {
         const facebook::jsi::Value *args,
         size_t count);
 
-  private:
+    private:
 
     jsi::Value processAlertMessages(rns::sdk::Alert::alertInfo &alertProps);
 

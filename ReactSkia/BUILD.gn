@@ -7,9 +7,6 @@ declare_args() {
   # Enable OnScreenKeyBoard Feature
   rns_enable_onscreen_keyboard = true
 
-  # Enable Alert Feature
-  rns_enable_alert = true
-
   # Enable key throttling
   rns_enable_key_throttling = false
 
@@ -31,10 +28,6 @@ config("ReactSkia_config") {
   }
   if(rns_enable_onscreen_keyboard) {
      defines += ["ENABLE_FEATURE_ONSCREEN_KEYBOARD"]
-  }
-
-  if(rns_enable_alert) {
-     defines += ["ENABLE_FEATURE_ALERT"]
   }
 
   # Enable key throttling
@@ -122,6 +115,8 @@ source_set("ReactSkia") {
     "MountingManager.h",
     "RNInstance.cpp",
     "RNInstance.h",
+    "sdk/Alert.cpp",
+    "sdk/Alert.h",
     "sdk/CurlNetworking.cpp",
     "sdk/CurlNetworking.h",
     "sdk/FollyTimer.cpp",
@@ -134,6 +129,8 @@ source_set("ReactSkia") {
     "sdk/ThreadSafeCache.h",
     "sdk/WindowDelegator.cpp",
     "sdk/WindowDelegator.h",
+    "core_modules/RSkAlertManager.cpp",
+    "core_modules/RSkAlertManager.h",
     "core_modules/RSkDeviceInfo.cpp",
     "core_modules/RSkDeviceInfo.h",
     "core_modules/RSkEventEmitter.cpp",
@@ -201,15 +198,6 @@ source_set("ReactSkia") {
     sources += [
       "sdk/OnScreenKeyBoard.cpp",
       "sdk/OnScreenKeyBoard.h",
-    ]
-  }
-
-  if(rns_enable_alert) {
-    sources += [
-      "core_modules/RSkAlertManager.cpp",
-      "core_modules/RSkAlertManager.h",
-      "sdk/Alert.cpp",
-      "sdk/Alert.h",
     ]
   }
 

@@ -346,7 +346,7 @@ void WindowX11::onExpose() {
 }
 
 void WindowX11::onKey(rnsKey eventKeyType, rnsKeyAction eventKeyAction){
-#if ENABLE(FEATURE_ONSCREEN_KEYBOARD) || ENABLE(FEATURE_ALERT)
+#if ENABLE(FEATURE_ONSCREEN_KEYBOARD)
     if(winType == SubWindow) {
         NotificationCenter::subWindowCenter().emit("onHWKeyEvent", eventKeyType, eventKeyAction,(Window*)this);
     } else
