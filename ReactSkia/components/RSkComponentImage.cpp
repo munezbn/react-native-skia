@@ -357,15 +357,6 @@ inline bool  RSkComponentImage::needsContentShadow(ImageResizeMode resizeMode,
     return true;
 }
 
-inline double getCacheMaxAgeDuration(std::string cacheControlData) {
-  size_t maxAgePos = cacheControlData.find(RNS_MAX_AGE_STR);
-  if(maxAgePos != std::string::npos) {
-    size_t maxAgeEndPos = cacheControlData.find(';',maxAgePos);
-    return std::stoi(cacheControlData.substr(maxAgePos+8,maxAgeEndPos));
-  }
-  return DEFAULT_MAX_CACHE_EXPIRY_TIME;
-}
-
 void RSkComponentImage::requestNetworkImageData(string sourceUri) {
   auto sharedCurlNetworking = CurlNetworking::sharedCurlNetworking();
   remoteCurlRequest_ = std::make_shared<CurlRequest>(nullptr,source.uri,0,"GET");
