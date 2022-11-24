@@ -273,7 +273,7 @@ bool CurlNetworking::sendRequest(shared_ptr<CurlRequest> curlRequest, folly::dyn
   auto headers = query["headers"];
   auto data = query["data"];
   bool status = false;
-  int value = 0XFFFFFFFF;
+  int semCount = 0XFFFFFFFF;
   CURL *curl = nullptr;
   CURLcode res = CURLE_FAILED_INIT;
 
@@ -333,9 +333,12 @@ bool CurlNetworking::sendRequest(shared_ptr<CurlRequest> curlRequest, folly::dyn
       RNS_LOG_ERROR ("Not supported method\n" << curlRequest->method) ;
       goto safe_return;
   }
-  curl_multi_add_handle(curlMultihandle_, curl);
-  sem_getvalue(&networkRequestSem_, &value);
-  if(!value){
+  {
+    std::scoped_lock lock(curlInstanceProtectorMutex_);
+    curl_multi_add_handle(curlMultihandle_, curl);
+  }
+  sem_getvalue(&networkRequestSem_, &semCount);
+  if(!semCount){
     sem_post(&networkRequestSem_);
   }
   status = true;
