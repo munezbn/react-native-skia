@@ -21,7 +21,6 @@
 #include "ReactSkia/views/common/RSkImageUtils.h"
 #include "ReactSkia/views/common/RSkConversion.h"
 
-
 namespace facebook {
 namespace react {
 
@@ -179,7 +178,7 @@ RnsShell::LayerInvalidateMask RSkComponentImage::updateComponentProps(const Shad
       if( isRequestInProgress_ && remoteCurlRequest_){
         auto sharedCurlNetworking = CurlNetworking::sharedCurlNetworking();
         // if url is changed, image component is get component property update.
-        // calncel the onging request and made new request to network.  
+        // cancel the onging request and made new request to network.  
         sharedCurlNetworking->abortRequest(remoteCurlRequest_);
         remoteCurlRequest_ = nullptr;
         //TODO - need to send the onEnd event to APP if it is abort.
