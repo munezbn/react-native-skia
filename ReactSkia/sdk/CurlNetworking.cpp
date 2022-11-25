@@ -339,7 +339,7 @@ bool CurlNetworking::sendRequest(shared_ptr<CurlRequest> curlRequest, folly::dyn
     curl_multi_add_handle(curlMultihandle_, curl);
   }
   sem_getvalue(&networkRequestSem_, &semCount);
-  if(!semCount){
+  if(!semCount){ //We don't have to send signal if it is already count is 1. Using this as binary sem
     sem_post(&networkRequestSem_);
   }
 
