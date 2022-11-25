@@ -20,6 +20,7 @@
 #include "ReactSkia/sdk/CurlNetworking.h"
 #include "ReactSkia/views/common/RSkImageUtils.h"
 #include "ReactSkia/views/common/RSkConversion.h"
+#include "ReactSkia/utils/RnsUtils.h"
 
 namespace facebook {
 namespace react {
@@ -176,10 +177,9 @@ RnsShell::LayerInvalidateMask RSkComponentImage::updateComponentProps(const Shad
     }
     if((forceUpdate) || (oldimageProps.sources[0].uri.compare(newimageProps.sources[0].uri) != 0)) {
       if( isRequestInProgress_ && remoteCurlRequest_){
-        auto sharedCurlNetworking = CurlNetworking::sharedCurlNetworking();
         // if url is changed, image component is get component property update.
         // cancel the onging request and made new request to network.  
-        sharedCurlNetworking->abortRequest(remoteCurlRequest_);
+        CurlNetworking::sharedCurlNetworking()->abortRequest(remoteCurlRequest_);
         remoteCurlRequest_ = nullptr;
         //TODO - need to send the onEnd event to APP if it is abort.
         isRequestInProgress_=false;
@@ -398,13 +398,13 @@ void RSkComponentImage::requestNetworkImageData(string sourceUri) {
       RNS_LOG_WARN("This object is already destroyed. ignoring the completion callback");
       return 0;
     }
-    isRequestInProgress_=false;
     CurlResponse *responseData =  (CurlResponse *)curlresponseData;
     CurlRequest * curlRequest = (CurlRequest *) userdata;
     if((!responseData
         || !processImageData(curlRequest->URL.c_str(),responseData->responseBuffer,responseData->contentSize)) && (hasToTriggerEvent_)) {
       sendErrorEvents();
     }
+    isRequestInProgress_=false;
     remoteCurlRequest_ = nullptr;
     return 0;
   };
@@ -436,10 +436,9 @@ RSkComponentImage::~RSkComponentImage(){
   // Image component is request send to network by then component is deleted.
   // still the network component will process the request, by calling abort.
   // will reduces the load on network and improve the performance.
-  auto sharedCurlNetworking = CurlNetworking::sharedCurlNetworking();
   if(isRequestInProgress_ && remoteCurlRequest_){
     //TODO - need to send the onEnd event to APP if it is abort. 
-    sharedCurlNetworking->abortRequest(remoteCurlRequest_);
+    CurlNetworking::sharedCurlNetworking()->abortRequest(remoteCurlRequest_);
     isRequestInProgress_=false;
   }
 }

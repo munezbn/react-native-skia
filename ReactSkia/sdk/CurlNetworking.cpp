@@ -7,22 +7,23 @@
 #include <curl/curl.h>
 #include <semaphore.h>
 #include "ReactSkia/utils/RnsLog.h"
+#include "ReactSkia/utils/RnsUtils.h"
 #include "CurlNetworking.h"
 
 using namespace std;
 namespace facebook {
 namespace react {
 CurlNetworking* CurlNetworking::sharedCurlNetworking_{nullptr};
-std::mutex CurlNetworking::curlInstanceProtectorMutex_;
+std::mutex CurlNetworking::curlInstanceMutex_;
 CurlNetworking::CurlNetworking() {
   networkCache_ = new ThreadSafeCache<string,shared_ptr<CurlResponse>>();
   curl_global_init(CURL_GLOBAL_ALL);
   sem_init(&networkRequestSem_, 0, 0);
   curlMultihandle_ = curl_multi_init();
-  // we are limiting the number of max number of connection to MAX_TOTAL_CONNECTIONS_ALLOWED.
-  curl_multi_setopt(curlMultihandle_, CURLMOPT_MAX_TOTAL_CONNECTIONS, (long)MAX_TOTAL_CONNECTIONS_ALLOWED);
-  // we are limiting the number of connection per host(sever) to MAX_PARALLEL_CONNECTION. 
-  curl_multi_setopt(curlMultihandle_, CURLMOPT_MAX_HOST_CONNECTIONS, (long)MAX_PARALLEL_CONNECTION);
+  // we are limiting the number of max number of connection to MAX_TOTAL_CONNECTIONS.
+  curl_multi_setopt(curlMultihandle_, CURLMOPT_MAX_TOTAL_CONNECTIONS, (long)MAX_TOTAL_CONNECTIONS);
+  // we are limiting the number of connection per host(sever) to MAX_PARALLEL_CONNECTIONS_PER_HOST.
+  curl_multi_setopt(curlMultihandle_, CURLMOPT_MAX_HOST_CONNECTIONS, (long)MAX_PARALLEL_CONNECTIONS_PER_HOST);
   multiNetworkThread_ = std::thread([this]() {
     while(!exitLoop_){
       if(curlMultihandle_) {
@@ -37,7 +38,7 @@ CurlNetworking::CurlNetworking() {
 }
 
 CurlNetworking* CurlNetworking::sharedCurlNetworking() {
-  std::lock_guard<std::mutex> lock(curlInstanceProtectorMutex_);
+  std::lock_guard<std::mutex> lock(curlInstanceMutex_);
   if(sharedCurlNetworking_ == nullptr) {
     sharedCurlNetworking_ = new CurlNetworking();
   }
@@ -59,7 +60,7 @@ CurlNetworking::~CurlNetworking() {
     curl_multi_cleanup(curlMultihandle_);
     curl_global_cleanup();
   }
-  std::lock_guard<std::mutex> lock(curlInstanceProtectorMutex_);
+  std::lock_guard<std::mutex> lock(curlInstanceMutex_);
   if(this == sharedCurlNetworking_)
     sharedCurlNetworking_ = nullptr;
 };
@@ -88,7 +89,7 @@ bool CurlRequest::shouldCacheData() {
           if(responseMaxAgeTime == 0) {
             return false;
           }
-          curlResponse->cacheExpiryTime = Timer::getCurrentTimeMSecs() + std::min(std::min(CONVERT_SEC_TO_MS(responseMaxAgeTime),requestMaxAgeTime),static_cast<double>(DEFAULT_MAX_CACHE_EXPIRY_TIME));
+          curlResponse->cacheExpiryTime = Timer::getCurrentTimeMSecs() + std::min(std::min(RNS_SECONDS_TO_MILLISECONDS(responseMaxAgeTime),requestMaxAgeTime),static_cast<double>(DEFAULT_MAX_CACHE_EXPIRY_TIME));
           return true;
         }
       }
@@ -106,7 +107,7 @@ void CurlNetworking::processNetworkRequest(CURLM *curlMultiHandle) {
   RNS_LOG_INFO("calling processNetworkRequest");
   do {
     {
-      std::lock_guard<std::mutex> lock(curlInstanceProtectorMutex_);
+      std::lock_guard<std::mutex> lock(curlInstanceMutex_);
       res = curl_multi_perform(curlMultiHandle, &stillAlive);
     }
     while((msg = curl_multi_info_read(curlMultiHandle, &msgsLeft))) {
@@ -334,13 +335,14 @@ bool CurlNetworking::sendRequest(shared_ptr<CurlRequest> curlRequest, folly::dyn
       goto safe_return;
   }
   {
-    std::scoped_lock lock(curlInstanceProtectorMutex_);
+    std::scoped_lock lock(curlInstanceMutex_);
     curl_multi_add_handle(curlMultihandle_, curl);
   }
   sem_getvalue(&networkRequestSem_, &semCount);
   if(!semCount){
     sem_post(&networkRequestSem_);
   }
+
   status = true;
   safe_return :
   return status;
@@ -348,7 +350,7 @@ bool CurlNetworking::sendRequest(shared_ptr<CurlRequest> curlRequest, folly::dyn
 
 bool CurlNetworking::abortRequest(shared_ptr<CurlRequest> curlRequest) {
   if(curlRequest->handle) {
-    std::scoped_lock lock(curlInstanceProtectorMutex_);
+    std::scoped_lock lock(curlInstanceMutex_);
     // remove the handle from the multihandle and cleanup the curl handle.
     curl_multi_remove_handle(curlMultihandle_, curlRequest->handle);
     curl_easy_cleanup(curlRequest->handle);

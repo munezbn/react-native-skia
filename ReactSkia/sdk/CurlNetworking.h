@@ -19,9 +19,8 @@
 #define CA_CERTIFICATE       "/etc/ssl/certs/ca-certificates.crt"      /**< The certificate of the CA to establish https connection to the server*/
 #endif
 
-#define MAX_PARALLEL_CONNECTION 6L
-#define MAX_TOTAL_CONNECTIONS_ALLOWED 17L
-#define CONVERT_SEC_TO_MS(time) time*1000
+#define MAX_PARALLEL_CONNECTIONS_PER_HOST 6L
+#define MAX_TOTAL_CONNECTIONS 17L
 
 namespace facebook {
 namespace react {
@@ -92,7 +91,7 @@ class CurlNetworking {
   CURLM* curlMultihandle_ = nullptr;
   bool exitLoop_ = false;
   std::thread multiNetworkThread_;
-  static std::mutex curlInstanceProtectorMutex_;
+  static std::mutex curlInstanceMutex_;
   void processNetworkRequest(CURLM *cm);
   bool preparePostRequest(shared_ptr<CurlRequest> curlRequest, folly::dynamic data);
   void sendResponseCacheData(shared_ptr<CurlRequest> curlRequest);

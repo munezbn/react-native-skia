@@ -6,8 +6,7 @@
 */
 #pragma once
 
-#include<mutex> 
-
+#include <mutex>
 #include "include/core/SkRect.h"
 
 #include "react/renderer/components/image/ImageShadowNode.h"
