@@ -358,7 +358,6 @@ inline bool  RSkComponentImage::needsContentShadow(ImageResizeMode resizeMode,
 }
 
 void RSkComponentImage::requestNetworkImageData(string sourceUri) {
-  auto sharedCurlNetworking = CurlNetworking::sharedCurlNetworking();
   remoteCurlRequest_ = std::make_shared<CurlRequest>(nullptr,source.uri,0,"GET");
   
   folly::dynamic query = folly::dynamic::object();
@@ -416,7 +415,7 @@ void RSkComponentImage::requestNetworkImageData(string sourceUri) {
     imageEventEmitter_->onLoadStart();
     hasToTriggerEvent_ = true;
   }
-  sharedCurlNetworking->sendRequest(remoteCurlRequest_,query);
+  CurlNetworking::sharedCurlNetworking()->sendRequest(remoteCurlRequest_,query);
   isRequestInProgress_ = true;
 }
 
