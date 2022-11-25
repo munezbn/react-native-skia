@@ -57,7 +57,7 @@ void Alert::drawRecentAlertTitleAndMsg(std::vector<SkIRect> &dirtyRect) {
   double drawStartPointX{0},drawStartPointY{0};
 
   SkIRect msgAndTitleDirtyRect;
-  pictureCanvas_->clear(DARK_THEME_BACKGROUND_COLOR);
+  pictureCanvas_->clear(SKIA_SDK_DARK_THEME_BACKGROUND_COLOR);
 
   if (!alertRef.alertTitle.empty()) {
 
@@ -132,10 +132,10 @@ void Alert::windowReadyToDrawCB() {
   setWindowTittle("Alert Window");
 
 //Get Darw Parameters for screen Size
-  textFontSize_=TEXT_FONT_SIZE*(alertWindowSize_.width()/DEFAULT_SCREEN_WIDTH);
-  lineSpacing_=LINE_SPACING*(alertWindowSize_.height()/DEFAULT_SCREEN_HEIGHT);
+  textFontSize_=SKIA_SDK_TEXT_FONT_SIZE*(alertWindowSize_.width()/SKIA_SDK_DEFAULT_SCREEN_WIDTH);
+  lineSpacing_=SKIA_SDK_LINE_SPACING*(alertWindowSize_.height()/SKIA_SDK_DEFAULT_SCREEN_HEIGHT);
   font_.setSize(textFontSize_);
-  paint_.setColor(DARK_THEME_FONT_COLOR);
+  paint_.setColor(SKIA_SDK_DARK_THEME_FONT_COLOR);
   paint_.setAntiAlias(true);
 
   alertWindowState_ = ALERT_WINDOW_ACTIVE;
@@ -204,7 +204,7 @@ void Alert::triggerRenderRequest(AlertComponents components,bool batchRenderRequ
 
   switch(components) {
     case ALERT_BACKGROUND:
-      pictureCanvas_->clear(DARK_THEME_BACKGROUND_COLOR);
+      pictureCanvas_->clear(SKIA_SDK_DARK_THEME_BACKGROUND_COLOR);
       dirtyRect.push_back(SkIRect::MakeXYWH(0, 0, alertWindowSize_.width(), alertWindowSize_.height()));
       commandKey="AlertBackGround";
       invalidateFlag=false;

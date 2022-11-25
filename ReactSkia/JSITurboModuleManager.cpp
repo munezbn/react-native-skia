@@ -5,7 +5,6 @@
 
 #include "JSITurboModuleManager.h"
 #include "version.h"
-#include "core_modules/RSkAlertManager.h"
 #include "core_modules/RSkDeviceInfo.h"
 #include "core_modules/RSkImageLoader.h"
 #include "core_modules/RSkTimingModule.h"
@@ -14,6 +13,10 @@
 #include "modules/platform/libcurl/RSkNetworkingModule.h"
 #include "modules/RSkTVNavigationEventEmitter.h"
 #include "utils/RnsLog.h"
+
+#if ENABLE(FEATURE_ALERT)
+#include "core_modules/RSkAlertManager.h"
+#endif//FEATURE_ALERT
 
 namespace facebook {
 namespace react {
