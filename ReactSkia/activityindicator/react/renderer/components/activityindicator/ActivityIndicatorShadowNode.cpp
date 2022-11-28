@@ -5,29 +5,10 @@
  * LICENSE file in the root directory of this source tree.
  */
 
-#include <react/renderer/core/LayoutContext.h>
-
-#include "ActivityIndicatorShadowNode.h"
-
 namespace facebook {
 namespace react {
 
-char const ActivityIndicatorComponentName[] = "ActivityIndicatorView";
-
-void ActivityIndicatorShadowNode::updateStateIfNeeded() {
-  ensureUnsealed();
-
-  auto state =
-      ActivityIndicatorState {};
-  setStateData(std::move(state));
-}
-
-#pragma mark - LayoutableShadowNode
-
-void ActivityIndicatorShadowNode::layout(LayoutContext layoutContext) {
-  updateStateIfNeeded();
-  ConcreteViewShadowNode::layout(layoutContext);
-}
+extern const char ActivityIndicatorComponentName[] = "ActivityIndicatorView";
 
 } // namespace react
 } // namespace facebook

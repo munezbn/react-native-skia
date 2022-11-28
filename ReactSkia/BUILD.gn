@@ -116,7 +116,6 @@ rn_cxx_component("activityindicator") {
     "activityindicator/react/renderer/components/activityindicator/ActivityIndicatorProps.h",
     "activityindicator/react/renderer/components/activityindicator/ActivityIndicatorShadowNode.cpp",
     "activityindicator/react/renderer/components/activityindicator/ActivityIndicatorShadowNode.h",
-    "activityindicator/react/renderer/components/activityindicator/ActivityIndicatorState.h",
   ]
 
   deps = [

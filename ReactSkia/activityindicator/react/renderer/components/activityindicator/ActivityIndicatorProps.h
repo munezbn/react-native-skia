@@ -17,9 +17,9 @@ class ActivityIndicatorProps final : public ViewProps {
 
 #pragma mark - Props
   bool animating{true};
-  SharedColor color{}; /*Framework will provide a default color(Color Value:#999999 As per IOS Documentation).*/
+  SharedColor color{}; // Framework will provide a default color(Color Value:#999999 As per IOS Documentation).
   bool hidesWhenStopped{true};
-  std::string const size{}; /*Framework will calculate the frame based on the size given. So in native layer it was not used.*/
+  std::string const size{}; // In RNS we will use layout frame width & height instead of this size. With that we can support both string and number size(similar to android implementation).
 };
 
 } // namespace react

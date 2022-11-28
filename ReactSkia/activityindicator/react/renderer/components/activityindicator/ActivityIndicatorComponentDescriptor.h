@@ -14,12 +14,7 @@
 namespace facebook {
 namespace react {
 
-class ActivityIndicatorComponentDescriptor final
-    : public ConcreteComponentDescriptor<ActivityIndicatorShadowNode> {
- public:
-  ActivityIndicatorComponentDescriptor(ComponentDescriptorParameters const &parameters)
-      : ConcreteComponentDescriptor<ActivityIndicatorShadowNode>(parameters) {}
-};
+using ActivityIndicatorComponentDescriptor = ConcreteComponentDescriptor<ActivityIndicatorShadowNode>;
 
 } // namespace react
 } // namespace facebook
