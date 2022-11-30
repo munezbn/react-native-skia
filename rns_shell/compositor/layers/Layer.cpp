@@ -52,7 +52,7 @@ inline SkIRect Layer::getFrameBoundsWithShadow(){
         SkRect shadowRect=SkRect::MakeXYWH(frame_.x()+shadowOffset.width(), frame_.y()+shadowOffset.height(), frame_.width(), frame_.height());
         as_MFB(shadowMaskFilter)->computeFastBounds(shadowRect, &storage);
         storage.join(SkRect::Make(frame_));
-        return  SkIRect::MakeXYWH(storage.x(), storage.y(), storage.width(), storage.height());
+        return storage.roundOut();
     } else if(shadowImageFilter) {
         // using Image Filter
         SkMatrix identityMatrix;
@@ -165,7 +165,7 @@ void Layer::preRoll(PaintContext& context, bool forceLayout) {
         calculateTransformMatrix();
         SkRect mapRect=SkRect::Make(frame_);
         absoluteTransformMatrix_.mapRect(&mapRect);
-        absFrame_ = SkIRect::MakeXYWH(mapRect.x(), mapRect.y(), mapRect.width(), mapRect.height());
+        absFrame_ = mapRect.roundOut();
         SkIRect newBounds = absFrame_;
         frameBounds_ = frame_;
         if(isShadowVisible) {
@@ -173,7 +173,7 @@ void Layer::preRoll(PaintContext& context, bool forceLayout) {
             //Calculate absolute frame bounds
             SkRect mapRect=SkRect::Make(frameBounds_);
             absoluteTransformMatrix_.mapRect(&mapRect);
-            newBounds = SkIRect::MakeXYWH(mapRect.x(), mapRect.y(), mapRect.width(), mapRect.height());
+            newBounds = mapRect.roundOut();
         }
 #if USE(RNS_SHELL_PARTIAL_UPDATES)
         if((invalidateMask_ & LayerLayoutInvalidate)) {
@@ -337,8 +337,8 @@ void Layer::calculateTransformMatrix() {
 Order of opertaion have to be reversed as  pre matrix opertaion used,
 so starting from step 3 to step 1
 */
-        int Xtrans =  frame_.x()+(frame_.width()*anchorPosition_.fX);
-        int Ytrans = frame_.y()+(frame_.height()*anchorPosition_.fY);
+        SkScalar Xtrans = frame_.x()+(frame_.width()*anchorPosition_.fX);
+        SkScalar Ytrans = frame_.y()+(frame_.height()*anchorPosition_.fY);
 
         absoluteTransformMatrix_.preTranslate(Xtrans,Ytrans);
         absoluteTransformMatrix_.preConcat(transformMatrix);
