@@ -142,6 +142,7 @@ void CurlNetworking::processNetworkRequest(CURLM *curlMultiHandle) {
           curlRequest->curldelegator.CURLNetworkingCompletionCallback(curlRequest->curlResponse.get(),curlRequest->curldelegator.delegatorData);
         }
         curl_easy_cleanup(curlHandle);
+        curlRequest->handle=NULL;
       } else {
         RNS_LOG_ERROR("Unknown critical error: CURLMsg" << msg->msg);
       }
