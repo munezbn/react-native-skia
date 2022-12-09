@@ -337,28 +337,9 @@ inline void RSkComponentImage::setPaintFilters (SkPaint &paintObj,const ImagePro
   }
 }
 
-inline bool  RSkComponentImage::needsContentShadow(ImageResizeMode resizeMode,
-                                                            bool isOpaque,
-                                                            SkRect frameRect,
-                                                            SkRect imageTargetRect) {
-/* This Function check on whether Image fills the frame or not to decide need for contentShadow 
-   Whether component has visible shadow or not needs to be taken care by the caller.
-*/
-    if(!isOpaque) {
-       /* In case of transparent image, frame size will not be enough to conclude image covers the frame or not
-           So returning true.
-       */
-        return true;
-    } else if((frameRect == imageTargetRect) || /* Frame size and Image target size are same*/
-       imageTargetRect.contains(frameRect)|| /* Image target size > Frame Size, in that clipping will be done to contain image in frame*/
-       (resizeMode == ImageResizeMode::Repeat)) /* IN repeat mode,Image will be repeated to fill the frame */ {
-        return false;
-    }
-    return true;
-}
 
 void RSkComponentImage::requestNetworkImageData(string sourceUri) {
-  remoteCurlRequest_ = std::make_shared<CurlRequest>(nullptr,source.uri,0,"GET");
+  remoteCurlRequest_ = std::make_shared<CurlRequest>(nullptr,sourceUri,0,"GET");
   
   folly::dynamic query = folly::dynamic::object();
 

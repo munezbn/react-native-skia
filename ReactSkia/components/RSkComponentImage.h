@@ -37,11 +37,7 @@ class RSkComponentImage final : public RSkComponent {
  private :
   ImgProps imageProps;
   std::shared_ptr<CurlRequest> remoteCurlRequest_{nullptr};
-  sk_sp<SkImage> networkImageData_;
   atomic<bool> isRequestInProgress_{false};
-  bool hasToTriggerEvent_{false};
-  bool canCacheData_{true};
-  double cacheExpiryTime_{DEFAULT_MAX_CACHE_EXPIRY_TIME};
   std::shared_ptr<ImageEventEmitter const> imageEventEmitter_;
   inline void drawContentShadow(SkCanvas *canvas,
                               SkRect frameRect,/*actual image frame*/
