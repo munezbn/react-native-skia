@@ -350,6 +350,8 @@ bool CurlNetworking::sendRequest(shared_ptr<CurlRequest> curlRequest, folly::dyn
 } 
 
 bool CurlNetworking::abortRequest(shared_ptr<CurlRequest> curlRequest) {
+  //Fix Me abort is called by main thread, Main thread will block untill abort completes. 
+  //schedule in different thread. 
   if(curlRequest->handle) {
     std::scoped_lock lock(curlInstanceMutex_);
     // remove the handle from the multihandle and cleanup the curl handle.
