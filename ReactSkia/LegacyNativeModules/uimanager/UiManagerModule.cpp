@@ -20,6 +20,23 @@ namespace facebook {
 namespace xplat {
 namespace uimanager {
 
+void Uimanager::updateViewForReactTag(int viewTag , folly::dynamic newViewProps) {
+  const ComponentDescriptor* componentDescriptor = nullptr;
+  RSkComponent * component = componentViewRegistry_->GetComponent(viewTag,&componentDescriptor);
+
+  if((componentDescriptor != nullptr) && (component != nullptr)) {
+
+    SharedProps oldProps = component->getComponentData().props;
+    SharedProps newProps = componentDescriptor->cloneProps(oldProps,RawProps(newViewProps));
+
+    component->layer()->client().notifyFlushBegin();
+    RnsShell::LayerInvalidateMask invalidateMask = component->updateProps(newProps,false);
+    component->drawAndSubmit(LayerInvalidateAll);
+    component->layer()->client().notifyFlushRequired();
+  }
+
+}
+
 // This function To be Generated using codeGen ??
 dynamic Uimanager::getConstantsForThirdpartyViewManager(std::string viewManagerName) {
 
@@ -207,6 +224,10 @@ auto UimanagerModule::getMethods() -> std::vector<Method> {
             uimanager_->updateView(jsArgAsInt(args, 0), jsArgAsString(args, 1), jsArgAsDynamic(args, 2));
           }),
   };
+}
+
+void UimanagerModule::updateViewForReactTag(int viewTag, folly::dynamic newProps) {
+  uimanager_->updateViewForReactTag(viewTag,newProps);
 }
 
 std::unique_ptr<xplat::module::CxxModule> UimanagerModule::createModule(ComponentViewRegistry *componentViewRegistry) {

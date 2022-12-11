@@ -194,6 +194,7 @@ TurboModuleProviderFunctionType JSITurboModuleManager::GetProvider() {
     if (modules_.find(name) != modules_.end()) {
       return modules_[name];
     }
+    RNS_LOG_WARN("!!!!! Turbo Module " << name << " Not found !!!!!");
     return nullptr;
   };
 }

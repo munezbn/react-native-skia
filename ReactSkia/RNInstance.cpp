@@ -1,3 +1,10 @@
+/*
+* Copyright (C) 1994-2022 OpenTV, Inc. and Nagravision S.A.
+* Copyright (C) Kudo
+*
+* This source code is licensed under the MIT license found in the
+* LICENSE file in the root directory of this source tree.
+*/
 #include <folly/io/async/ScopedEventBaseThread.h>
 
 #include "ReactSkia/RNInstance.h"
@@ -160,6 +167,7 @@ xplat::module::CxxModule* RNInstance::moduleForName(std::string moduleName) {
 
 void RNInstance::InitializeJSCore() {
   instance_ = std::make_shared<Instance>();
+  componentViewRegistry_ = std::make_unique<ComponentViewRegistry>();
   turboModuleManager_ =
       std::make_unique<JSITurboModuleManager>(instance_.get());
   auto cb = std::make_unique<InstanceCallback>();
@@ -245,7 +253,6 @@ static RSkComponentProviderProtocol RSKComponentViewClassWithName(ComponentName 
 }
 
 void RNInstance::RegisterComponents() {
-  componentViewRegistry_ = std::make_unique<ComponentViewRegistry>();
   componentViewRegistry_->Register(
       std::make_unique<RSkComponentProviderRootView>());
   componentViewRegistry_->Register(

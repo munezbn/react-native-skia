@@ -12,9 +12,10 @@ ComponentViewRegistry::ComponentViewRegistry() {
 
 ComponentDescriptorRegistry::Shared
 ComponentViewRegistry::CreateComponentDescriptorRegistry(
-    ComponentDescriptorParameters const &parameters) const {
-  return descriptorProviderRegistry_->createComponentDescriptorRegistry(
+    ComponentDescriptorParameters const &parameters) {
+  componentDescriptorRegistry_ = descriptorProviderRegistry_->createComponentDescriptorRegistry(
       parameters);
+  return componentDescriptorRegistry_;
 }
 
 void ComponentViewRegistry::Register(
@@ -45,6 +46,20 @@ RSkComponentProvider *ComponentViewRegistry::GetProvider(
   auto it = registry_.find(componentHandle);
   if (it != registry_.end()) {
     return it->second.get();
+  }
+  return nullptr;
+}
+
+RSkComponent* ComponentViewRegistry::GetComponent(
+    int tag, const ComponentDescriptor** componentDescriptor) const {
+
+  for(const auto &kv : registry_) {
+    if (strcmp(kv.second->GetDescriptorProvider().name, "RootView")) {
+      if(kv.second->GetComponent(tag) != nullptr) {
+        *componentDescriptor = componentDescriptorRegistry_->findComponentDescriptorByHandle_DO_NOT_USE_THIS_IS_BROKEN(kv.second->GetDescriptorProvider().handle);
+        return kv.second->GetComponent(tag).get();
+      }
+    }
   }
   return nullptr;
 }
