@@ -42,11 +42,11 @@ void RSkComponentActivityIndicatorManager::addComponent(std::weak_ptr<RSkCompone
 }
 
 void RSkComponentActivityIndicatorManager::removeComponent(Tag tag){
-  std::vector<std::weak_ptr<RSkComponent>>::iterator iter;
-
   if(aiComponentList_.size() == 0){
     return;
   }
+  
+  std::vector<std::weak_ptr<RSkComponent>>::iterator iter;
 
   for(iter = aiComponentList_.begin(); iter != aiComponentList_.end(); iter++){
     std::shared_ptr<RSkComponent> component = iter->lock();
@@ -64,20 +64,21 @@ void RSkComponentActivityIndicatorManager::removeComponent(Tag tag){
 }
 
 void RSkComponentActivityIndicatorManager::handleActivityIndicatorAnimation(double timestamp){
-  std::vector<std::weak_ptr<RSkComponent>>::iterator iter = aiComponentList_.begin();
-  std::shared_ptr<RSkComponent> firstComponent = iter->lock();
-
   if(aiComponentList_.size() == 0){
     return;
   }
 
+  std::vector<std::weak_ptr<RSkComponent>>::iterator iter = aiComponentList_.begin();
+  std::shared_ptr<RSkComponent> firstComponent = iter->lock();
+
   if(firstComponent){
     std::shared_ptr<RnsShell::Layer> layer = firstComponent->layer();
-    SkMatrix matrix;
-    unsigned int arcAngle;
 
     if(layer.get() != nullptr){
       layer->client().notifyFlushBegin();
+
+      SkMatrix matrix;
+      unsigned int arcAngle;
 
       for( auto & iter : aiComponentList_){
         std::shared_ptr<RSkComponent> component = iter.lock();
@@ -89,7 +90,7 @@ void RSkComponentActivityIndicatorManager::handleActivityIndicatorAnimation(doub
           arcAngle = (arcAngle + 6 ) % 360;
           matrix.setRotate(arcAngle, 0, 0);
           aiComponent->setCurrentAngle(arcAngle);
-          
+
           component->layer()->transformMatrix = matrix;
           component->layer()->invalidate( RnsShell::LayerLayoutInvalidate);
         }
