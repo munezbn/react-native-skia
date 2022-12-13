@@ -12,17 +12,24 @@
 namespace facebook {
 namespace react {
 
-class RSkComponentActivityIndicator final : public RSkComponent {
+class RSkComponentActivityIndicatorManager;
+class RSkComponentActivityIndicator final : public RSkComponent{
  public:
   RSkComponentActivityIndicator(const ShadowView &shadowView);
 
   ~RSkComponentActivityIndicator();
   
   void handleCommand(std::string commandName,folly::dynamic args) override {RNS_LOG_NOT_IMPL;};
+  unsigned int getCurrentAngle();
+  void setCurrentAngle(unsigned int angle);
   
   RnsShell::LayerInvalidateMask updateComponentProps(const ShadowView &newShadowView,bool forceUpdate) override;
  protected:
   void OnPaint(SkCanvas *canvas) override;
+ private:
+  RSkComponentActivityIndicatorManager* actIndManager_;
+  unsigned int currentAngle_;
+  bool initialPropertiesParsed_{false};
 };
 
 } // namespace react
