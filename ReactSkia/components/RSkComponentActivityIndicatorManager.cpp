@@ -7,6 +7,8 @@
 
 #include "ReactSkia/components/RSkComponentActivityIndicatorManager.h"
 
+#define RNS_ACTIVITY_INDICATOR_ANIMATION_THROTTLE   15 //Milliseconds
+
 std::mutex mutex_;
 
 namespace facebook {
@@ -17,7 +19,15 @@ RSkComponentActivityIndicatorManager *RSkComponentActivityIndicatorManager::acti
 RSkComponentActivityIndicatorManager::RSkComponentActivityIndicatorManager(){
   animRequest_ = new RnsJsRequestAnimation([this](double timestamp){
     RNS_LOG_DEBUG("[" << this->animRequest_ << "] Register Activity Indicator request Animation callback [" << timestamp << "]");
+#ifdef RNS_ACTIVITY_INDICATOR_ANIMATION_THROTTLE
+    static double previousValue = timestamp;
+    if((timestamp - previousValue) > RNS_ACTIVITY_INDICATOR_ANIMATION_THROTTLE){
+      handleActivityIndicatorAnimation(timestamp);
+      previousValue = timestamp;
+    }
+#else
     handleActivityIndicatorAnimation(timestamp);
+#endif
   });
 }
 
