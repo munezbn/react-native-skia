@@ -67,14 +67,14 @@ void RSkComponentImage::OnPaint(SkCanvas *canvas) {
   if(layerRef->isShadowVisible) {
     /*Draw Shadow on Frame*/
     hollowFrame=drawShadow(canvas,frame,imageBorderMetrics,
-                              imageProps.backgroundColor,
+                              layerRef->backgroundColor,
                               layerRef->shadowColor,layerRef->shadowOffset,layerRef->shadowOpacity,
                               layerRef->opacity,
                               layerRef->shadowImageFilter,layerRef->shadowMaskFilter
                           );
   }
   /*Draw Frame BackGround*/
-  drawBackground(canvas,frame,imageBorderMetrics,imageProps.backgroundColor);
+  drawBackground(canvas,frame,imageBorderMetrics,layerRef->backgroundColor);
   if(imageData) {
     SkRect imageTargetRect = computeTargetRect({imageData->width(),imageData->height()},frameRect,imageProps.resizeMode);
     SkPaint paint;
@@ -105,7 +105,7 @@ void RSkComponentImage::OnPaint(SkCanvas *canvas) {
       canvas->restore();
     }
     networkImageData_ = nullptr;
-    drawBorder(canvas,frame,imageBorderMetrics,imageProps.backgroundColor);
+    drawBorder(canvas,frame,imageBorderMetrics,layerRef->backgroundColor);
     // Emitting Load completed Event
     if(hasToTriggerEvent_) sendSuccessEvents();
 

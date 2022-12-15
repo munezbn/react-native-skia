@@ -37,14 +37,14 @@ void RSkComponentView::OnPaint(SkCanvas *canvas) {
   auto layerRef=layer();
   if(layerRef->isShadowVisible) {
     drawShadow(canvas,frame,borderMetrics,
-                    viewProps.backgroundColor,
+                    layerRef->backgroundColor,
                     layerRef->shadowColor,layerRef->shadowOffset,layerRef->shadowOpacity,
                     layerRef->opacity,
                     layerRef->shadowImageFilter,layerRef->shadowMaskFilter
                    );
   }
-  drawBackground(canvas,frame,borderMetrics,viewProps.backgroundColor);
-  drawBorder(canvas,frame,borderMetrics,viewProps.backgroundColor);
+  drawBackground(canvas,frame,borderMetrics,layer()->backgroundColor);
+  drawBorder(canvas,frame,borderMetrics,layer()->backgroundColor);
 }
 
 } // namespace react
