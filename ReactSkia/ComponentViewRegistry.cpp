@@ -54,10 +54,11 @@ RSkComponent* ComponentViewRegistry::GetComponent(
     int tag, const ComponentDescriptor** componentDescriptor) const {
 
   for(const auto &kv : registry_) {
-    if (strcmp(kv.second->GetDescriptorProvider().name, "RootView")) {
-      if(kv.second->GetComponent(tag) != nullptr) {
-        *componentDescriptor = componentDescriptorRegistry_->findComponentDescriptorByHandle_DO_NOT_USE_THIS_IS_BROKEN(kv.second->GetDescriptorProvider().handle);
-        return kv.second->GetComponent(tag).get();
+    if ((strcmp(kv.second->GetDescriptorProvider().name, "RootView")) != 0) {
+      auto component = kv.second->GetComponent(tag);
+      if(component != nullptr) {
+        *componentDescriptor = componentDescriptorRegistry_->findComponentDescriptorByHandle_DO_NOT_USE_THIS_IS_BROKEN(kv.first);
+        return component.get();
       }
     }
   }
