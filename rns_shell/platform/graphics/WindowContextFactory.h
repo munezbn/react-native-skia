@@ -34,15 +34,7 @@
 #include "x11/PlatformDisplayX11.h"
 #endif
 
-
 namespace RnsShell {
-
-#if USE(EGL)
-#include <EGL/egl.h>
-typedef EGLNativeWindowType GLNativeWindowType;
-#else
-typedef uint64_t GLNativeWindowType;
-#endif
 
 class WindowContext;
 struct DisplayParams;
