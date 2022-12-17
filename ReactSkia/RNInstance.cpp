@@ -275,7 +275,7 @@ void RNInstance::RegisterComponents() {
   // Provider request callback which is called when it doesnt find a viewManagerProvider in componentViewRegistry
   componentViewRegistry_->providerRegistry().setComponentDescriptorProviderRequest(
     [this](ComponentName requestedComponentName) {
-      RNS_LOG_WARN("!!!!!!!!!! Requested View Component " << requestedComponentName << ", try to find in thirdparty, else use unimplemented view");
+      RNS_LOG_WARN("!!!!!!!!!! Requested View Component " << requestedComponentName << " not found in internal registry, try to find in thirdparty");
 
       // Fallback 1 : Try to find thirdparty registry.
       auto providerProtocol = RSKComponentViewClassWithName(requestedComponentName);
@@ -284,6 +284,7 @@ void RNInstance::RegisterComponents() {
         componentViewRegistry_->Register(std::move(provider));
         return;
       }
+      RNS_LOG_WARN("!!!!!!!!!! Requested View Component " << requestedComponentName << " not found in thirdparty, use unimplemented view");
 
       // Fallback 2 : Create UnimplementedView object with given requested name as flavour& handle. Refer RCTComponentViewFactory.mm
       auto flavor = std::make_shared<std::string const>(requestedComponentName);

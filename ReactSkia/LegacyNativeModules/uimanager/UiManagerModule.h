@@ -31,7 +31,6 @@ class Uimanager {
     : componentViewRegistry_(componentViewRegistry) {}
   folly::dynamic getConstantsForViewManager(std::string viewManagerName);
   void updateView(int tag, std::string viewManagerName, folly::dynamic props);
-  void updateViewForReactTag(int viewTag, folly::dynamic newViewProps);
 
   // To be Generated using codeGen ??
   folly::dynamic getConstantsForThirdpartyViewManager(std::string viewManagerName);

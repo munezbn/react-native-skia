@@ -31,9 +31,10 @@ class ComponentViewRegistry {
 
   RSkComponentProvider *GetProvider(ComponentName componentName);
   RSkComponentProvider *GetProvider(ComponentHandle componentHandle);
-  RSkComponent* GetComponent(int tag, const ComponentDescriptor** componentDescriptor) const;
+  RSkComponentProvider *GetProvider(int tag);
 
   ComponentDescriptorProviderRegistry& providerRegistry() { return *descriptorProviderRegistry_; }
+  const ComponentDescriptor* getComponentDescriptor(ComponentHandle componentHandle);
 
  private:
   std::unique_ptr<ComponentDescriptorProviderRegistry>

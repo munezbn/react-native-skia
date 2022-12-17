@@ -57,19 +57,22 @@ RSkComponentProvider *ComponentViewRegistry::GetProvider(
   return nullptr;
 }
 
-RSkComponent* ComponentViewRegistry::GetComponent(
-    int tag, const ComponentDescriptor** componentDescriptor) const {
-
+RSkComponentProvider *ComponentViewRegistry::GetProvider(
+    int tag) {
   for(const auto &kv : registry_) {
     if ((strcmp(kv.second->GetDescriptorProvider().name, "RootView")) != 0) {
       auto component = kv.second->GetComponent(tag);
       if(component != nullptr) {
-        *componentDescriptor = componentDescriptorRegistry_->findComponentDescriptorByHandle_DO_NOT_USE_THIS_IS_BROKEN(kv.first);
-        return component.get();
+        return kv.second.get();
       }
     }
   }
   return nullptr;
+}
+
+const ComponentDescriptor* ComponentViewRegistry::getComponentDescriptor(
+    ComponentHandle componentHandle) {
+  return componentDescriptorRegistry_->findComponentDescriptorByHandle_DO_NOT_USE_THIS_IS_BROKEN(componentHandle);
 }
 
 } // namespace react
