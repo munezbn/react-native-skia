@@ -20,15 +20,12 @@ class RSkComponentActivityIndicator final : public RSkComponent{
   ~RSkComponentActivityIndicator();
   
   void handleCommand(std::string commandName,folly::dynamic args) override {RNS_LOG_NOT_IMPL;};
-  unsigned int getCurrentAngle();
-  void setCurrentAngle(unsigned int angle);
   
   RnsShell::LayerInvalidateMask updateComponentProps(const ShadowView &newShadowView,bool forceUpdate) override;
  protected:
   void OnPaint(SkCanvas *canvas) override;
  private:
   RSkComponentActivityIndicatorManager* actIndManager_;
-  unsigned int currentAngle_;
   bool initialPropertiesParsed_{false};
 };
 

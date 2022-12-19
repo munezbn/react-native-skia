@@ -7,7 +7,7 @@
 
 #include "ReactSkia/components/RSkComponentActivityIndicatorManager.h"
 
-#define RNS_ACTIVITY_INDICATOR_ANIMATION_THROTTLE   15 //Milliseconds
+#define RNS_ACTIVITY_INDICATOR_ROTATION_ANGLE       (360 / RNS_ANIMATION_FRAME_RATE)
 
 std::mutex mutex_;
 
@@ -19,15 +19,7 @@ RSkComponentActivityIndicatorManager *RSkComponentActivityIndicatorManager::acti
 RSkComponentActivityIndicatorManager::RSkComponentActivityIndicatorManager(){
   animRequest_ = new RnsJsRequestAnimation([this](double timestamp){
     RNS_LOG_DEBUG("[" << this->animRequest_ << "] Register Activity Indicator request Animation callback [" << timestamp << "]");
-#ifdef RNS_ACTIVITY_INDICATOR_ANIMATION_THROTTLE
-    static double previousValue = timestamp;
-    if((timestamp - previousValue) > RNS_ACTIVITY_INDICATOR_ANIMATION_THROTTLE){
-      handleActivityIndicatorAnimation(timestamp);
-      previousValue = timestamp;
-    }
-#else
     handleActivityIndicatorAnimation(timestamp);
-#endif
   });
 }
 
@@ -43,42 +35,41 @@ void RSkComponentActivityIndicatorManager::addComponent(std::weak_ptr<RSkCompone
   std::shared_ptr<RSkComponent> component = candidate.lock();
 
   if(component && component->layer().get()){
-    aiComponentList_.push_back(candidate);
+    actIndComponentList_.push_back(candidate);
 
-    if(aiComponentList_.size() == 1){
+    if(actIndComponentList_.size() == 1){
       animRequest_->start();
     }
   } 
 }
 
 void RSkComponentActivityIndicatorManager::removeComponent(Tag tag){
-  if(aiComponentList_.size() == 0){
+  if(actIndComponentList_.empty() == true){
     return;
   }
   
   std::vector<std::weak_ptr<RSkComponent>>::iterator iter;
 
-  for(iter = aiComponentList_.begin(); iter != aiComponentList_.end(); iter++){
+  for(iter = actIndComponentList_.begin(); iter != actIndComponentList_.end(); iter++){
     std::shared_ptr<RSkComponent> component = iter->lock();
-    if(component){
-      if(component->getComponentData().tag == tag){
-        aiComponentList_.erase(iter);
-        break;
-      }
+
+    if(component == nullptr || component->getComponentData().tag == tag){
+      actIndComponentList_.erase(iter);
+      break;
     }
   }
 
-  if(aiComponentList_.size() == 0){
+  if(actIndComponentList_.size() == 0){
     animRequest_->stop();
   } 
 }
 
 void RSkComponentActivityIndicatorManager::handleActivityIndicatorAnimation(double timestamp){
-  if(aiComponentList_.size() == 0){
+  if(actIndComponentList_.empty() == true){
     return;
   }
 
-  std::vector<std::weak_ptr<RSkComponent>>::iterator iter = aiComponentList_.begin();
+  std::vector<std::weak_ptr<RSkComponent>>::iterator iter = actIndComponentList_.begin();
   std::shared_ptr<RSkComponent> firstComponent = iter->lock();
 
   if(firstComponent){
@@ -87,21 +78,11 @@ void RSkComponentActivityIndicatorManager::handleActivityIndicatorAnimation(doub
     if(layer.get() != nullptr){
       layer->client().notifyFlushBegin();
 
-      SkMatrix matrix;
-      unsigned int arcAngle;
-
-      for( auto & iter : aiComponentList_){
+      for( auto & iter : actIndComponentList_){
         std::shared_ptr<RSkComponent> component = iter.lock();
 
         if(component && component->layer().get() != nullptr){
-          RSkComponentActivityIndicator *aiComponent =  dynamic_cast<RSkComponentActivityIndicator*>(component.get());
-
-          arcAngle = aiComponent->getCurrentAngle();  
-          arcAngle = (arcAngle + 6 ) % 360;
-          matrix.setRotate(arcAngle, 0, 0);
-          aiComponent->setCurrentAngle(arcAngle);
-
-          component->layer()->transformMatrix = matrix;
+          component->layer()->transformMatrix.preRotate(RNS_ACTIVITY_INDICATOR_ROTATION_ANGLE);
           component->layer()->invalidate( RnsShell::LayerLayoutInvalidate);
         }
       }

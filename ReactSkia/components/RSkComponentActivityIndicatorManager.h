@@ -23,7 +23,7 @@ class RSkComponentActivityIndicatorManager {
   
  private:
   static RSkComponentActivityIndicatorManager *activityIndicatorManager_;
-  std::vector<std::weak_ptr<RSkComponent>> aiComponentList_;
+  std::vector<std::weak_ptr<RSkComponent>> actIndComponentList_;
   RnsJsRequestAnimation * animRequest_{nullptr};
 
   RSkComponentActivityIndicatorManager();

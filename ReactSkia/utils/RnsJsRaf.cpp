@@ -39,7 +39,11 @@ RnsJsRequestAnimation::RnsJsRequestAnimation(const std::function<void(double)>& 
         const jsi::Value *args,
         size_t count) {
           if(count >= 1) {
-            callback(args[0].asNumber());
+            static double previousValue = args[0].asNumber();
+            if(((args[0].asNumber()) - previousValue) > (RNS_ANIMATION_FRAME_RATE_THROTTLE * 1000)){
+              callback(args[0].asNumber());
+              previousValue = args[0].asNumber();
+            }
             rafId_ = RnsRequestAnimationFrame();
           } else {
             RNS_LOG_WARN("Invalid number of argumentd for RAF callback");
@@ -75,13 +79,17 @@ void RnsJsRequestAnimation::RnsCancelAnimationFrame() {
 }
 
 void RnsJsRequestAnimation::start() {
-  isActive_ = true;
-  rafId_ = RnsRequestAnimationFrame();
+  if(isActive_ == false){
+    isActive_ = true;
+    rafId_ = RnsRequestAnimationFrame();
+  }
 }
 
 void RnsJsRequestAnimation::stop() {
-  isActive_ = false;
-  RnsCancelAnimationFrame();
+  if(isActive_ == true){
+    isActive_ = false;
+    RnsCancelAnimationFrame();
+  }
 }
 
 } // namespace react

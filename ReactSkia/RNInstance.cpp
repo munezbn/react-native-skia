@@ -173,6 +173,7 @@ void RNInstance::InitializeJSCore() {
       std::make_shared<JSCExecutorFactory>(turboModuleManager_.get()),
       std::make_shared<MessageQueueThreadImpl>(),
       moduleRegistry_);
+  jsRuntime_ = reinterpret_cast<jsi::Runtime*>(instance_->getJavaScriptContext());
 
   // NOTE(kudo): Workaround for TurboModules being fully initialized
   std::this_thread::sleep_for(std::chrono::milliseconds(500));
@@ -229,7 +230,6 @@ void RNInstance::InitializeFabric(RendererDelegate &rendererDelegate) {
         std::make_unique<RuntimeEventBeat const>(ownerBox->owner);
       return std::make_unique<AsynchronousEventBeat>(std::move(runLoopObserver), runtimeExecutor);
   };
-  jsRuntime_ = reinterpret_cast<jsi::Runtime*>(instance_->getJavaScriptContext());
   mountingManager_ =
       std::make_unique<MountingManager>(componentViewRegistry_.get(), rendererDelegate);
   fabricScheduler_ =

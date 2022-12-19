@@ -89,19 +89,10 @@ void RSkComponentActivityIndicator::OnPaint(SkCanvas *canvas) {
   }
 }
 
-unsigned int RSkComponentActivityIndicator::getCurrentAngle(){
-  return currentAngle_;
-}
-
-void RSkComponentActivityIndicator::setCurrentAngle(unsigned int angle){
-  currentAngle_ = angle;
-}
-
 RSkComponentActivityIndicator::~RSkComponentActivityIndicator(){
   auto component = getComponentData();
   actIndManager_->removeComponent(component.tag);
   actIndManager_ = nullptr;
-  currentAngle_ = 0;
   initialPropertiesParsed_ = false;
 }
 

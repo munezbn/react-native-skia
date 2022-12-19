@@ -12,6 +12,11 @@
 
 #include "ReactSkia/utils/RnsLog.h"
 
+#ifndef RNS_ANIMATION_FRAME_RATE
+#define RNS_ANIMATION_FRAME_RATE 60
+#endif
+#define RNS_ANIMATION_FRAME_RATE_THROTTLE     ((1/RNS_ANIMATION_FRAME_RATE)) //Milliseconds
+
 using namespace facebook::jsi;
 
 namespace facebook {
@@ -28,7 +33,7 @@ class RnsJsRequestAnimation {
     static uint64_t nextUniqueId();
 
   private :
-    bool isActive_{false};
+    std::atomic<bool> isActive_{false};
     Value rafId_;
     std::string callbackName_;
     //HostFunctionType rafNativeCallback_;
