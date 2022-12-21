@@ -118,7 +118,11 @@ static inline LayoutContext RSkGetLayoutContext(SkPoint viewportOffset) {
 
 jsi::Runtime *RNInstance::jsRuntime_ = nullptr;
 
-RNInstance::RNInstance(RendererDelegate &rendererDelegate) {
+RNInstance::RNInstance(RendererDelegate &rendererDelegate)
+  : instance_(std::make_shared<Instance>())
+  , moduleMessageQueue_(std::make_shared<MessageQueueThreadImpl>())
+  , componentViewRegistry_(std::make_unique<ComponentViewRegistry>()) {
+
   InitializeJSCore();
   RegisterComponents();
   InitializeFabric(rendererDelegate);
@@ -166,15 +170,11 @@ xplat::module::CxxModule* RNInstance::moduleForName(std::string moduleName) {
 }
 
 void RNInstance::InitializeJSCore() {
-  instance_ = std::make_shared<Instance>();
-  componentViewRegistry_ = std::make_unique<ComponentViewRegistry>();
   turboModuleManager_ =
       std::make_unique<JSITurboModuleManager>(instance_.get());
   auto cb = std::make_unique<InstanceCallback>();
   auto factory =
       std::make_shared<JSCExecutorFactory>(turboModuleManager_.get());
-  moduleMessageQueue_ =
-      std::make_shared<MessageQueueThreadImpl>();
   moduleRegistry_ = std::make_shared<LegacyNativeModuleRegistry>(componentViewRegistry_.get(), instance_, moduleMessageQueue_);
   instance_->initializeBridge(
       std::make_unique<InstanceCallback>(),
