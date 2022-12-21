@@ -171,5 +171,23 @@ bool RSkImageCacheManager::imageDataInsertInCache(const char* path,decodedimageC
   }
 }
 
+bool RSkImageCacheManager::clearMemory() {
+  std::scoped_lock lock(imageCacheLock);
+  ImageCacheMap::iterator it=imageCache_.begin();
+  while( it != imageCache_.end()) {
+    if((it->second->imageData)->unique()) {
+      it=imageCache_.erase(it);
+    } else {
+      ++it;
+    }
+  }
+#ifdef RNS_SHELL_HAS_GPU_SUPPORT
+  GrDirectContext* gpuContext = RSkSurfaceWindow::getDirectContext();
+  if(gpuContext)
+   gpuContext->purgeUnlockedResources(false);
+#endif
+  return true;
+}
+
 } // namespace react
 } // namespace facebook

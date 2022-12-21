@@ -34,6 +34,8 @@ class RSkImageCacheManager {
   static void init();
   sk_sp<SkImage> findImageDataInCache(const char* path);
   bool imageDataInsertInCache(const char* path,decodedimageCacheData imageCacheData);
+  bool clearMemory();
+  bool clearDisk() { RNS_LOG_NOT_IMPL; return true; }
  private:
   static std::mutex mutex_;
   static RSkImageCacheManager *imageCacheManagerInstance_;
