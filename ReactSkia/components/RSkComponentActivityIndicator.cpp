@@ -41,6 +41,7 @@ RnsShell::LayerInvalidateMask  RSkComponentActivityIndicator::updateComponentPro
       actIndManager_->removeComponent(component.tag);
     }
   }
+  return RnsShell::LayerInvalidateNone;
 }
 
 void RSkComponentActivityIndicator::OnPaint(SkCanvas *canvas) {
