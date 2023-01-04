@@ -242,7 +242,7 @@ void RSkComponent::updateComponentData(const ShadowView &newShadowView,const uin
       invalidateMask =static_cast<RnsShell::LayerInvalidateMask>(invalidateMask | RnsShell::LayerInvalidateAll);
 
       Rect frame = component_.layoutMetrics.frame;
-      SkIRect frameIRect = SkRect::MakeXYWH(frame.origin.x, frame.origin.y, frame.size.width, frame.size.height).roundOut();
+      SkIRect frameIRect = SkIRect::MakeXYWH(frame.origin.x, frame.origin.y, frame.size.width, frame.size.height);
       if(layer() && layer().get())
         layer_->setFrame(frameIRect);
    }
