@@ -182,20 +182,21 @@ bool RSkImageCacheManager::clearMemory() {
       ++it;
     }
   }
-  imageCache_.clear();
 #ifdef RNS_SHELL_HAS_GPU_SUPPORT
   RnsShell::WindowContext::grTransactionBegin();
   GrDirectContext* gpuContext = RSkSurfaceWindow::getDirectContext();
-  if(gpuContext)
-   gpuContext->purgeUnlockedResources(false);
+  if(gpuContext) {
+    gpuContext->purgeUnlockedResources(false);
+  }
   RnsShell::WindowContext::grTransactionEnd();
 #endif
 #ifdef RNS_IMAGE_CACHE_USAGE_DEBUG
     printCacheUsage(); // for print memory size for CPU and GPU cache
 #endif //RNS_IMAGECACHING_DEBUG
   SkGraphics::PurgeResourceCache(); // purge for CPU memory cache
-  if(imageCache_.empty())
+  if(imageCache_.empty()) {
     timer_->abort();
+  }
   return true;
 }
 
