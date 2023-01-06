@@ -117,10 +117,10 @@ multipleRemove = async(keys) =>{
 
 getAsyncData = async (key) => {
   try {
-      const data = await AsyncStorage.getItem(key);
-      console.log(`----------------getAsyncData data ${key}`, data);
+    const data = await AsyncStorage.getItem(key);
+    console.log(`----------------getAsyncData data ${key}`, data);
   } catch (e) {
-      console.error(`----------------getAsyncData  ${key} error`, e.message, e.key);
+    console.error(`----------------getAsyncData  ${key} error`, e.message, e.key);
   }
 }
 
