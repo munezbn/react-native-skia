@@ -18,115 +18,76 @@ import {
     TouchableHighlight
 } from 'react-native';
 
- 
-
 import AsyncStorage from '@react-native-async-storage/async-storage';
-//import analytics from '@react-native-firebase/analytics';
-
- 
 
 let keys = [];
-
- 
-
 const makeid =  (length) => {
-    var result = '';
-    var characters = 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz';
-    var charactersLength = characters.length;
-    for (var i = 0; i < length; i++) {
-        result += characters.charAt(Math.floor(Math.random() * charactersLength));
-    }
-    return result;
+  var result = '';
+  var characters = 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz';
+  var charactersLength = characters.length;
+  for (var i = 0; i < length; i++) {
+      result += characters.charAt(Math.floor(Math.random() * charactersLength));
+  }
+  return result;
 }
-
- 
 
 const storeData = async (key, value) => {
-    try {
-        console.log("---------------storing data: ", value)
-        AsyncStorage.setItem(key, value)
-    } catch (e) {
-        console.error(e);
-    }
+  try {
+    console.log("---------------storing data: ", value)
+    AsyncStorage.setItem(key, value)
+  } catch (e) {
+    console.error(e);
+  }
 }
-
- 
 
 const storeRandomData =  () => {
-    try {
-        console.log("---------------storing data: ")
-        for(var i=0;i<5;i++){
-         keys[i] = makeid(6);
-         AsyncStorage.setItem(keys[i], "kish")
-        }
-    } catch (e) {
-        // saving error
+  try {
+    console.log("---------------storing data: ")
+    for(var i=0;i<5;i++){
+     keys[i] = makeid(6);
+     AsyncStorage.setItem(keys[i], "VALUE")
     }
+  } catch (e) {
+    // saving error
+  }
 }
-
- 
 
 const getData = async (key) => {
-    AsyncStorage.getItem(key, (err, result) => {
-
- 
-
-        if (result == null) {
-            console.error(`error from getData  > err.message, err.key`, err.message, err.key);
-            return;
-        }
-        console.log(result);
-    });
+  AsyncStorage.getItem(key, (err, result) => {
+    if (result == null) {
+      console.error(`error from getData  > err.message, err.key`, err.message, err.key);
+      return;
+    }
+    console.log(result);
+  });
 }
 
- 
-
 const _retrieveData = async (key) => {
-    try {
-        const value = await AsyncStorage.getItem(key);
-        console.info("_retrieveData ", value);
-    } catch (error) {
-
- 
-
-        // Error retrieving data
-        console.error("_retrieveData error ", error.message, error.key);
-    }
+  try {
+    const value = await AsyncStorage.getItem(key);
+    console.info("_retrieveData ", value);
+  } catch (error) {
+    // Error retrieving data
+    console.error("_retrieveData error ", error.message, error.key);
+  }
 };
-
- 
-
 const _retrieve_100_Data = async () => {
-    try {
-      console.log("get_100_data",Date.now());
-      for(let i=0;i<5;i++){
-        const value = AsyncStorage.getItem(keys[i], ()=>{});
-      }
-      console.log("get_100_data",Date.now());
-    } catch (error) {
-
- 
-
-        // Error retrieving data
-        console.error("_retrieveData error ", error);
+  try {
+    console.log("get_100_data",Date.now());
+    for(let i=0;i<5;i++){
+      const value = AsyncStorage.getItem(keys[i], ()=>{});
     }
+    console.log("get_100_data",Date.now());
+  } catch (error) {
+     // Error retrieving data
+     console.error("_retrieveData error ", error);
+  }
 };
 var gKey = 0;
-
- 
-
 function getObjKey() {
     gKey++;
     return gKey;
 }
-
- 
-
-// const removeData = (key) => {
-//     AsyncStorage.removeItem(key);
-// }
-
- 
 
 removeValue = async (key) => {
   try {
@@ -135,13 +96,8 @@ removeValue = async (key) => {
     console.error(e.message, e.key)
     return
   }
-
- 
-
   console.log('Done.')
 }
-
- 
 
 multiStore = async(multi_set_pairs) =>{
    try {
@@ -149,12 +105,7 @@ multiStore = async(multi_set_pairs) =>{
   } catch(e) {
     console.log(e);
   }
-
- 
-
 }
-
- 
 
 multipleRemove = async(keys) =>{
   try {
@@ -164,9 +115,32 @@ multipleRemove = async(keys) =>{
   }
 }
 
- 
+getAsyncData = async (key) => {
+  try {
+      const data = await AsyncStorage.getItem(key);
+      console.log(`----------------getAsyncData data ${key}`, data);
+  } catch (e) {
+      console.error(`----------------getAsyncData  ${key} error`, e.message, e.key);
+  }
+}
 
-getAllKeys = async () => {
+multiGetAsync = async (keys) => {
+  try {
+    const data = await AsyncStorage.multiGet(keys);
+    console.log(`----------------getAsyncData data`, data);
+  } catch (e) {
+    console.error(`----------------getAsyncData error`, e);
+  }
+}
+
+multiGetCB = (keys) => {
+  AsyncStorage.multiGet(keys, (err, values) => {
+    console.log("multiGetCB Values",values);
+    console.error("Error multiGetCB", err);
+  });
+}
+
+TEST_GET_ALL_KEYS = async () => {
   let keys = []
   try {
     keys = await AsyncStorage.getAllKeys()
@@ -175,13 +149,10 @@ getAllKeys = async () => {
     console.error("get all keys error")
     return;
   }
-
- 
-
   console.log(keys)
 }
 
-clearData = async () => {
+TEST_CLEAR_DATA = async () => {
   try {
     await AsyncStorage.clear()
   } catch(e) {
@@ -192,119 +163,61 @@ clearData = async () => {
   console.log('Done.')
 }
 
-loop = async() =>{
-  for(let i=0;i<10000;i++){
+const TEST_SET_ITEM = () => {
+  let multi_set_pairs = [
+    ['UID234', "UID234_object"],
+    ['UID345', "UID345_object"]
+  ];
+  storeData("key1", "value1")
+  storeData("key2", "value2")
+  storeData("key3", "value3")
+  storeData("key4", "value4")
+  storeData("key5", "value5")
+  storeRandomData();
+  multiStore(multi_set_pairs)
+} 
 
-  }
+
+const TEST_GET_ITEM = () =>{
+  getData("UID234");
+  _retrieve_100_Data();
+  _retrieveData("key2");
+  _retrieveData("key50");
+  multiGetAsync(['key1', 'key3',"key3"]);
+  getAsyncData("key28");
+}
+
+const TEST_REMOVE_ITEM =() =>{
+  removeValue("key78");
+  removeValue("key2");
+  multipleRemove([keys[1],keys[2]]);
 }
 
 class SimpleViewApp extends Component {
-
- 
-
-    constructor(props) {
-        super(props)
-        this.state = {
-            keys: []
-        }
-        let multi_set_pairs = [
-          ['UID234', "UID234_object"],
-          ['UID345', "UID345_object"]
-        ];
-        storeData("k11", "llll545151377l")
-        storeData("k2", "ffffffffffffffffffffffffffffff")
-        storeData("k3", "dddddddddd")
-        storeData("k1", "kkkkkfffkkkk")
-        storeData("k11", "pppppp")
-        // storeRandomData();
-        // multiStore(multi_set_pairs)
-
- 
-
-        // getData("UID234");
-        // _retrieve_100_Data();
-        // _retrieveData("k2");
-        // _retrieveData("k50");
-        // this.multiGetAsync(['k1', 'k11',"k3"]);
-      //  removeValue("k78");
-       // removeValue("k2");
-       // multipleRemove([keys[1],keys[2]]);
-        //await sleep(1000);
-        getAllKeys()
-        //this.getAsyncData("k28");
-        loop()
-        setTimeout(() => {
-           clearData();
-        }, 4000);
+  constructor(props) {
+    super(props)
+    this.state = {
+      keys: []
     }
-
-    getAsyncData = async (key) => {
-        try {
-            const data = await AsyncStorage.getItem(key);
-            console.log(`----------------getAsyncData data ${key}`, data);
-        } catch (e) {
-            console.error(`----------------getAsyncData  ${key} error`, e.message, e.key);
-        }
-    }
-
- 
-
-    multiGetAsync = async (keys) => {
-        try {
-            const data = await AsyncStorage.multiGet(keys);
-            console.log(`----------------getAsyncData data`, data);
-        } catch (e) {
-            console.error(`----------------getAsyncData error`, e);
-        }
-    }
-
- 
-
-    multiGetCB = (keys) => {
-        AsyncStorage.multiGet(keys, (err, values) => {
-            console.log("multiGetCB Values",values);
-            console.error("Error multiGetCB", err);
-            // values.map((result, i, value) => {
-            //   let key = value[i][0];
-            //   let val = value[i][1];
-            //   console.log(key, val);
-            // });
-
- 
-
-        });
-
- 
-
-    }
-
- 
-
- 
-
+    TEST_SET_ITEM();
+    TEST_GET_ITEM();
+    TEST_REMOVE_ITEM();
+    TEST_GET_ALL_KEYS();
+    TEST_CLEAR_DATA();
+  }
     logEvent1 = async () => {
         console.log("----------------calling logEvent1");
     }
-
- 
-
+    
     onPress = () => {
-        console.log("onTouch---------------------")
-        //this.logEvent(); 
-        this.logEvent1();
-        //foo();
+      console.log("onTouch---------------------")
+      this.logEvent1();
     }
-
- 
-
+    
     componentDidMount() {
-        //this.setState({keys: [{"bbb":"111"}]})
-
- 
-
     }
 
-    render(){
+render(){
         return(
 <View style={styles.container}>
 <TouchableHighlight onPress={this.onPress}>
@@ -342,11 +255,6 @@ const styles = StyleSheet.create({
     padding: 10
   },
 
- 
-
-
 });
-
-//export default App;
 
 AppRegistry.registerComponent('SimpleViewApp', () => SimpleViewApp);
