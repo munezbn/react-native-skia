@@ -133,8 +133,6 @@ class RSkComponent : public SpatialNavigator::Container, public std::enable_shar
   std::shared_ptr<RnsShell::Layer> layer_;
   RnsShell::LayerType layerType_{LAYER_TYPE_PICTURE};
   Component component_;
-
-  typedef Layer INHERITED;
 };
 
 } // namespace react
