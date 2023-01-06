@@ -74,8 +74,9 @@ SharedLayer Layer::Create(Client& layerClient, LayerType type) {
         case LAYER_TYPE_SCROLL:
             return std::make_shared<ScrollLayer>(layerClient);
         case LAYER_TYPE_DEFAULT:
+            return std::make_shared<Layer>(layerClient, LAYER_TYPE_DEFAULT);
         default:
-            RNS_LOG_ASSERT(false, "Default layers can be created only from RSkComponent constructor");
+            RNS_LOG_ASSERT(false, "Unknown Layer type to create");
             return nullptr;
     }
 }
@@ -232,7 +233,8 @@ void Layer::paintSelf(PaintContext& context) {
     RNS_GET_TIME_STAMP_US(start);
 #endif
 
-    this->onPaint(context.canvas);
+    if(onPaint_)
+      onPaint_(context.canvas);
 
 #if !defined(GOOGLE_STRIP_LOG) || (GOOGLE_STRIP_LOG <= INFO)
     RNS_GET_TIME_STAMP_US(end);
