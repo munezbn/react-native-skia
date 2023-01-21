@@ -30,7 +30,8 @@ namespace RnsShell {
 class Layer;
 
 enum LayerType {
-    LAYER_TYPE_DEFAULT = 0, // Default layer type which which will use component specific APIs to paint.
+    LAYER_TYPE_DEFAULT = 0, // Default layer type will need to register a paint functions using registerOnPaint.
+    LAYER_TYPE_VIRTUAL, // Layer without any paint function. Used to maintain frame and properties..
     LAYER_TYPE_PICTURE, // SkPiture based layer.
     LAYER_TYPE_SCROLL, // Scrolling functionality based layer.
     LAYER_TYPE_TEXTURED, // SkTexture based layer.
@@ -94,7 +95,7 @@ public:
     virtual ~Layer() {};
 
     Client& client() const { return *client_; }
-    void registerOnPaint(LayerOnPainFunc paintFunc) { onPaint_ = paintFunc; } // Used for Default Layer Type
+    void registerOnPaint(LayerOnPainFunc paintFunc);// Used for Default Layer Type
 
     Layer* rootLayer();
     Layer* parent() { return parent_; }
