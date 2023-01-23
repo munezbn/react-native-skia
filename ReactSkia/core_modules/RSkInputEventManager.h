@@ -7,6 +7,7 @@
 
 #pragma once
 #include <map>
+#include <mutex>
 #include <semaphore.h>
 #include "ReactSkia/sdk/ThreadSafeQueue.h"
 #include "ReactSkia/core_modules/RSkSpatialNavigator.h"
@@ -28,12 +29,13 @@ struct RskKeyInput {
   rnsKeyAction action_ {RNS_KEY_UnknownAction};
   bool repeat_ {false};
 };
-
+typedef std::function< void (rnsKeyAction,rnsKey,bool)> callbackFunPrt;
 
 class RSkInputEventManager {
  private:
+  std::mutex eventCallbackMutex_;
   int callbackId_ = 0;
-  std::map <int, std::function< void ( std::string , int, rnsKeyAction,rnsKey,bool)> > eventCallbackMap_;
+  std::map <int, callbackFunPrt > eventCallbackMap_;
   static RSkInputEventManager *sharedInputEventManager_;
   RSkInputEventManager();
 #if ENABLE(FEATURE_KEY_THROTTLING)
@@ -48,7 +50,7 @@ class RSkInputEventManager {
 
  public:
   ~RSkInputEventManager();
-  int registerAddListener(std::function<void(std::string,int,rnsKeyAction,rnsKey, bool keyRepeat)> fcb);
+  int registerAddListener(callbackFunPrt fcb);
   void removeListener(int callbackId);
   static RSkInputEventManager* getInputKeyEventManager();
   void keyHandler(rnsKey key, rnsKeyAction eventKeyAction);
