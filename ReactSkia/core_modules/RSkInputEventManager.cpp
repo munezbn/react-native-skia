@@ -1,5 +1,5 @@
 /*
-* Copyright (C) 1994-2021 OpenTV, Inc. and Nagravision S.A.
+* Copyright (C) 1994-2023 OpenTV, Inc. and Nagravision S.A.
 *
 * Use of this source code is governed by a BSD-style license that can be
 * found in the LICENSE file.
@@ -121,6 +121,7 @@ void RSkInputEventManager::processKey(RskKeyInput &keyInput) {
       return;//don't propagate key further
     }
   }
+  
 #if defined(TARGET_OS_TV) && TARGET_OS_TV
   sendNotificationWithEventType(
       RNSKeyMap[keyInput.key_],
@@ -128,6 +129,13 @@ void RSkInputEventManager::processKey(RskKeyInput &keyInput) {
       keyInput.action_, nullptr);
 #endif //TARGET_OS_TV
   spatialNavigator_->handleKeyEvent(keyInput.key_, keyInput.action_);
+  
+  /*Sending Events to the registered callback*/
+  for (auto pair : eventCallbackMap_){
+    auto fcb = pair.second;
+    fcb(RNSKeyMap[keyInput.key_],currentFocused ? currentFocused->getComponentData().tag : -1,
+        keyInput.action_,keyInput.key_,keyInput.repeat_);
+  }
 }
 
 RSkInputEventManager* RSkInputEventManager::getInputKeyEventManager(){
@@ -150,6 +158,19 @@ void RSkInputEventManager::sendNotificationWithEventType(std::string eventType, 
       ), completeCallback);
 }
 #endif //TARGET_OS_TV
+
+int RSkInputEventManager::registerAddListener(std::function<void(std::string,int,rnsKeyAction, rnsKey,bool)> fcb){
+  RNS_LOG_DEBUG("[registerAddListener] ");
+  callbackId_++;
+  eventCallbackMap_.insert({callbackId_,fcb});
+  return callbackId_;
+}
+
+void RSkInputEventManager::removeListener(int callbackId){
+  RNS_LOG_DEBUG("[removeListener]");
+  eventCallbackMap_.erase(callbackId_);
+}
+
 
 }//react
 }//facebook

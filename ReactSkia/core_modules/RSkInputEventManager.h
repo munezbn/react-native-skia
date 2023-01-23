@@ -1,11 +1,12 @@
 /*
- * Copyright (C) 1994-2021 OpenTV, Inc. and Nagravision S.A.
+ * Copyright (C) 1994-2023 OpenTV, Inc. and Nagravision S.A.
  *
  * Use of this source code is governed by a BSD-style license that can be
  * found in the LICENSE file.
  */
 
 #pragma once
+#include <map>
 #include <semaphore.h>
 #include "ReactSkia/sdk/ThreadSafeQueue.h"
 #include "ReactSkia/core_modules/RSkSpatialNavigator.h"
@@ -16,7 +17,6 @@ namespace facebook {
 namespace react {
 
 using namespace SpatialNavigator;
-
 struct RskKeyInput {
   RskKeyInput() = default;
   ~RskKeyInput() = default;
@@ -29,11 +29,13 @@ struct RskKeyInput {
   bool repeat_ {false};
 };
 
+
 class RSkInputEventManager {
  private:
+  int callbackId_ = 0;
+  std::map <int, std::function< void ( std::string , int, rnsKeyAction,rnsKey,bool)> > eventCallbackMap_;
   static RSkInputEventManager *sharedInputEventManager_;
   RSkInputEventManager();
-
 #if ENABLE(FEATURE_KEY_THROTTLING)
   void inputWorkerThreadFunction();
   std::unique_ptr<ThreadSafeQueue<RskKeyInput>> keyQueue_;
@@ -46,6 +48,8 @@ class RSkInputEventManager {
 
  public:
   ~RSkInputEventManager();
+  int registerAddListener(std::function<void(std::string,int,rnsKeyAction,rnsKey, bool keyRepeat)> fcb);
+  void removeListener(int callbackId);
   static RSkInputEventManager* getInputKeyEventManager();
   void keyHandler(rnsKey key, rnsKeyAction eventKeyAction);
 #if ENABLE(FEATURE_KEY_THROTTLING)
