@@ -14,7 +14,6 @@ extern "C" {
 #endif
 
 RSkLegacyNativeModuleProviderProtocol RSkThirdparyNativeModuleCreatorClassWithName(std::string moduleName);
-xplat::module::CxxModule* RNKeyEventModuleCls(void) RNS_USED; 
 
 #ifdef __cplusplus
 }

@@ -2,7 +2,6 @@
 
 source_set("ReactSkiaExternal") {
   deps = [
-          "//ReactSkia/external/react-native-keyevent/skia:RnRNKeyEvent",
   ]
 }
 
