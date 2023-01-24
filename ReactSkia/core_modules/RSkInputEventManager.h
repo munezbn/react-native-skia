@@ -29,13 +29,13 @@ struct RskKeyInput {
   rnsKeyAction action_ {RNS_KEY_UnknownAction};
   bool repeat_ {false};
 };
-typedef std::function< void (rnsKeyAction,rnsKey,bool)> callbackFunPrt;
+typedef std::function< void (RskKeyInput)> inputEventClientCallbackPrt;
 
 class RSkInputEventManager {
  private:
   std::mutex eventCallbackMutex_;
   int callbackId_ = 0;
-  std::map <int, callbackFunPrt > eventCallbackMap_;
+  std::map <int, inputEventClientCallbackPrt > eventCallbackMap_;
   static RSkInputEventManager *sharedInputEventManager_;
   RSkInputEventManager();
 #if ENABLE(FEATURE_KEY_THROTTLING)
@@ -50,7 +50,7 @@ class RSkInputEventManager {
 
  public:
   ~RSkInputEventManager();
-  int registerAddListener(callbackFunPrt fcb);
+  int registerAddListener(inputEventClientCallbackPrt inputEventClientCallback);
   void removeListener(int callbackId);
   static RSkInputEventManager* getInputKeyEventManager();
   void keyHandler(rnsKey key, rnsKeyAction eventKeyAction);
