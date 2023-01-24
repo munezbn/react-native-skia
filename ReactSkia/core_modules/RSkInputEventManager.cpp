@@ -129,10 +129,12 @@ void RSkInputEventManager::processKey(RskKeyInput &keyInput) {
       keyInput.action_, nullptr);
 #endif //TARGET_OS_TV
   /*Sending Events to the registered callback*/
+  eventCallbackMutex_.lock();
   for (auto pair : eventCallbackMap_){
     auto callbackFn = pair.second;
     callbackFn(keyInput.action_,keyInput.key_,keyInput.repeat_);
   }
+  eventCallbackMutex_.unlock();
   spatialNavigator_->handleKeyEvent(keyInput.key_, keyInput.action_);
 }
 
