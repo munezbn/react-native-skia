@@ -171,7 +171,7 @@ int RSkInputEventManager::registerAddListener(inputEventClientCallback clientCal
 void RSkInputEventManager::removeListener(int callbackId){
   RNS_LOG_DEBUG("[removeListener]");
   eventCallbackMutex_.lock();
-  eventCallbackMap_.erase(callbackId_);
+  eventCallbackMap_.erase(callbackId);
   eventCallbackMutex_.unlock();
 }
 
