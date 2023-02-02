@@ -18,7 +18,7 @@ static unsigned int subWindowEventId_;
 RSkInputEventManager* RSkInputEventManager::sharedInputEventManager_{nullptr};
 RSkInputEventManager::RSkInputEventManager(){
 #if ENABLE(FEATURE_KEY_THROTTLING)
-  keyQueue_ =  std::make_unique<ThreadSafeQueue<RskKeyInput>>();
+  keyQueue_ =  std::make_unique<ThreadSafeQueue<RSkKeyInput>>();
 #endif
   std::function<void(rnsKey, rnsKeyAction)> handler = std::bind(&RSkInputEventManager::keyHandler, this,
                                                               std::placeholders::_1, // rnsKey
@@ -60,7 +60,7 @@ RSkInputEventManager::~RSkInputEventManager(){
 
 #if ENABLE(FEATURE_KEY_THROTTLING)
 void RSkInputEventManager::inputWorkerThreadFunction() {
-  RskKeyInput keyInput;
+  RSkKeyInput keyInput;
   while(true) {
     while(activeInputClients_ > 0) // If there are clients who are still processing previous key then wait..
       sem_wait(&keyEventPost_);
@@ -100,7 +100,7 @@ void RSkInputEventManager::keyHandler(rnsKey eventKeyType, rnsKeyAction eventKey
       return;// ignore key release 
     }
   } else {
-    RskKeyInput keyInput(eventKeyType, eventKeyAction, keyRepeat);
+    RSkKeyInput keyInput(eventKeyType, eventKeyAction, keyRepeat);
     previousKeyType = eventKeyType;
 #if ENABLE(FEATURE_KEY_THROTTLING)
     keyQueue_->push(keyInput);
@@ -110,7 +110,7 @@ void RSkInputEventManager::keyHandler(rnsKey eventKeyType, rnsKeyAction eventKey
   }
 }
 
-void RSkInputEventManager::processKey(RskKeyInput &keyInput) {
+void RSkInputEventManager::processKey(RSkKeyInput &keyInput) {
   bool stopPropagate = false;
 
   RNS_LOG_DEBUG("[Process Key] Key Repeat " << keyInput.repeat_ << " eventKeyType  " << keyInput.key_ << " previousKeyType " << previousKeyType);
