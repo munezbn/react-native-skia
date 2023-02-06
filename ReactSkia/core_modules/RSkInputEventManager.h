@@ -50,8 +50,8 @@ class RSkInputEventManager {
 
  public:
   ~RSkInputEventManager();
-  int registerAddListener(inputEventClientCallback clientCallback);
-  void removeListener(int callbackId);
+  int addKeyEventCallback(inputEventClientCallback clientCallback);
+  void removeKeyEventCallback(int callbackId);
   static RSkInputEventManager* getInputKeyEventManager();
   void keyHandler(rnsKey key, rnsKeyAction eventKeyAction);
 #if ENABLE(FEATURE_KEY_THROTTLING)

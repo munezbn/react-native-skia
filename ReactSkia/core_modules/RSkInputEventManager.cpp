@@ -128,6 +128,8 @@ void RSkInputEventManager::processKey(RSkKeyInput &keyInput) {
       currentFocused ? currentFocused->getComponentData().tag : -1,
       keyInput.action_, nullptr);
 #endif //TARGET_OS_TV
+  spatialNavigator_->handleKeyEvent(keyInput.key_, keyInput.action_);
+  
   /*Sending Events to the registered callback*/
   eventCallbackMutex_.lock();
   for (auto pair : eventCallbackMap_){
@@ -135,7 +137,6 @@ void RSkInputEventManager::processKey(RSkKeyInput &keyInput) {
     clientCallback(keyInput);
   }
   eventCallbackMutex_.unlock();
-  spatialNavigator_->handleKeyEvent(keyInput.key_, keyInput.action_);
 }
 
 RSkInputEventManager* RSkInputEventManager::getInputKeyEventManager(){
@@ -159,7 +160,7 @@ void RSkInputEventManager::sendNotificationWithEventType(std::string eventType, 
 }
 #endif //TARGET_OS_TV
 
-int RSkInputEventManager::registerAddListener(inputEventClientCallback clientCallback){
+int RSkInputEventManager::addKeyEventCallback(inputEventClientCallback clientCallback){
   RNS_LOG_DEBUG("[registerAddListener] ");
   eventCallbackMutex_.lock();
   callbackId_++;
@@ -168,11 +169,10 @@ int RSkInputEventManager::registerAddListener(inputEventClientCallback clientCal
   return callbackId_;
 }
 
-void RSkInputEventManager::removeListener(int callbackId){
+void RSkInputEventManager::removeKeyEventCallback(int callbackId){
   RNS_LOG_DEBUG("[removeListener]");
-  eventCallbackMutex_.lock();
+  std::scoped_lock lock(eventCallbackMutex_);
   eventCallbackMap_.erase(callbackId);
-  eventCallbackMutex_.unlock();
 }
 
 
