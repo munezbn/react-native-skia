@@ -96,10 +96,8 @@ void RSkInputEventManager::keyHandler(rnsKey eventKeyType, rnsKeyAction eventKey
       if(!keyQueue_->isEmpty())
         keyQueue_->clear(); // flush the queue
 #endif
-    } else{
-      return;// ignore key release 
     }
-  } else {
+  } 
     RSkKeyInput keyInput(eventKeyType, eventKeyAction, keyRepeat);
     previousKeyType = eventKeyType;
 #if ENABLE(FEATURE_KEY_THROTTLING)
@@ -107,32 +105,34 @@ void RSkInputEventManager::keyHandler(rnsKey eventKeyType, rnsKeyAction eventKey
 #else
     processKey(keyInput);
 #endif
-  }
 }
 
 void RSkInputEventManager::processKey(RSkKeyInput &keyInput) {
   bool stopPropagate = false;
-
   RNS_LOG_DEBUG("[Process Key] Key Repeat " << keyInput.repeat_ << " eventKeyType  " << keyInput.key_ << " previousKeyType " << previousKeyType);
-  auto currentFocused = spatialNavigator_->getCurrentFocusElement();
-  if(currentFocused){ // send key to Focused component.
-    currentFocused->onHandleKey(keyInput.key_, keyInput.repeat_, &stopPropagate);
-    if(stopPropagate){
-      return;//don't propagate key further
+  
+  if(keyInput.action_ != RNS_KEY_Release) {
+    auto currentFocused = spatialNavigator_->getCurrentFocusElement();
+    if(currentFocused){ // send key to Focused component.
+      currentFocused->onHandleKey(keyInput.key_, keyInput.repeat_, &stopPropagate);
+      if(stopPropagate){
+        return;//don't propagate key further
+      }
     }
-  }
   
 #if defined(TARGET_OS_TV) && TARGET_OS_TV
-  sendNotificationWithEventType(
-      RNSKeyMap[keyInput.key_],
-      currentFocused ? currentFocused->getComponentData().tag : -1,
-      keyInput.action_, nullptr);
+    sendNotificationWithEventType(
+        RNSKeyMap[keyInput.key_],
+        currentFocused ? currentFocused->getComponentData().tag : -1,
+        keyInput.action_, nullptr);
 #endif //TARGET_OS_TV
-  spatialNavigator_->handleKeyEvent(keyInput.key_, keyInput.action_);
-  
+    spatialNavigator_->handleKeyEvent(keyInput.key_, keyInput.action_);
+  }
+
   /*Sending Events to the registered callback*/
   eventCallbackMutex_.lock();
   for (auto pair : eventCallbackMap_){
+    RNS_LOG_INFO("calling clients");
     auto clientCallback = pair.second;
     clientCallback(keyInput);
   }
