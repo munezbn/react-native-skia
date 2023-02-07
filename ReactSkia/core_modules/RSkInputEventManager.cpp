@@ -111,7 +111,7 @@ void RSkInputEventManager::processKey(RSkKeyInput &keyInput) {
   bool stopPropagate = false;
   RNS_LOG_DEBUG("[Process Key] Key Repeat " << keyInput.repeat_ << " eventKeyType  " << keyInput.key_ << " previousKeyType " << previousKeyType);
   
-  if(keyInput.action_ != RNS_KEY_Release) {
+  if(keyInput.action_ == RNS_KEY_Press) {
     auto currentFocused = spatialNavigator_->getCurrentFocusElement();
     if(currentFocused){ // send key to Focused component.
       currentFocused->onHandleKey(keyInput.key_, keyInput.repeat_, &stopPropagate);
@@ -132,7 +132,7 @@ void RSkInputEventManager::processKey(RSkKeyInput &keyInput) {
   /*Sending Events to the registered callback*/
   eventCallbackMutex_.lock();
   for (auto pair : eventCallbackMap_){
-    RNS_LOG_INFO("calling clients");
+    RNS_LOG_DEBUG("calling clients");
     auto clientCallback = pair.second;
     clientCallback(keyInput);
   }
@@ -162,10 +162,9 @@ void RSkInputEventManager::sendNotificationWithEventType(std::string eventType, 
 
 int RSkInputEventManager::addKeyEventCallback(inputEventClientCallback clientCallback){
   RNS_LOG_DEBUG("[registerAddListener] ");
-  eventCallbackMutex_.lock();
+  std::scoped_lock lock(eventCallbackMutex_);
   callbackId_++;
   eventCallbackMap_.insert({callbackId_,clientCallback});
-  eventCallbackMutex_.unlock();
   return callbackId_;
 }
 
