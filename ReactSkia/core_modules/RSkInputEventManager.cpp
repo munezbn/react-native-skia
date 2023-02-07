@@ -111,15 +111,14 @@ void RSkInputEventManager::processKey(RSkKeyInput &keyInput) {
   bool stopPropagate = false;
   RNS_LOG_DEBUG("[Process Key] Key Repeat " << keyInput.repeat_ << " eventKeyType  " << keyInput.key_ << " previousKeyType " << previousKeyType);
   
-  if(keyInput.action_ == RNS_KEY_Press) {
-    auto currentFocused = spatialNavigator_->getCurrentFocusElement();
-    if(currentFocused){ // send key to Focused component.
-      currentFocused->onHandleKey(keyInput.key_, keyInput.repeat_, &stopPropagate);
-      if(stopPropagate){
-        return;//don't propagate key further
-      }
+  auto currentFocused = spatialNavigator_->getCurrentFocusElement();
+  if(currentFocused){ // send key to Focused component.
+    currentFocused->onHandleKey(keyInput.key_, keyInput.repeat_,keyInput.action_, &stopPropagate);
+    if(stopPropagate){
+      return;//don't propagate key further
     }
-  
+  }
+  if(keyInput.action_ == RNS_KEY_Press) {
 #if defined(TARGET_OS_TV) && TARGET_OS_TV
     sendNotificationWithEventType(
         RNSKeyMap[keyInput.key_],
@@ -128,7 +127,6 @@ void RSkInputEventManager::processKey(RSkKeyInput &keyInput) {
 #endif //TARGET_OS_TV
     spatialNavigator_->handleKeyEvent(keyInput.key_, keyInput.action_);
   }
-
   /*Sending Events to the registered callback*/
   eventCallbackMutex_.lock();
   for (auto pair : eventCallbackMap_){

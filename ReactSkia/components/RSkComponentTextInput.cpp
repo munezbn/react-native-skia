@@ -175,10 +175,20 @@ void RSkComponentTextInput::OnPaint(SkCanvas *canvas) {
 * @return      True if key is handled else false
 */
 
-void RSkComponentTextInput::onHandleKey(rnsKey eventKeyType, bool keyRepeat, bool *stopPropagation) {
+void RSkComponentTextInput::onHandleKey(rnsKey eventKeyType, bool keyRepeat, rnsKeyAction keyAction,bool *stopPropagation) {
   RNS_LOG_DEBUG("[onHandleKey] ENTRY");
   *stopPropagation = false;
   if (!editable_) {
+    if(keyAction == RNS_KEY_Release && eventKeyType == RNS_KEY_Select){
+      // When select key is press Key press. key press and release event are emitted
+      // ignoring release event and not propagating the key farther
+      *stopPropagation = true;
+    }
+    return;
+  }
+  if(editable_ && keyAction == RNS_KEY_Release){
+    //when textinput is in focus ignore the key release events.
+    *stopPropagation = true;
     return;
   }
   bool waitForupdateProps = false;
