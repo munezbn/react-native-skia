@@ -1,13 +1,11 @@
 import React, { useEffect,useState } from 'react';
 import KeyEvent from 'react-native-keyevent';
 import ReactNative, {
-  SafeAreaView,
   StyleSheet,
   ScrollView,
   Platform,
   View,
   Text,
-  TouchableOpacity,
   useTVEventHandler,
   TVEventHandler,
   TextInput,

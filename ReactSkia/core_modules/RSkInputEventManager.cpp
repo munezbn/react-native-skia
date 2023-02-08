@@ -98,8 +98,8 @@ void RSkInputEventManager::keyHandler(rnsKey eventKeyType, rnsKeyAction eventKey
 #endif
     }
   } 
-    RSkKeyInput keyInput(eventKeyType, eventKeyAction, keyRepeat);
-    previousKeyType = eventKeyType;
+  RSkKeyInput keyInput(eventKeyType, eventKeyAction, keyRepeat);
+  previousKeyType = eventKeyType;
 #if ENABLE(FEATURE_KEY_THROTTLING)
     keyQueue_->push(keyInput);
 #else
@@ -159,7 +159,7 @@ void RSkInputEventManager::sendNotificationWithEventType(std::string eventType, 
 #endif //TARGET_OS_TV
 
 int RSkInputEventManager::addKeyEventCallback(inputEventClientCallback clientCallback){
-  RNS_LOG_DEBUG("[registerAddListener] ");
+  RNS_LOG_DEBUG("[addKeyEventCallback] ");
   std::scoped_lock lock(eventCallbackMutex_);
   callbackId_++;
   eventCallbackMap_.insert({callbackId_,clientCallback});
