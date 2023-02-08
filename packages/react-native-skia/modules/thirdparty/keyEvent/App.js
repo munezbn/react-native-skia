@@ -1,230 +1,174 @@
-import React, { useEffect,useState } from 'react';
+import React, { useState, useEffect } from 'react';
+import { View, AppRegistry, Image, Text,TextInput, TVEventHandler, TouchableOpacity, StyleSheet,ScrollView,Pressable} from 'react-native';
 import KeyEvent from 'react-native-keyevent';
-import ReactNative, {
-  StyleSheet,
-  ScrollView,
-  Platform,
-  View,
-  Text,
-  useTVEventHandler,
-  TVEventHandler,
-  TextInput,
-  Image,
-  AppRegistry
-} from 'react-native';
-
- 
-
-import {
-  Header,
-  LearnMoreLinks,
-  Colors,
-  DebugInstructions,
-  ReloadInstructions,
-} from 'react-native/Libraries/NewAppScreen';
+console.log('TVEventHandler: ', TVEventHandler);
 
 
+const FocusableComponent = (props) =>  {
+   let [state, setState] = useState({imgscale: 1,bw:0});
+   const onPress = () => {}
 
-const StatusBar = Platform.isTV ? View : ReactNative.StatusBar;
+   const onBlur = (e) => {
+       console.log("onBlur---------" )
+       setState({ imgscale: 1, bw:0});
+   }
 
- 
+   const onFocus = (e) => {
+       console.log("onFocus---------" )
+       setState({ imgscale: 1.2 , bw:2});
+   }
 
-const SimpleViewApp: () => React$Node = () => {
-const [lastEventType, setLastEventType] = React.useState('');
-const [text, setText] = React.useState('Hello');
-
-useEffect(()=>{
-
-        KeyEvent.onKeyDownListener((keyEvent) => {
-          console.log(`react-native-keyevent: $$$$$$$$$$$$$$$$$$$$`);
-          console.log(`react-native-keyevent: onKeyDown keyCode: ${keyEvent.keyCode}`);
-          console.log(`react-native-keyevent: Action: ${keyEvent.action}`);
-          console.log(`react-native-keyevent: Key: ${keyEvent.pressedKey}`);
-          console.log(`react-native-keyevent: $$$$$$$$$$$$$$$$$$$`);
-        });
-
-        // if you want to react to keyUp
-        KeyEvent.onKeyUpListener((keyEvent) => {
-          console.log(`react-native-keyevent: ******************`);
-          console.log(`react-native-keyevent: onKeyUp keyCode: ${keyEvent.keyCode}`);
-          console.log(`react-native-keyevent: Action: ${keyEvent.action}`);
-          console.log(`react-native-keyevent: Key: ${keyEvent.pressedKey}`);
-          console.log(`react-native-keyevent: ******************`);
-        });
-
-        // if you want to react to keyMultiple
-        KeyEvent.onKeyMultipleListener((keyEvent) => {
-          console.log(`react-native-keyevent: ******************`);
-          console.log(`react-native-keyevent: onKeyMultiple keyCode: ${keyEvent.keyCode}`);
-          console.log(`react-native-keyevent: Action: ${keyEvent.action}`);
-          console.log(`react-native-keyevent: Characters: ${keyEvent.characters}`);
-          console.log(`react-native-keyevent: ******************`);
-        });
-        
-        
-
-});
-useEffect(()=>{
-  let _tvEventHandler = new TVEventHandler();
-  _tvEventHandler.enable(this, function(cmp, evt) {
-      console.log('APP: TV Key event received: ', evt.eventType);
-    })
-});
- 
-const onChange1 = (ne) => {
-    enter("onChange1");
-    //iterate(ne)
-    //iterate(ne.nativeEvent)
-    exit("onChange1")
-  }
-const  onChangeText1 = (string) => {
-    enter("onChangeText1" + ": " + string);
-    exit("onChangeText1")
-  }
-
-const  onKeyPress1 = (ne) => {
-    enter("onKeyPress1" + ": " + ne.key)
-    //iterate(ne)
-    exit("onKeyPress1")
-  }
-const  onEndEditing1=()=>{
-    enter("onEndEditing1")
-    exit("onEndEditing1")
-  }
-  /* working in ios - called 3 times initially with widht/height changes */
-const  onContentSizeChange1 = (ne)=>{
-    enter("onContentSizeChange1")
-    //iterate(ne.nativeEvent.contentSize) // providing the text width on every enter of character
-    exit("onContentSizeChange1")
-  }
-const  onFocus1 = () => {
-    enter("onFocus1")
-    exit("onFocus1")
-  }
-const  onBlur1 = () => {
-    enter("onBlur1")
-    exit("onBlur1")
-  }
-  /* works both in ios and web. The cursor position where the change can be made. on web multi selection works but not on ios */
-const  onSelectionChange1 = (ne) => {
-    enter("onSelectionChange1")
-    //iterate(ne.nativeEvent.selection)
-    exit("onSelectionChange1")
-  }
-  /* working in ios and web  -- But - IOS provides properties correctly but web only provides text -- need to confirm -- onEndEditing does not provide props but this function provides properties */
-const  onSubmitEditing1 = (ne) =>{
-    enter("onSubmitEditing1")
-    //iterate(ne.nativeEvent)
-    exit("onSubmitEditing1")
-  }
-    /* not working in both web and ios */
-const  onPressIn1=()=>{
-    enter("onPressIn1")
-    exit("onPressIn1")
-  }
-  /* not working in both web and ios */
-const  onPressOut1=()=>{
-    enter("onPressOut1")
-    exit("onPressOut1")
-  }
-  function enter(name){console.log("--ENTER--"+name)}
-  function exit(name){}//console.log("--EXIT--"+name)} 
- const logo = {
-  uri: 'https://reactnative.dev/img/tiny_logo.png',
-  width: 64,
-  height: 64
-};
-
+   
   return (
-    <View>
+    <Pressable isTVSelectable='true' onBlur={onBlur} onFocus={onFocus} style={styles.elementView} >
+    <Image style={{transform:[{scale: state.imgscale}],width:300,height:160,marginLeft:30,marginTop:16}} 
+     source={{url:"https://reactnative.dev/img/tiny_logo.png"}}>
+    </Image>
+    </Pressable>
+    );
+}
+
+
+// let textkey;
+// let tvKey;
+class SimpleViewApp extends React.Component {
+  constructor(props) {
+    super(props);
+
+    this._tvEventHandler = null;
+    this.state = {
+      bgColor: '#FFFFFF',
+      tiBgColor:"black",
+      textkey: "",
+      tvKey:""
+    }
+
+  }
+  _reactnativeKeyevent(){
+    // if you want to react to keyDown
+    KeyEvent.onKeyDownListener((keyEvent) => {
+      console.log(`onKeyDown keyCode: ${keyEvent.keyCode}`);
+      console.log(`Action: ${keyEvent.action}`);
+      console.log(`Key: ${keyEvent.pressedKey}`);
+      this.setState({textkey: keyEvent.pressedKey});
+    });
+
+    // if you want to react to keyUp
+    KeyEvent.onKeyUpListener((keyEvent) => {
+      console.log(`onKeyUp keyCode: ${keyEvent.keyCode}`);
+      console.log(`Action: ${keyEvent.action}`);
+      console.log(`Key: ${keyEvent.pressedKey}`);
+      this.setState({textkey: keyEvent.pressedKey});
+    });
+
+    // if you want to react to keyMultiple
+    KeyEvent.onKeyMultipleListener((keyEvent) => {
+      console.log(`onKeyMultiple keyCode: ${keyEvent.keyCode}`);
+      console.log(`Action: ${keyEvent.action}`);
+      console.log(`Characters: ${keyEvent.characters}`);
+    });
+  }
+  _enableTVEventHandler() {
+    let that = this;
+    this._tvEventHandler = new TVEventHandler();
+    console.log('APP: TVEventHandler ',this._tvEventHandler);
+    this._tvEventHandler.enable(this, function(cmp, evt) {
+      console.log('APP: TV Key event received: ', evt);
+      that.setState({tvKey : evt.eventType});
+      if (evt && evt.eventType === 'right') {
+        that.setState({bgColor: '#FF0000'})
+      } else if(evt && evt.eventType === 'up') {
+        that.setState({bgColor: '#00FF00'})
+      } else if(evt && evt.eventType === 'left') {
+        that.setState({bgColor: '#0000FF'})
+      } else if(evt && evt.eventType === 'down') {
+        that.setState({bgColor: '#00FFFF'})
+      } else if(evt && evt.eventType === 'select') {
+        that.setState({bgColor: '#FFFF00'})
+      }
+    });
+  }
+
+  _disableTVEventHandler() {
+    if (this._tvEventHandler) {
+      this._tvEventHandler.disable();
+      delete this._tvEventHandler;
+    }
+  }
+
+  componentDidMount() {
+    this._enableTVEventHandler();
+    this._reactnativeKeyevent();
+  }
+
+  componentWillUnmount() {
+    this._disableTVEventHandler();
+        // if you are listening to keyDown
+    KeyEvent.removeKeyDownListener();
+
+     // if you are listening to keyUp
+    KeyEvent.removeKeyUpListener();
+
+     // if you are listening to keyMultiple
+    KeyEvent.removeKeyMultipleListener();
+  }
+
+  addItems(){
+      var n =4;
+       var arr = [];
+       for (var i=0; i<n; i++){
+          arr.push(<FocusableComponent count={i}></FocusableComponent>);
+       }
+       return arr;
+  }
+  
+  render() {
+    console.log('bgColor: ', this.state.bgColor);
+    return (
+    <View
+      style={{ flex: 1,
+               flexDirection: 'column',
+               justifyContent: 'center',
+               alignItems: 'center',
+               backgroundColor: this.state.bgColor }}
+      onLayout={() => console.log('onLayout')}>
+      <Text style={{fontSize:20}}>
+         react native Key event {this.state.textkey}
+       </Text>
+       <Text style={{fontSize:20}}>
+         TVevent handler event {this.state.tvKey}
+       </Text>
+      
+      <TextInput
+       style={{borderColor:this.state.tiBgColor,
+                height: 50,
+                width:200,
+                margin: 5,
+                borderWidth: 5,
+                padding: 5  ,}}
+       onFocus={()=>{ this.setState({tiBgColor: '#00FF00'})}}
+       onBlur={()=>{this.setState({tiBgColor: '#000000'})}}
        
-<ScrollView>
-    <Text style={{ fontSize: 96 }}>Scroll me plz</Text>
-    <Image source={logo} />
-    <Image source={logo} />
-    <Image source={logo} />
-    <Image source={logo} />
-    <Image source={logo} />
-    <Image source={logo} />
-    <Image source={logo} />
-    <Image source={logo} />
-    <Image source={logo} />
-    <Image source={logo} />
-    <Image source={logo} />
-    <Image source={logo} />
-    <Image source={logo} />
-    <Image source={logo} />
-    <Image source={logo} />
-    <Image source={logo} />
-    <Image source={logo} />
-    <Image source={logo} />
-    <Image source={logo} />
-
-  </ScrollView>
-  <TextInput style={styles.input}/>    
+      />
+       <ScrollView style={styles.horizontalScrollView} horizontal={true}>
+             {this.addItems()}
+        </ScrollView>
     </View>
-  );
-};
-
- 
+    );
+  }
+}
 
 const styles = StyleSheet.create({
-  scrollView: {
-    backgroundColor: Colors.lighter,
-  },
-  engine: {
-    position: 'absolute',
-    right: 0,
-  },
-  body: {
-    backgroundColor: Colors.white,
-  },
-  sectionContainer: {
-    marginTop: 32,
-    paddingHorizontal: 24,
-  },
-  sectionTitle: {
-    fontSize: 24,
-    fontWeight: '600',
-    color: Colors.black,
-  },
-  sectionDescription: {
-    marginTop: 8,
-    fontSize: 18,
-    fontWeight: '400',
-    color: Colors.dark,
-  },
-  highlight: {
-    fontWeight: '700',
-  },
-  footer: {
-    color: Colors.dark,
-    fontSize: 12,
-    fontWeight: '600',
-    padding: 4,
-    paddingRight: 12,
-    textAlign: 'right',
-  },
-     input: {
-    height: 40,
-    width: 150,
-    margin: 12,
-    borderWidth: 1,
-    padding: 10,
-  },
-      button: {
-    alignItems: "center",
-    backgroundColor: "black",
-    padding: 10,
-    width: 100
-  },
 
+  horizontalScrollView: {
+       margin : 5,
+    },
+
+elementView: {
+       width : 360, // Thumbnail image size 
+       height : 192,
+       shadowColor: 'black',
+    }
 });
 
- 
-
-export default SimpleViewApp;
-
 AppRegistry.registerComponent('SimpleViewApp', () => SimpleViewApp);
-
-
