@@ -179,18 +179,19 @@ void RSkComponentTextInput::onHandleKey(rnsKey eventKeyType, bool keyRepeat, rns
   RNS_LOG_DEBUG("[onHandleKey] ENTRY");
   *stopPropagation = false;
   if (!editable_) {
-    if((eventKeyType == RNS_KEY_Select) && (keyAction == RNS_KEY_Release)){
-      // When select key is press Key press. key press and release event are emitted
-      // ignoring release event and not propagating the key farther
+    return;
+  }
+  if(keyAction == RNS_KEY_Release){
+    // Textinput doesn't handle release key event, but it has to return stopPropagation true in following two case.
+    // 1. textinput is in not editing mode and key is enter/select key.
+    // 2. textinput is in editing mode and key is a non-displayable key.
+    if(((!isInEditingMode_) && (eventKeyType == RNS_KEY_Select)) ||
+      ((isInEditingMode_)&& (eventKeyType<=RNS_KEY_Back) &&(eventKeyType>RNS_KEY_Select))){
       *stopPropagation = true;
     }
     return;
   }
-  if(keyAction == RNS_KEY_Release){
-    //when textinput is in focus ignore the key release events.
-    *stopPropagation = true;
-    return;
-  }
+
   bool waitForupdateProps = false;
   privateVarProtectorMutex.lock();
   std::string textString = displayString_;
