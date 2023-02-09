@@ -39,8 +39,8 @@ class SimpleViewApp extends React.Component {
     this.state = {
       bgColor: '#FFFFFF',
       tiBgColor:"black",
-      textkey: "",
-      tvKey:""
+      textkeyDown:"",
+      textkeyUp:"",
     }
 
   }
@@ -50,15 +50,15 @@ class SimpleViewApp extends React.Component {
       console.log(`onKeyDown keyCode: ${keyEvent.keyCode}`);
       console.log(`Action: ${keyEvent.action}`);
       console.log(`Key: ${keyEvent.pressedKey}`);
-      this.setState({textkey: keyEvent.pressedKey});
+      this.setState({textkeyDown: keyEvent.pressedKey});
     });
 
     // if you want to react to keyUp
     KeyEvent.onKeyUpListener((keyEvent) => {
-      console.log(`onKeyUp keyCode: ${keyEvent.keyCode}`);
+      console.log(`********************onKeyUp keyCode: ${keyEvent.keyCode}`);
       console.log(`Action: ${keyEvent.action}`);
       console.log(`Key: ${keyEvent.pressedKey}`);
-      this.setState({textkey: keyEvent.pressedKey});
+      this.setState({textkeyUp:keyEvent.pressedKey});
     });
 
     // if you want to react to keyMultiple
@@ -74,17 +74,10 @@ class SimpleViewApp extends React.Component {
     console.log('APP: TVEventHandler ',this._tvEventHandler);
     this._tvEventHandler.enable(this, function(cmp, evt) {
       console.log('APP: TV Key event received: ', evt);
-      that.setState({tvKey : evt.eventType});
-      if (evt && evt.eventType === 'right') {
-        that.setState({bgColor: '#FF0000'})
-      } else if(evt && evt.eventType === 'up') {
-        that.setState({bgColor: '#00FF00'})
-      } else if(evt && evt.eventType === 'left') {
-        that.setState({bgColor: '#0000FF'})
-      } else if(evt && evt.eventType === 'down') {
-        that.setState({bgColor: '#00FFFF'})
-      } else if(evt && evt.eventType === 'select') {
-        that.setState({bgColor: '#FFFF00'})
+      if(evt.eventType === "blur" || evt.eventType === "focus"){
+        console.log('APP: TV Key event received: ', evt.eventType);      
+      }else{
+        that.setState({tvKey : evt.eventType});
       }
     });
   }
@@ -114,45 +107,91 @@ class SimpleViewApp extends React.Component {
   }
 
   addItems(){
-      var n =4;
-       var arr = [];
-       for (var i=0; i<n; i++){
-          arr.push(<FocusableComponent count={i}></FocusableComponent>);
-       }
-       return arr;
+    var n =4;
+    var arr = [];
+    for (var i=0; i<n; i++){
+      arr.push(<FocusableComponent count={i}></FocusableComponent>);
+    }
+    return arr;
   }
   
   render() {
     console.log('bgColor: ', this.state.bgColor);
     return (
-    <View
+    <View 
       style={{ flex: 1,
-               flexDirection: 'column',
                justifyContent: 'center',
                alignItems: 'center',
+               marginTop: 8,
                backgroundColor: this.state.bgColor }}
       onLayout={() => console.log('onLayout')}>
+        
+        <View style={{fontSize:20,flexDirection:"row",marginTop: 8,alignContent:"space-around"} }>
+          <Text style={{fontSize:20,marginTop: 8,}}>
+            react native key event  onKeyDown  {this.state.textkeyDown}
+          </Text>
+          <Text style={{fontSize:20,marginTop: 8,left:45}}>
+            react native key event onKeyUp {this.state.textkeyUp}
+          </Text>
+        </View>
+        
       <Text style={{fontSize:20}}>
-         react native Key event {this.state.textkey}
-       </Text>
-       <Text style={{fontSize:20}}>
-         TVevent handler event {this.state.tvKey}
-       </Text>
+        TVevent handler event {this.state.tvKey}
+      </Text>
       
       <TextInput
-       style={{borderColor:this.state.tiBgColor,
+        style={{borderColor:this.state.tiBgColor,
                 height: 50,
                 width:200,
                 margin: 5,
                 borderWidth: 5,
                 padding: 5  ,}}
-       onFocus={()=>{ this.setState({tiBgColor: '#00FF00'})}}
-       onBlur={()=>{this.setState({tiBgColor: '#000000'})}}
-       
+        onFocus={()=>{ this.setState({tiBgColor: '#00FF00'})}}
+        onBlur={()=>{this.setState({tiBgColor: '#000000'})}} 
       />
-       <ScrollView style={styles.horizontalScrollView} horizontal={true}>
-             {this.addItems()}
-        </ScrollView>
+      
+      <View style={{flexDirection:"row",marginTop: 8,alignContent:"space-around"} }> 
+        <TouchableOpacity 
+          onPress={()=>{KeyEvent.removeKeyDownListener();}} 
+          style={styles.appButtonContainer}>
+          <Text style={styles.appButtonText}> removeKeyDownListener</Text>
+        </TouchableOpacity>
+        
+        <TouchableOpacity 
+          onPress={()=>{KeyEvent.removeKeyUpListener();}} 
+          style={styles.appButtonContainer}>
+          <Text style={styles.appButtonText}> removeKeyUpListener</Text>
+        </TouchableOpacity>
+      </View>
+      
+      <View style={{flexDirection:"row",marginTop: 8,alignContent:"space-around"} }>
+        <TouchableOpacity 
+           onPress={()=>{KeyEvent.onKeyDownListener((keyEvent) => {
+             console.log(`onKeyDown keyCode: ${keyEvent.keyCode}`);
+             console.log(`Action: ${keyEvent.action}`);
+             console.log(`Key: ${keyEvent.pressedKey}`);
+             this.setState({textkeyDown: keyEvent.pressedKey});
+            });}}
+            style={styles.appButtonContainer}>
+            <Text style={styles.appButtonText}> addKeyDownListener</Text>
+        </TouchableOpacity>
+        
+        <TouchableOpacity 
+          onPress={()=>{KeyEvent.onKeyUpListener((keyEvent) => {
+          console.log(`onKeyDown keyCode: ${keyEvent.keyCode}`);
+          console.log(`Action: ${keyEvent.action}`);
+          console.log(`Key: ${keyEvent.pressedKey}`);
+          this.setState({textkeyUp: keyEvent.pressedKey});
+          });}} 
+          style={styles.appButtonContainer}>
+          <Text style={styles.appButtonText}> addKeyUpListener</Text>
+        </TouchableOpacity>
+      </View>
+      
+      <ScrollView style={styles.horizontalScrollView} horizontal={true}>
+        {this.addItems()}
+      </ScrollView>
+    
     </View>
     );
   }
@@ -163,7 +202,20 @@ const styles = StyleSheet.create({
   horizontalScrollView: {
        margin : 5,
     },
-
+    appButtonContainer: {
+    elevation: 8,
+    backgroundColor: "#009688",
+    borderRadius: 10,
+    paddingVertical: 10,
+    paddingHorizontal: 12
+  },
+  appButtonText: {
+    fontSize: 18,
+    color: "#fff",
+    fontWeight: "bold",
+    alignSelf: "center",
+    textTransform: "uppercase"
+  },
 elementView: {
        width : 360, // Thumbnail image size 
        height : 192,
