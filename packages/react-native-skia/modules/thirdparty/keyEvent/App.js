@@ -126,16 +126,16 @@ class SimpleViewApp extends React.Component {
                backgroundColor: this.state.bgColor }}
       onLayout={() => console.log('onLayout')}>
         
-        <View style={{fontSize:20,flexDirection:"row",marginTop: 8,alignContent:"space-around"} }>
-          <Text style={{fontSize:20,marginTop: 8,}}>
+        <View style={{fontSize:20,flexDirection:"row",marginTop: 8, borderColor:"red", borderWidth:2,width: 1200} }>
+          <Text style={{fontSize:20, width: 550}}>
             react native key event  onKeyDown  {this.state.textkeyDown}
           </Text>
-          <Text style={{fontSize:20,marginTop: 8,left:45}}>
+          <Text style={{fontSize:20, width: 550}}>
             react native key event onKeyUp {this.state.textkeyUp}
           </Text>
         </View>
         
-      <Text style={{fontSize:20}}>
+      <Text style={{fontSize:20, width:550}}>
         TVevent handler event {this.state.tvKey}
       </Text>
       
