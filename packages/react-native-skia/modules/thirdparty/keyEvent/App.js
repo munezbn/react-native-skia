@@ -41,6 +41,7 @@ class SimpleViewApp extends React.Component {
       tiBgColor:"black",
       textkeyDown:"",
       textkeyUp:"",
+      textkeyMultiple:0,
     }
 
   }
@@ -51,11 +52,12 @@ class SimpleViewApp extends React.Component {
       console.log(`Action: ${keyEvent.action}`);
       console.log(`Key: ${keyEvent.pressedKey}`);
       this.setState({textkeyDown: keyEvent.pressedKey});
+      this.setState({textkeyMultiple:0});
     });
 
     // if you want to react to keyUp
     KeyEvent.onKeyUpListener((keyEvent) => {
-      console.log(`********************onKeyUp keyCode: ${keyEvent.keyCode}`);
+      console.log(`onKeyUp keyCode: ${keyEvent.keyCode}`);
       console.log(`Action: ${keyEvent.action}`);
       console.log(`Key: ${keyEvent.pressedKey}`);
       this.setState({textkeyUp:keyEvent.pressedKey});
@@ -66,6 +68,8 @@ class SimpleViewApp extends React.Component {
       console.log(`onKeyMultiple keyCode: ${keyEvent.keyCode}`);
       console.log(`Action: ${keyEvent.action}`);
       console.log(`Characters: ${keyEvent.characters}`);
+      console.log(`Repeat count : ${keyEvent.repeatcount}`);
+      this.setState({textkeyMultiple:keyEvent.repeatcount});
     });
   }
   _enableTVEventHandler() {
@@ -123,15 +127,18 @@ class SimpleViewApp extends React.Component {
                justifyContent: 'center',
                alignItems: 'center',
                marginTop: 8,
-               backgroundColor: this.state.bgColor }}
+               backgroundColor: 'aquamarine'}}
       onLayout={() => console.log('onLayout')}>
         
         <View style={{fontSize:20,flexDirection:"row",marginTop: 8, borderColor:"red", borderWidth:2,width: 1200} }>
           <Text style={{fontSize:20, width: 550}}>
             react native key event  onKeyDown  {this.state.textkeyDown}
           </Text>
-          <Text style={{fontSize:20, width: 550}}>
-            react native key event onKeyUp {this.state.textkeyUp}
+          <Text style={{fontSize:20, width: 450}}>
+            onKeyUp {this.state.textkeyUp}
+          </Text>
+          <Text style={{fontSize:20, width: 350}}>
+            onKeyMultiple {this.state.textkeyMultiple}
           </Text>
         </View>
         
@@ -145,7 +152,8 @@ class SimpleViewApp extends React.Component {
                 width:200,
                 margin: 5,
                 borderWidth: 5,
-                padding: 5  ,}}
+                padding: 5  ,
+                }}
         onFocus={()=>{ this.setState({tiBgColor: '#00FF00'})}}
         onBlur={()=>{this.setState({tiBgColor: '#000000'})}} 
       />
@@ -161,6 +169,11 @@ class SimpleViewApp extends React.Component {
           onPress={()=>{KeyEvent.removeKeyUpListener();}} 
           style={styles.appButtonContainer}>
           <Text style={styles.appButtonText}> removeKeyUpListener</Text>
+        </TouchableOpacity>
+        <TouchableOpacity 
+          onPress={()=>{KeyEvent.removeKeyMultipleListener();}} 
+          style={styles.appButtonContainer}>
+          <Text style={styles.appButtonText}> removeKeyMultipleListener</Text>
         </TouchableOpacity>
       </View>
       
@@ -185,6 +198,16 @@ class SimpleViewApp extends React.Component {
           });}} 
           style={styles.appButtonContainer}>
           <Text style={styles.appButtonText}> addKeyUpListener</Text>
+        </TouchableOpacity>
+        <TouchableOpacity 
+          onPress={()=>{KeyEvent.onKeyMultipleListener((keyEvent) => {
+          console.log(`onKeyDown keyCode: ${keyEvent.keyCode}`);
+          console.log(`Action: ${keyEvent.action}`);
+          console.log(`Key: ${keyEvent.pressedKey}`);
+          this.setState({textkeyMultiple: keyEvent.repeatcount});
+          });}} 
+          style={styles.appButtonContainer}>
+          <Text style={styles.appButtonText}> addKeyMultipleListener</Text>
         </TouchableOpacity>
       </View>
       
