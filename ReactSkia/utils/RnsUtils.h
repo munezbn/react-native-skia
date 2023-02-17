@@ -85,6 +85,3 @@ RNS_USED RSkComponentProvider* RSkComponentProvider##ComponentName##Cls(void) { 
     #define RNS_PROFILE_END(msg, marker)
 #endif
 #define RNS_SECONDS_TO_MILLISECONDS(time) ((time)*1000)
-#define GET_DERIVED_OBJECT_FROM(object,class) \
-        dynamic_cast<class *>(object)
-
