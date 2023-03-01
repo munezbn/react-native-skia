@@ -262,13 +262,15 @@ void Layer::paint(PaintContext& context) {
     applyLayerTransformMatrix(context);
 
     if(opacity <= 0.0) return; //if transparent,paint self & children not required
-
+    
     applyLayerOpacity(context);
     paintSelf(context); // First paint self and then children if any
 
     if(masksToBounds_) { // Need to clip children.
         SkRect intRect = SkRect::Make(frame_);
-        if(!context.dirtyClipBound.isEmpty() && intRect.intersect(context.dirtyClipBound) == false) {
+        SkRect currentClipBound;
+        context.canvas->getLocalClipBounds(&currentClipBound);
+        if(!context.dirtyClipBound.isEmpty() && intRect.intersect(currentClipBound) == false) {
             RNS_LOG_WARN("We should not call paint if it doesnt intersect with non empty dirtyClipBound...");
         }
         context.canvas->clipRect(intRect,SkClipOp::kIntersect);
