@@ -262,7 +262,7 @@ void Layer::paint(PaintContext& context) {
     applyLayerTransformMatrix(context);
 
     if(opacity <= 0.0) return; //if transparent,paint self & children not required
-    
+
     applyLayerOpacity(context);
     paintSelf(context); // First paint self and then children if any
 
