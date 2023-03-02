@@ -270,7 +270,7 @@ void Layer::paint(PaintContext& context) {
         SkRect intRect = SkRect::Make(frame_);
         SkRect currentClipBound;
         context.canvas->getLocalClipBounds(&currentClipBound);
-        if(!context.dirtyClipBound.isEmpty() && intRect.intersect(currentClipBound) == false) {
+        if(!currentClipBound.isEmpty() && intRect.intersect(currentClipBound) == false) {
             RNS_LOG_WARN("We should not call paint if it doesnt intersect with non empty dirtyClipBound...");
         }
         context.canvas->clipRect(intRect,SkClipOp::kIntersect);

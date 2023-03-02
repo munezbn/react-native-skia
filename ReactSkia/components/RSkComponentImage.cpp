@@ -184,7 +184,7 @@ RnsShell::LayerInvalidateMask RSkComponentImage::updateComponentProps(SharedProp
         //TODO - need to send the onEnd event to APP if it is abort.
         isRequestInProgress_=false;
       }
-      networkImageData_ = nullptr;
+      networkImageData_.reset();
       imageEventEmitter_->onLoadStart();
       hasToTriggerEvent_ = true;
     }
