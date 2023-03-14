@@ -53,7 +53,6 @@ inline SkIRect Layer::getFrameBoundsWithShadow(){
         as_MFB(shadowMaskFilter)->computeFastBounds(shadowRect, &storage);
         storage.join(SkRect::Make(frame_));
         return storage.roundOut();
-        //return  SkIRect::MakeXYWH(storage.x(), storage.y(), storage.width(), storage.height());
     } else if(shadowImageFilter) {
         // using Image Filter
         SkMatrix identityMatrix;
