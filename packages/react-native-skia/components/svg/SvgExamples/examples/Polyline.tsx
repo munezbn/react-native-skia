@@ -10,7 +10,7 @@ class PolylineExample extends Component {
         <Polyline
           points="10 10 20 12 30 20 40 60 60 70 95 90"
           fill="none"
-          stroke="yellow"
+          stroke="blue"
           strokeWidth="3"
         />
       </Svg>
