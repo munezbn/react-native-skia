@@ -29,6 +29,7 @@ shared_ptr<RNSPlatformManagerInterface::PlatformDevice> RNSPlatformManagerInterf
 bool RNSPlatformManagerInterfaceImpl::PlatformDeviceImpl::isTesting() {
   return true;
 }
+
 shared_ptr<DeviceCPUInfo> RNSPlatformManagerInterfaceImpl::PlatformDeviceImpl::getCPUInfo() {
   if(cpuInfo_ == nullptr) {
     cpuInfo_ = make_shared<DeviceCPUInfo>("Intel","4","5nm","5Ghz");

@@ -13,11 +13,13 @@ namespace rnsplugin {
 
 RNSPlatformManagerInterface::RNSPlatformManagerInterface(PlatformCallbackClient &client)
     :platformManagerName_(format("RNSPlatformManager-{}",nextUniqueId()).str()),
-    platformThread_(!platformManagerName_.empty()? platformManagerName_.c_str(): "RNSPlatformManager-UnknownID"),      //not used for now
-    client_(client) {}
+  platformThread_(!platformManagerName_.empty()? platformManagerName_.c_str(): "RNSPlatformManager-UnknownID"),      //not used for now
+  client_(client) {}
+
 RNSPlatformManagerInterface::~RNSPlatformManagerInterface(){
   // platformThread_ will  flush the all theee pending tasks in thread before exiting.
 }
+
 RNSPlatformManagerInterface::PlatformDevice::DeviceProcessUintInfo::DeviceProcessUintInfo(string lname, string lcores, string ltechnology, string lfrequency)
     :name(lname),
   cores(lcores),
