@@ -24,7 +24,6 @@ auto NativeEventEmitter::getMethods() -> std::vector<Method> {
     Method(
         "addListener",
         [&] (folly::dynamic args) {
-          RNS_LOG_DEBUG("addListener args "<< args[0]);
           listenerCount_++;
           if (listenerCount_ == 1) {
             startObserving();
@@ -34,7 +33,6 @@ auto NativeEventEmitter::getMethods() -> std::vector<Method> {
     Method(
         "removeListeners",
         [&] (folly::dynamic args) {
-          RNS_LOG_DEBUG(" removeListeners args "<< args[0]<<" listenerCount_ "<<listenerCount_);
           int  removeCount = args[0].asInt();;
           listenerCount_ = std::max(listenerCount_ - removeCount, 0);
           if (listenerCount_ == 0) {
