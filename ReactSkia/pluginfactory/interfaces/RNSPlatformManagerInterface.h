@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 1994-2022 OpenTV, Inc. and Nagravision S.A.
+ * Copyright (C) 1994-2023 OpenTV, Inc. and Nagravision S.A.
  *
  * This source code is licensed under the MIT license found in the
  * LICENSE file in the root directory of this source tree.
@@ -37,9 +37,9 @@ class RNSPlatformManagerInterface {
     PlatformDevice() = default;
     virtual ~PlatformDevice() {};
 
-    struct DeviceProcessUintInfo{
-      DeviceProcessUintInfo() = delete;
-      DeviceProcessUintInfo(string lname, string lcores, string ltechnology, string lfrequency);
+    struct DeviceProcessUnitInfo{
+      DeviceProcessUnitInfo() = delete;
+      DeviceProcessUnitInfo(string lname, string lcores, string ltechnology, string lfrequency);
 
       string name;
       string cores;
@@ -75,8 +75,8 @@ class RNSPlatformManagerInterface {
       string refresh;
     };
 
-    using DeviceCPUInfo = DeviceProcessUintInfo;
-    using DeviceGPUInfo = DeviceProcessUintInfo;
+    using DeviceCPUInfo = DeviceProcessUnitInfo;
+    using DeviceGPUInfo = DeviceProcessUnitInfo;
 
     string interfaceIdiom {"tv"};
     bool forceTouchAvailable{false};

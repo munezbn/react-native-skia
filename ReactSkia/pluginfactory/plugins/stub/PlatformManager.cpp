@@ -32,14 +32,14 @@ bool RNSPlatformManagerInterfaceImpl::PlatformDeviceImpl::isTesting() {
 
 shared_ptr<DeviceCPUInfo> RNSPlatformManagerInterfaceImpl::PlatformDeviceImpl::getCPUInfo() {
   if(cpuInfo_ == nullptr) {
-    cpuInfo_ = make_shared<DeviceCPUInfo>("Intel","4","5nm","5Ghz");
+    cpuInfo_ = make_shared<DeviceCPUInfo>("Intel","4","5nm","5GHz");
   }
   return cpuInfo_;
 }
 
 shared_ptr<DeviceGPUInfo> RNSPlatformManagerInterfaceImpl::PlatformDeviceImpl::getGPUInfo() {
   if(gpuInfo_ == nullptr) {
-    gpuInfo_ = make_shared<DeviceGPUInfo>("Nvidia","8","6nm","2.4Ghz");
+    gpuInfo_ = make_shared<DeviceGPUInfo>("Nvidia","8","6nm","2.4GHz");
   }
   return gpuInfo_;
 }
@@ -53,7 +53,7 @@ shared_ptr<DeviceOsInfo> RNSPlatformManagerInterfaceImpl::PlatformDeviceImpl::ge
 
 shared_ptr<DeviceHardwareInfo> RNSPlatformManagerInterfaceImpl::PlatformDeviceImpl::getHardwareInfo() {
   if(hardwareInfo_ == nullptr) {
-    hardwareInfo_ = make_shared<DeviceHardwareInfo>("SAGEM","7250","ARM");
+    hardwareInfo_ = make_shared<DeviceHardwareInfo>("SAGEM","7252S","ARM");
   }
   return hardwareInfo_;
 }

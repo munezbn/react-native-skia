@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 1994-2022 OpenTV, Inc. and Nagravision S.A.
+ * Copyright (C) 1994-2023 OpenTV, Inc. and Nagravision S.A.
  *
  * This source code is licensed under the MIT license found in the
  * LICENSE file in the root directory of this source tree.
@@ -14,8 +14,8 @@ namespace rnsplugin {
 
 using namespace std;
 
-using DeviceCPUInfo = RNSPlatformManagerInterface::PlatformDevice::DeviceProcessUintInfo;
-using DeviceGPUInfo = RNSPlatformManagerInterface::PlatformDevice::DeviceProcessUintInfo;
+using DeviceCPUInfo = RNSPlatformManagerInterface::PlatformDevice::DeviceProcessUnitInfo;
+using DeviceGPUInfo = RNSPlatformManagerInterface::PlatformDevice::DeviceProcessUnitInfo;
 using DeviceOsInfo = RNSPlatformManagerInterface::PlatformDevice::DeviceOsInfo;
 using DeviceHardwareInfo = RNSPlatformManagerInterface::PlatformDevice::DeviceHardwareInfo;
 using DeviceScreenInfo = RNSPlatformManagerInterface::PlatformDevice::DeviceScreenInfo;
