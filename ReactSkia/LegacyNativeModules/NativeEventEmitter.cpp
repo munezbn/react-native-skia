@@ -13,7 +13,8 @@
 namespace facebook {
 namespace xplat {
 
-NativeEventEmitter::NativeEventEmitter() {}
+NativeEventEmitter::NativeEventEmitter(Instance *bridgeInstance)
+  :RSkBaseEventEmitter(bridgeInstance){}
 
 NativeEventEmitter::~NativeEventEmitter() {
 }
@@ -24,34 +25,25 @@ auto NativeEventEmitter::getMethods() -> std::vector<Method> {
     Method(
         "addListener",
         [&] (folly::dynamic args) {
-          listenerCount_++;
-          if (listenerCount_ == 1) {
-            startObserving();
-          }
+          addListener(args[0].asString());
         }),// end of addListener lambda
 
     Method(
         "removeListeners",
         [&] (folly::dynamic args) {
-          int  removeCount = args[0].asInt();;
-          listenerCount_ = std::max(listenerCount_ - removeCount, 0);
-          if (listenerCount_ == 0) {
-            stopObserving();
-          }
+          removeListeners(args[0].asInt());
         }),
   };
 }
 
-void NativeEventEmitter::sendEventWithName(std::string eventName, folly::dynamic eventData) {
+void NativeEventEmitter::sendEventWithName(std::string eventName, folly::dynamic &&params, EmitterCompleteVoidCallback completeCallback) {
   auto instance = getInstance().lock();
-  if ( instance ) {
-    instance->callJSFunction(
-            "RCTDeviceEventEmitter", "emit",
-            (eventData != nullptr) ?
-            folly::dynamic::array(folly::dynamic::array(eventName),eventData):
-            folly::dynamic::array(eventName));
+  if(instance){
+    SetBridgeInstance(instance.get());
+    RSkBaseEventEmitter::sendEventWithName(eventName, folly::dynamic(params),completeCallback);
   }
 }
+
 
 
 }//xplat
