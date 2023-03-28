@@ -7,45 +7,52 @@
 #include <folly/dynamic.h>
 #include <cxxreact/Instance.h>
 #include <cxxreact/JsArgumentHelpers.h>
-#include "ReactSkia/utils/RnsLog.h"
+
 #include "NativeEventEmitter.h"
 
 namespace facebook {
-namespace react {
-NativeEventEmitter::NativeEventEmitter(Instance* bridgeInstance):RSkBaseEventEmitter(bridgeInstance){
-  if(bridgeInstance == nullptr){
-    RNS_LOG_ERROR("bridgeInstance is the nullptr");
-  }
-}
+namespace xplat {
+
+NativeEventEmitter::NativeEventEmitter() {}
 
 NativeEventEmitter::~NativeEventEmitter() {
 }
+
 
 auto NativeEventEmitter::getMethods() -> std::vector<Method> {
   return {
     Method(
         "addListener",
         [&] (folly::dynamic args) {
-          addListener(args[0].asString());
-          setBridgeInstance(getInstance().lock().get());
+          listenerCount_++;
+          if (listenerCount_ == 1) {
+            startObserving();
+          }
         }),// end of addListener lambda
 
     Method(
         "removeListeners",
         [&] (folly::dynamic args) {
-          int  removeCount = args[0].asInt();
-          removeListeners(removeCount);
+          int  removeCount = args[0].asInt();;
+          listenerCount_ = std::max(listenerCount_ - removeCount, 0);
+          if (listenerCount_ == 0) {
+            stopObserving();
+          }
         }),
   };
 }
 
-void NativeEventEmitter::sendEventWithName(std::string eventName, folly::dynamic &&params, EmitterCompleteVoidCallback completeCallback){
+void NativeEventEmitter::sendEventWithName(std::string eventName, folly::dynamic eventData) {
   auto instance = getInstance().lock();
   if ( instance ) {
-    setBridgeInstance(instance.get());
-    RSkBaseEventEmitter::sendEventWithName(eventName, folly::dynamic(params),completeCallback);
+    instance->callJSFunction(
+            "RCTDeviceEventEmitter", "emit",
+            (eventData != nullptr) ?
+            folly::dynamic::array(folly::dynamic::array(eventName),eventData):
+            folly::dynamic::array(eventName));
   }
 }
+
 
 }//xplat
 }//facebook

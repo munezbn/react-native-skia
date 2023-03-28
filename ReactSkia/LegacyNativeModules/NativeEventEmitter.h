@@ -7,18 +7,20 @@
 #pragma once
 #include <cxxreact/CxxModule.h>
 #include "ReactSkia/utils/RnsUtils.h"
-#include "BaseEventEmitter.h"
+
 
 namespace facebook {
-namespace react {
-using namespace xplat;
-using EmitterCompleteVoidCallback = std::function<void()>;
-class NativeEventEmitter : public module::CxxModule, public RSkBaseEventEmitter{  
+namespace xplat {
+class NativeEventEmitter : public module::CxxModule{
+ private:
+  int  listenerCount_= 0;
+  virtual void startObserving() = 0;
+  virtual void stopObserving() = 0;
  public:
-  NativeEventEmitter(Instance* bridgeInstance);
+  NativeEventEmitter();
   ~NativeEventEmitter();
+  void sendEventWithName(std::string eventName, folly::dynamic eventData);
   auto getMethods() -> std::vector<Method>;
-  void sendEventWithName(std::string eventName, folly::dynamic &&params, EmitterCompleteVoidCallback completeCallback=nullptr);
 };
 }//xplat
 }//facebook
