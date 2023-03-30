@@ -67,7 +67,7 @@ class RNSPlatformManagerInterface {
 
     struct DeviceScreenInfo{
       DeviceScreenInfo() = delete;
-      DeviceScreenInfo(string screenDepth,  int screenWidth,int screenHeight, string screenRefresh);
+      DeviceScreenInfo(string screenDepth,  int screenWidth,int screenHeight, string screenRefreshRate);
 
       string depth;
       int width;

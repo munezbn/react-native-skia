@@ -36,11 +36,11 @@ RNSPlatformManagerInterface::PlatformDevice::DeviceHardwareInfo::DeviceHardwareI
     model(hwModel),
     type(hwType){}
 
-RNSPlatformManagerInterface::PlatformDevice:: DeviceScreenInfo::DeviceScreenInfo(string screenDepth, int screenWidth, int screenHeight, string screenRefresh)
+RNSPlatformManagerInterface::PlatformDevice:: DeviceScreenInfo::DeviceScreenInfo(string screenDepth, int screenWidth, int screenHeight, string screenRefreshRate)
     :depth(screenDepth),
     width(screenWidth),
     height(screenHeight),
-    refresh(screenRefresh){}
+    refresh(screenRefreshRate){}
 
 uint64_t RNSPlatformManagerInterface::nextUniqueId() {
   static std::atomic<uint64_t> nextId(1);
