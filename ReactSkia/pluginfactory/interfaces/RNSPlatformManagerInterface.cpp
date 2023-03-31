@@ -22,25 +22,25 @@ RNSPlatformManagerInterface::~RNSPlatformManagerInterface(){
 
 RNSPlatformManagerInterface::PlatformDevice::DeviceProcessUnitInfo::DeviceProcessUnitInfo(string puName, string puCores, string puTechnology, string puFrequency)
     :name(puName),
-    cores(puCores),
-    technology(puTechnology),
-    frequency(puFrequency){}
+      cores(puCores),
+      technology(puTechnology),
+      frequency(puFrequency){}
 
 RNSPlatformManagerInterface::PlatformDevice::DeviceOsInfo::DeviceOsInfo(string osProvider, string osName, string osVersion)
     :provider(osProvider),
-    name(osName),
-    version(osVersion){}
+      name(osName),
+      version(osVersion){}
 
 RNSPlatformManagerInterface::PlatformDevice::DeviceHardwareInfo::DeviceHardwareInfo(string hwManufacturer, string hwModel, string hwType)
     :manufacturer(hwManufacturer),
-    model(hwModel),
-    type(hwType){}
+      model(hwModel),
+      type(hwType){}
 
 RNSPlatformManagerInterface::PlatformDevice:: DeviceScreenInfo::DeviceScreenInfo(string screenDepth, int screenWidth, int screenHeight, string screenRefreshRate)
     :depth(screenDepth),
-    width(screenWidth),
-    height(screenHeight),
-    refresh(screenRefreshRate){}
+      width(screenWidth),
+      height(screenHeight),
+      refreshRate(screenRefreshRate){}
 
 uint64_t RNSPlatformManagerInterface::nextUniqueId() {
   static std::atomic<uint64_t> nextId(1);

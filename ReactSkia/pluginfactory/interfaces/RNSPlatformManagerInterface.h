@@ -72,7 +72,7 @@ class RNSPlatformManagerInterface {
       string depth;
       int width;
       int height;
-      string refresh;
+      string refreshRate;
     };
 
     using DeviceCPUInfo = DeviceProcessUnitInfo;
