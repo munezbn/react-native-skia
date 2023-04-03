@@ -9,7 +9,7 @@ const PropChangeView = (props) => {
         style={{
           fontSize: 18,
           width: 400,
-          height: 300,
+          height: 250,
           borderColor: "green",
           borderWidth: 1,
           padding: 10

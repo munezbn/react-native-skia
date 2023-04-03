@@ -74,7 +74,6 @@ const carouselProps = [
   {
     name: "itemWidth",
     getProperties: () => {
-      console.log("Action clicked");
       let prop = {
         itemWidth: 100
       };
@@ -88,7 +87,6 @@ const carouselProps = [
   {
     name: "layout-stack",
     getProperties: () => {
-      console.log("Action clicked");
       let prop = {
         layout: "stack",
         layoutCardOffset: 20,
@@ -104,7 +102,6 @@ const carouselProps = [
   {
     name: "layout-tinder",
     getProperties: () => {
-      console.log("Action clicked");
       let prop = {
         layout: "tinder",
         layoutCardOffset: 20,
@@ -120,7 +117,6 @@ const carouselProps = [
   {
     name: "layout-defult",
     getProperties: () => {
-      console.log("Action clicked");
       let prop = {
         layout: "default",
         layoutCardOffset: -20,
@@ -136,7 +132,6 @@ const carouselProps = [
   {
     name: "SlideAlignment-center",
     getProperties: () => {
-      console.log("Action clicked");
       let prop = {
         activeSlideAlignment: "center"
       };
@@ -150,7 +145,6 @@ const carouselProps = [
   {
     name: "SlideAlignment-start",
     getProperties: () => {
-      console.log("Action clicked");
       let prop = {
         activeSlideAlignment: "start"
       };
@@ -164,7 +158,6 @@ const carouselProps = [
   {
     name: "SlideAlignment-end",
     getProperties: () => {
-      console.log("Action clicked");
       let prop = {
         activeSlideAlignment: "end"
       };
@@ -178,7 +171,6 @@ const carouselProps = [
   {
     name: "containerCustomStyle",
     getProperties: () => {
-      console.log("Action clicked");
       let prop = {
         containerCustomStyle: { marginTop: 20 }
       };
@@ -192,7 +184,6 @@ const carouselProps = [
   {
     name: "Vertical",
     getProperties: () => {
-      console.log("Action clicked");
       let prop = {
         itemHeight: 200,
         sliderHeight: 600,
@@ -208,7 +199,6 @@ const carouselProps = [
   {
     name: "Horizontal",
     getProperties: () => {
-      console.log("Action clicked");
       let prop = {
         horizontal: true
       };
@@ -226,7 +216,6 @@ const App = () => {
   const carouselRef = React.useRef();
 
   const OnButtonPress = (item) => {
-    console.log("Button Pressed");
     let props = item.getProperties();
 
     if (item.isToggle) {
@@ -249,7 +238,6 @@ const App = () => {
 
   const mergeProps = (newProps) => {
     let _props = { ...snapProps, ...newProps };
-    console.log("**** " + JSON.stringify(_props));
     setSnapProps(_props);
   };
 
