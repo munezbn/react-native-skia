@@ -13,14 +13,14 @@
 namespace facebook {
 namespace xplat {
 
-NativeEventEmitter::NativeEventEmitter(Instance *bridgeInstance)
+NativeEventEmitterModule::NativeEventEmitterModule(Instance *bridgeInstance)
   :RSkBaseEventEmitter(bridgeInstance){}
 
-NativeEventEmitter::~NativeEventEmitter() {
+NativeEventEmitterModule::~NativeEventEmitterModule() {
 }
 
 
-auto NativeEventEmitter::getMethods() -> std::vector<Method> {
+auto NativeEventEmitterModule::getMethods() -> std::vector<Method> {
   return {
     Method(
         "addListener",
@@ -36,7 +36,7 @@ auto NativeEventEmitter::getMethods() -> std::vector<Method> {
   };
 }
 
-void NativeEventEmitter::sendEventWithName(std::string eventName, folly::dynamic &&params, EmitterCompleteVoidCallback completeCallback) {
+void NativeEventEmitterModule::sendEventWithName(std::string eventName, folly::dynamic &&params, EmitterCompleteVoidCallback completeCallback) {
   auto instance = getInstance().lock();
   if(instance){
     SetBridgeInstance(instance.get());

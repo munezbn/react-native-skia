@@ -13,10 +13,10 @@
 namespace facebook {
 namespace xplat {
 using namespace react;
-class NativeEventEmitter : public module::CxxModule, public react::RSkBaseEventEmitter{
+class NativeEventEmitterModule : public module::CxxModule, public react::RSkBaseEventEmitter{
  public:
-  NativeEventEmitter(Instance *bridgeInstance);
-  ~NativeEventEmitter();
+  NativeEventEmitterModule(Instance *bridgeInstance);
+  ~NativeEventEmitterModule();
   void sendEventWithName(std::string eventName, folly::dynamic &&params, EmitterCompleteVoidCallback completeCallback=nullptr);
   auto getMethods() -> std::vector<Method>;
 };
