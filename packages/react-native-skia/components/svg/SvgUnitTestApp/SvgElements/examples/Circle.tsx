@@ -1,6 +1,39 @@
 import React, {Component} from 'react';
 import {Svg, Circle} from 'react-native-svg';
 
+
+class CirclePropsUpdate extends Component {
+  static title = 'G children props inherit';
+  state = {
+    fill: 'yellow',
+    strokeWidth :'0',
+  };
+  componentDidMount = () => {
+    setTimeout(() => {
+      if (!this._unmounted) {
+        this.setState({
+          fill: 'mediumpurple',
+	  strokeWidth :'10',
+        });
+      }
+    }, 3000);
+  };
+  componentWillUnmount = () => {
+    this._unmounted = true;
+  };
+  private _unmounted: any;
+  render() {
+    return (
+      <Svg height="100" width="140">
+        <Circle cx="50%" cy="50%" r="40%" fill="pink" stroke='red' strokeWidth={this.state.strokeWidth}
+/>
+      </Svg>
+
+    );
+  }
+}
+
+
 class CircleExample extends Component {
   static title = 'Circle';
   render() {
@@ -70,5 +103,5 @@ class PieCircle extends Component {
   }
 }
 
-const samples = [CircleExample, StrokeCircle, StrokeOpacityCircle, PieCircle];
+const samples = [CirclePropsUpdate ,CircleExample, StrokeCircle, StrokeOpacityCircle, PieCircle];
 export { samples};

@@ -3,7 +3,7 @@ import {Svg, Polyline} from 'react-native-svg';
 
 class PolylineExample extends Component {
   static title =
-    'The <Polyline> element is used to create any shape that consists of only straight lines';
+    'with  <Polyline> element make shapes only straight lines';
   render() {
     return (
       <Svg height="100" width="100">
@@ -25,7 +25,7 @@ class StraightLines extends Component {
       <Svg height="100" width="100">
         <Polyline
           points="0,20 20,20 20,40 40,40 40,60 60,60 60,80"
-          fill="none"
+          fill="blue"
           stroke="red"
           strokeWidth="2"
         />
@@ -51,13 +51,13 @@ class PolylineFill extends Component {
 }
 
 class PolylineFillStroke extends Component {
-  static title = 'Stroke Polyline with strokeLinecap and strokeLinejoin';
+  static title = 'Stroke Polyline';
   render() {
     return (
       <Svg height="100" width="100">
         <Polyline
           points="10,10 30,10 30,60 60,70 95,90"
-          fill="none"
+          fill="green"
           stroke="blue"
           strokeWidth="5"
           strokeLinecap="round"

@@ -17,7 +17,7 @@ class TextExample extends Component {
   render() {
     return (
       <Svg height="50" width="100">
-        <Text x="50" y="9" fill="red" textAnchor="middle">
+        <Text x="50" y="15" fill="red" textAnchor="middle">
           I love SVG!
         </Text>
       </Svg>
@@ -37,19 +37,19 @@ class TextStroke extends Component {
             y1="0%"
             x2="100%"
             y2="0%">
-            <Stop offset="0%" stopColor="blue" stopOpacity="0.5" />
+            <Stop offset="0%" stopColor="green" stopOpacity="0.5" />
             <Stop offset="100%" stopColor="red" stopOpacity="1" />
           </LinearGradient>
         </Defs>
         <Text
           stroke="url(#text-stroke-grad)"
-          strokeWidth="2"
+          strokeWidth="3"
           fill="none"
-          fontSize="30"
+          fontSize="20"
           fontWeight="bold"
           x="100"
-          y="20">
-          <TSpan textAnchor="middle">{['STROKE TEXT']}</TSpan>
+          y="30">
+          <TSpan textAnchor="middle">STROKE TEXT</TSpan>
         </Text>
       </Svg>
     );
@@ -60,7 +60,7 @@ class TextFill extends Component {
   static title = 'Fill the text with LinearGradient';
   render() {
     return (
-      <Svg height="80" width="200">
+      <Svg height="180" width="300">
         <Defs>
           <LinearGradient id="text-fill-grad" x1="0%" y1="0%" x2="100%" y2="0%">
             <Stop offset="0%" stopColor="rgb(255,255,0)" stopOpacity="0.5" />
@@ -72,10 +72,10 @@ class TextFill extends Component {
           fill="url(#text-fill-grad)"
           stroke="purple"
           strokeWidth="1"
-          fontSize="20"
+          fontSize="34"
           fontWeight="bold"
           x="100"
-          y="20"
+          y="30"
           textAnchor="middle">
           FILL TEXT
         </Text>

@@ -8,20 +8,18 @@ import * as Polyline from './examples/Polyline';
 import * as Path from './examples/Path';
 import * as Text from './examples/Text';
 import * as G from './examples/G';
-import * as Stroking from './examples/Stroking';
-import * as Gradients from './examples/Gradients'
+import * as LinearGradient from './examples/LinearGradient'
 
 export {
   Svg,
-  Stroking,
+  G,
   Rect,
   Circle,
   Ellipse,
-  Line,
-  Polygon,
-  Polyline,
   Path,
   Text,
-  G,
-  Gradients
+  LinearGradient,
+  Line,
+  Polygon,
+  Polyline,  
 };

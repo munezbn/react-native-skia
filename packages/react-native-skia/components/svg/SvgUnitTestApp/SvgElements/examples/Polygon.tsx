@@ -2,7 +2,7 @@ import React, {Component} from 'react';
 import {Svg, G, Path, Polygon} from 'react-native-svg';
 
 class PolygonExample extends Component {
-  static title = 'The following example creates a polygon with three sides';
+  static title = 'polygon with three sides';
   render() {
     return (
       <Svg height="100" width="100">
@@ -18,7 +18,7 @@ class PolygonExample extends Component {
 }
 
 class FourSidePolygon extends Component {
-  static title = 'The following example creates a polygon with four sides';
+  static title = 'polygon with four sides';
   render() {
     return (
       <Svg height="100" width="100">
@@ -34,7 +34,7 @@ class FourSidePolygon extends Component {
 }
 
 class StarPolygon extends Component {
-  static title = 'Use the <Polygon /> element to create a star';
+  static title = 'fill-rule property as "nonzero"';
   render() {
     return (
       <Svg height="105" width="105">
@@ -52,7 +52,7 @@ class StarPolygon extends Component {
 }
 
 class EvenOddPolygon extends Component {
-  static title = 'Change the fill-rule property to "evenodd"';
+  static title = 'fill-rule property as "evenodd"';
   render() {
     return (
       <Svg height="105" width="105">

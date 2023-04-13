@@ -11,71 +11,24 @@ const styles = StyleSheet.create({
   svg: {
     flex: 1,
     alignSelf: 'stretch',
+
   },
+  boxView:{
+    flexDirection:'row',
+    paddingHorizontal:50
+  }
 });
 
-class SvgExample extends Component {
-  static title = 'SVG';
-  render() {
-    return (
-      <Svg height="100" width="100">
-        <Circle
-          cx="50"
-          cy="50"
-          r="45"
-          stroke="blue"
-          strokeWidth="2.5"
-          fill="green"
-        />
-        <Rect
-          x="15"
-          y="15"
-          width="70"
-          height="70"
-          stroke="red"
-          strokeWidth="2"
-          fill="yellow"
-        />
-      </Svg>
-    );
-  }
-}
-
-class SvgOpacity extends Component {
-  static title = 'SVG with `opacity` prop';
-  render() {
-    return (
-      <Svg height="100" width="100" opacity="0.2">
-        <Circle
-          cx="50"
-          cy="50"
-          r="45"
-          stroke="blue"
-          strokeWidth="2.5"
-          fill="green"
-        />
-        <Rect
-          x="15"
-          y="15"
-          width="70"
-          height="70"
-          stroke="red"
-          strokeWidth="2"
-          fill="yellow"
-        />
-      </Svg>
-    );
-  }
-}
 
 class SvgViewImage extends Component {
   static title =
-    'Simple Image with SVG Elements';
+    'Image with SVG Elements';
   render() {
     return (
       <Svg
         height="100"
         width="100"
+        style={{borderWidth:2,borderColor:'green'}}
         preserveAspectRatio="none">
         <Rect x="0" y="0" width="100" height="100" fill="red" />
         <Circle cx="50" cy="50" r="30" fill="yellow" />
@@ -89,13 +42,14 @@ class SvgViewImage extends Component {
 
 class SvgViewbox extends Component {
   static title =
-    'SVG with `viewBox="40 20 100 40" and preserveAspectRatio="none"`';
+    'SVG with `viewBox="40 20 100 40"`';
   render() {
     return (
       <Svg
         height="100"
         width="100"
         viewBox="40 20 100 40"
+        style={{borderWidth:2,borderColor:'green'}}
         preserveAspectRatio="none">
         <Rect x="0" y="0" width="100" height="100" fill="red" />
         <Circle cx="50" cy="50" r="30" fill="yellow" />
@@ -129,50 +83,11 @@ class SvgViewBox1 extends Component {
   }
 }
 
-class SvgLayout extends Component {
-  static title = 'SVG with flex layout';
-  render() {
-    return (
-      <View style={styles.container}>
-        <Svg style={styles.svg}>
-          <Rect
-            width="80%"
-            height="80%"
-            x="10%"
-            y="10%"
-            fill="purple"
-            stroke="yellow"
-            strokeWidth="4"
-          />
-          <Line
-            x1="10%"
-            y1="10%"
-            x2="90%"
-            y2="90%"
-            stroke="yellow"
-            strokeWidth="4"
-          />
-          <Line
-            x1="10%"
-            y1="90%"
-            x2="90%"
-            y2="10%"
-            stroke="yellow"
-            strokeWidth="4"
-          />
-        </Svg>
-      </View>
-    );
-  }
-}
 
 const samples = [
-  SvgExample,
-  SvgOpacity,
   SvgViewImage,
   SvgViewbox,
-  SvgViewBox1,
-  SvgLayout,
+  SvgViewBox1
 ];
 
 export { samples};

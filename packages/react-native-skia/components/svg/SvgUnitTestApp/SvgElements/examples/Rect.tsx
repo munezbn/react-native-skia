@@ -1,6 +1,42 @@
 import React, {Component} from 'react';
 import {Svg, Rect} from 'react-native-svg';
 
+class RectPropsUpdate extends Component {
+  static title = 'G children props inherit';
+  state = {
+    fill: 'yellow',
+  };
+  componentDidMount = () => {
+    setTimeout(() => {
+      if (!this._unmounted) {
+        this.setState({
+          fill: 'mediumpurple',
+        });
+      }
+    }, 3000);
+  };
+  componentWillUnmount = () => {
+    this._unmounted = true;
+  };
+  private _unmounted: any;
+  render() {
+    return (
+      <Svg width="200" height="60">
+        <Rect
+          x="5%"
+          y="5%"
+          width="90%"
+          height="90%"
+          fill={this.state.fill}
+          strokeWidth="3"
+          stroke="rgb(0,0,0)"
+          strokeDasharray="5,10"
+        />
+      </Svg>
+    );
+  }
+}
+
 class RectExample extends Component {
   static title = 'Rect';
   render() {
@@ -105,7 +141,7 @@ class RoundOverflowRect extends Component {
 }
 
 const samples = [
-  RectExample,
+  RectPropsUpdate,
   RectStrokeFill,
   RoundedRect,
   EllipseRect,

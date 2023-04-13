@@ -1,4 +1,4 @@
-import * as React from "react"
+import React, {Component} from 'react';
 import {Svg, G, Text, TSpan} 
 from 'react-native-svg';
 
@@ -13,17 +13,25 @@ const LetterSpacing='3';
 const yoffset=22+5;
 const Long_Text='Svg does not support paragraph.It means content supposed to write in a single line.';
 
-const text_anchor =  (
-   <Svg height='90' width="800"  >
-      <Text fill={fill} fontSize={fontSize} fontFamily={fontFamily} >
+class text_anchor extends Component {
+  static title = 'Text Anchor';
+  render() {
+    return (
+     <Svg height='90' width="800"  >
+        <Text fill={fill} fontSize={fontSize} fontFamily={fontFamily} >
           <TSpan x='100' dy={yoffset} textAnchor='start'>textAnchor : Start</TSpan>
           <TSpan x='100' dy={yoffset} textAnchor='middle'>textAnchor : Middle</TSpan>
           <TSpan x='100' dy={yoffset} textAnchor='end'>textAnchor : End</TSpan>
         </Text>
     </Svg>
 );
+}
+}
 
-const text_decoration =  (
+class text_decoration extends Component {
+  static title = 'Text Decoration';
+  render() {
+    return (
      <Svg height='110' width="800"  >
       <Text fill={fill} fontSize='20' fontFamily={fontFamily} >
           <TSpan x='50' dy={yoffset} textDecoration='none'>textDecoration : None</TSpan>
@@ -33,8 +41,13 @@ const text_decoration =  (
         </Text>
     </Svg>
 );
+}
+}
 
-const letter_Spacing =  (
+class letter_Spacing extends Component {
+  static title = 'Letter Spacing';
+  render() {
+    return (
      <Svg height="250" width="800"  >
       <Text fill={fill} fontSize={fontSize} fontFamily={fontFamily} >
           <TSpan x='50' dy={yoffset} letterSpacing='3'>Letter Spacing as 3px </TSpan>
@@ -48,8 +61,13 @@ const letter_Spacing =  (
         </Text>
     </Svg>
 );
+}
+}
 
-const word_Spacing =(
+class word_Spacing extends Component {
+  static title = 'Word Spacing';
+  render() {
+    return (
      <Svg height="90" width="800"  >
       <Text fill={fill} fontSize={fontSize} fontFamily={fontFamily} >
           <TSpan x='50' dy={yoffset} >Word Spacing as default</TSpan>
@@ -57,10 +75,14 @@ const word_Spacing =(
           <TSpan x='50' dy={yoffset} wordSpacing='0'>Word Spacing as 0</TSpan>
         </Text>
     </Svg>
-
 );
+}
+}
 
-const font_weight =  (
+class font_weight extends Component {
+  static title = 'Font Weight';
+  render() {
+    return (
      <Svg height="120" width="800"  >
       <Text fill={fill} fontSize={fontSize} fontFamily={fontFamily} >
           <TSpan x='50' dy={yoffset} fontWeight='bold'>Font Weight as bold</TSpan>
@@ -70,8 +92,13 @@ const font_weight =  (
         </Text>
     </Svg>
 );
+}
+}
 
-const font_style =  (
+class font_style extends Component {
+  static title = 'Font Style';
+  render() {
+    return (
      <Svg height="90" width="800"  >
       <Text fill={fill} fontSize={fontSize} fontFamily={fontFamily} >
           <TSpan x='50' dy={yoffset} textDecoration='normal'>Font Style as normal</TSpan>
@@ -80,8 +107,13 @@ const font_style =  (
         </Text>
     </Svg>
 );
+}
+}
 
-const deltaPositioning =(
+class deltaPositioning extends Component {
+  static title = 'Delta Positioning';
+  render() {
+    return (
      <Svg height="400" width="800"  >
       <Text fill={fill} fontSize={fontSize} fontFamily={fontFamily} >
           <TSpan x='50' y='150' fill='blue'>1. Text @ x=50 y=150</TSpan>
@@ -97,8 +129,13 @@ const deltaPositioning =(
     </Svg>
 
 );
+}
+}
 
-const text_style =  (
+class text_style extends Component {
+  static title = 'Text with Stroke & Fill';
+  render() {
+    return (
      <Svg height="200" width="800"  >
       <Text fill={fill} fontSize={fontSize} fontFamily={fontFamily} >
           <TSpan x='50' dy='40' fontSize='40'>Text With Fill</TSpan>
@@ -108,8 +145,13 @@ const text_style =  (
         </Text>
     </Svg>
 );
+}
+}
 
-const full_set =  (
+class full_set extends Component {
+  static title = 'Combined Feature with Inheritence';
+  render() {
+    return (
      <Svg height="250" width="800"  >
       <Text fill='yellow' fontSize={fontSize} fontFamily={fontFamily} 
             letterSpacing='5'
@@ -134,8 +176,13 @@ const full_set =  (
         </Text>
     </Svg>
 );
+}
+}
 
-const paragrph_test =(
+class paragrph_test extends Component {
+  static title = 'Long Test with delta positioning';
+  render() {
+    return (
      <Svg height="200" width="800"  >
       <Text fill={fill} fontSize={fontSize} fontFamily={fontFamily} >
           <TSpan x= '0' dy='50' fill='yellow'>{Long_Text}</TSpan>
@@ -146,9 +193,10 @@ const paragrph_test =(
     </Svg>
 
 );
+}
+}
 
 const features = [text_style,font_weight,font_style,text_anchor,letter_Spacing,word_Spacing,text_decoration,deltaPositioning,full_set,paragrph_test];
-var featureName=['Text with Stroke & Fill','Font Weight','Font Style','Text Anchor','Letter Spacing','Word Spacing','Text Decoration','Delta Positioning','Combined Feature with Inheritence','Long Test with delta positioning'];
 
-export default {featureName,features};
+export default features;
 
