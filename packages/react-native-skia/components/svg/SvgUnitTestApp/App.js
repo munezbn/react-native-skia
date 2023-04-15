@@ -62,7 +62,6 @@ const SimpleViewApp = () => {
 
 const styles = StyleSheet.create({
   mainView: {
-    flex: 1,
     marginLeft:10,
     marginTop:10
   },

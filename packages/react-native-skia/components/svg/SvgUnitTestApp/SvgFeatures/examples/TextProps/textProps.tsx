@@ -1,5 +1,5 @@
 import React, {Component} from 'react';
-import {Svg, G, Text, TSpan} 
+import {Svg, G, Text, TSpan,LinearGradient,Defs,Stop} 
 from 'react-native-svg';
 
 const startXOffset='10';
@@ -114,17 +114,17 @@ class deltaPositioning extends Component {
   static title = 'Delta Positioning';
   render() {
     return (
-     <Svg height="400" width="800"  >
-      <Text fill={fill} fontSize={fontSize} fontFamily={fontFamily} >
-          <TSpan x='50' y='150' fill='blue'>1. Text @ x=50 y=150</TSpan>
-          <TSpan dy='50'>2. Text @ dy=50 </TSpan>
-          <TSpan dx='50' >3. Text @ dx=50</TSpan>
-          <TSpan x='0' y='300' fill='blue'>4. Text @ x=0 y=300</TSpan>
-          <TSpan dy='50'>5.Text @ dy=50 </TSpan>
-          <TSpan dx='50'>6.Text @ dx=50 </TSpan>
-          <TSpan x='0' y='50' fill='blue'>7. Text @ x=0 y=50</TSpan>
-          <TSpan dy='50'>8.Text @ dy=50 </TSpan>
-          <TSpan dx='50'>9.Text @ dx=50 </TSpan>
+     <Svg height="220" width="800"  >
+      <Text fill={fill} fontSize='18' fontFamily={fontFamily} >
+          <TSpan x='50' y='70' fill='blue'>1. Text @ x=50 y=50</TSpan>
+          <TSpan dy='22'>2. Text @ dy=20 </TSpan>
+          <TSpan dx='22' >3. Text @ dx=20</TSpan>
+          <TSpan x='0' y='130' fill='blue'>4. Text @ x=0 y=150</TSpan>
+          <TSpan dy='22'>5.Text @ dy=20 </TSpan>
+          <TSpan dx='22'>6.Text @ dx=20 </TSpan>
+          <TSpan x='0' y='15' fill='blue'>7. Text @ x=0 y=15</TSpan>
+          <TSpan dy='22'>8.Text @ dy=20 </TSpan>
+          <TSpan dx='22'>9.Text @ dx=20 </TSpan>
         </Text>
     </Svg>
 
@@ -136,12 +136,24 @@ class text_style extends Component {
   static title = 'Text with Stroke & Fill';
   render() {
     return (
-     <Svg height="200" width="800"  >
-      <Text fill={fill} fontSize={fontSize} fontFamily={fontFamily} >
-          <TSpan x='50' dy='40' fontSize='40'>Text With Fill</TSpan>
-          <TSpan x='50' dy='40' fill='none' stroke={stroke} fontSize='40' strokeWidth='2'>Text With stroke</TSpan>
-          <TSpan x='50' dy='50' stroke={stroke} fontSize='50' strokeWidth='3'>Text With Fill & Stroke</TSpan>
-          <TSpan x='50' dy='50' fill='blue' stroke='yellow' fontSize='50' strokeWidth='2' strokeLinecap="square" strokeDasharray="2,4">Text With Fill & Stroke styled</TSpan>
+     <Svg height="250" width="800"  >
+        <Defs>
+          <LinearGradient id="grad-horz" x1="0%" y1="0%" x2="100%" y2="100%">
+            <Stop offset="0%" stopColor="rgb(255,255,0)" stopOpacity="1" />
+            <Stop offset="100%" stopColor="red" stopOpacity="1" />
+          </LinearGradient>
+          <LinearGradient id="grad-vert" x1="0%" y1="0%" x2="0%" y2="100%">
+            <Stop offset="0%" stopColor="rgb(255,255,0)" stopOpacity="1" />
+            <Stop offset="100%" stopColor="red" stopOpacity="1" />
+          </LinearGradient>
+        </Defs>
+        <Text fill={fill} fontSize={fontSize} fontFamily={fontFamily} >
+          <TSpan x='50' dy='32' fontSize='30'>Text With Fill</TSpan>
+          <TSpan x='50' dy='34' fontSize='30' fill="url(#grad-horz)">Text With LinearGradient Fill</TSpan>
+          <TSpan x='50' dy='36' fill='none' stroke={stroke} fontSize='32' strokeWidth='2'>Text With stroke</TSpan>
+          <TSpan x='50' dy='35' fill='none' stroke="url(#grad-horz)" fontSize='32' strokeWidth='2'>Text With Linear Gradient stroke</TSpan>
+          <TSpan x='50' dy='39' stroke={stroke} fontSize='45' strokeWidth='3'>Text With Fill & Stroke</TSpan>
+          <TSpan x='50' dy='48' fill='blue' stroke='yellow' fontSize='40' strokeWidth='2' strokeLinecap="square" strokeDasharray="2,4">Text With Fill & Stroke styled</TSpan>
         </Text>
     </Svg>
 );

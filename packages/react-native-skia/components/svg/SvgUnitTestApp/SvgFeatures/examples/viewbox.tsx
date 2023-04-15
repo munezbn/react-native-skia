@@ -22,7 +22,7 @@ const styles = StyleSheet.create({
 
 class SvgViewImage extends Component {
   static title =
-    'Image with SVG Elements';
+    'SVG Elements:100x100';
   render() {
     return (
       <Svg
@@ -61,7 +61,49 @@ class SvgViewbox extends Component {
   }
 }
 
-class SvgViewBox1 extends Component {
+class SvgViewbox1 extends Component {
+  static title =
+    'SVG with `viewBox="0 0 40 100"`';
+  render() {
+    return (
+      <Svg
+        height="100"
+        width="100"
+        viewBox="0 0 40 100"
+        style={{borderWidth:2,borderColor:'green'}}
+        preserveAspectRatio="none">
+        <Rect x="0" y="0" width="100" height="100" fill="red" />
+        <Circle cx="50" cy="50" r="30" fill="yellow" />
+        <Circle cx="40" cy="40" r="4" fill="black" />
+        <Circle cx="60" cy="40" r="4" fill="black" />
+        <Path d="M 40 60 A 10 10 0 0 0 60 60" stroke="black" />
+      </Svg>
+    );
+  }
+}
+
+class SvgViewbox2 extends Component {
+  static title =
+    'SVG with `viewBox="0 0 100 40"`';
+  render() {
+    return (
+      <Svg
+        height="100"
+        width="100"
+        viewBox="0 0 100 40"
+        style={{borderWidth:2,borderColor:'green'}}
+        preserveAspectRatio="none">
+        <Rect x="0" y="0" width="100" height="100" fill="red" />
+        <Circle cx="50" cy="50" r="30" fill="yellow" />
+        <Circle cx="40" cy="40" r="4" fill="black" />
+        <Circle cx="60" cy="40" r="4" fill="black" />
+        <Path d="M 40 60 A 10 10 0 0 0 60 60" stroke="black" />
+      </Svg>
+    );
+  }
+}
+
+class SvgViewBox3 extends Component {
   static title = 'More ViewBox Example  `viewBox="-16 -16 544 544" `';
   render() {
     return (
@@ -83,11 +125,51 @@ class SvgViewBox1 extends Component {
   }
 }
 
+class SvgViewBox4 extends Component {
+  static title = 'ViewBox 0 0 100 100 circle r=4" `';
+  render() {
+    return (
+     <Svg height="100"  width="100" viewBox="0 0 100 100" style={{borderWidth:2,borderColor:'green'}}>
+       <Rect x="0" y="0" width="100%" height="100%" />
+       <Circle cx="50%" cy="50%" r="4" fill="white" />
+     </Svg>
+    );
+  }
+}
+
+class SvgViewBox5 extends Component {
+  static title = '`ViewBox 0 0 10 10"` circle r=4';
+  render() {
+    return (
+     <Svg height="100"  width="100" viewBox="0 0 10 10" style={{borderWidth:2,borderColor:'green'}}>
+       <Rect x="0" y="0" width="100%" height="100%" />
+       <Circle cx="50%" cy="50%" r="4" fill="white" />
+     </Svg>
+    );
+  }
+}
+
+class SvgViewBox6 extends Component {
+  static title = '`viewBox="-5 -5 10 10" `circle r=4';
+  render() {
+    return (
+     <Svg height="100"  width="100" viewBox="-5 -5 10 10" style={{borderWidth:2,borderColor:'green'}}>
+       <Rect x="0" y="0" width="100%" height="100%" />
+       <Circle cx="50%" cy="50%" r="4" fill="white" />
+     </Svg>
+    );
+  }
+}
 
 const samples = [
   SvgViewImage,
+  SvgViewbox1,
+  SvgViewbox2,
   SvgViewbox,
-  SvgViewBox1
+  SvgViewBox4,
+  SvgViewBox5,
+  SvgViewBox6,
+  SvgViewBox3,
 ];
 
 export { samples};

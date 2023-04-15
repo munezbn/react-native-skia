@@ -151,8 +151,7 @@ show = (index,name: keyof typeof examples) => {
 };
 
 prepareExampleLoad =(index,pageName)=> {
-  this.setState({page:index})
-  this.setState({pageName:pageName})
+  this.setState({page:index,pageName:pageName})
 }
 
 

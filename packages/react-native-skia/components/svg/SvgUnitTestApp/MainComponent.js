@@ -8,9 +8,7 @@ const MainComponent = (props) => {
 
   return (
     <View style={styles.mainView}>
-      <View style={styles.headerView}>
-        <BackButton backButtonCallback={props.backButtonCallback} />
-      </View>
+      <BackButton backButtonCallback={props.backButtonCallback} />
       <View>
         <DynamicComponent />
       </View>

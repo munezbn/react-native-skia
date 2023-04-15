@@ -9,11 +9,11 @@ const ViewNames = [
   },
   {
     name: "Dynamic Property Update",
-    module: require("./DynamicPropertUpdate/App").default
+    module: require("./DynamicPropertUpdate").default
   },
   {
     name: "Simple App",
-    module: require("./DynamicPropertUpdate/App").default
+    module: require("./SimpleViewApp").default
   },  
 ];
 

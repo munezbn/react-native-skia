@@ -1,35 +1,76 @@
 import React, {Component} from 'react';
 import {Svg, Circle, G, Text, Line, Rect, Use} from 'react-native-svg';
 
-class GExample extends Component {
-  static title = 'G children props inherit';
-  state = {
-    fill: 'blue',
-  };
-  componentDidMount = () => {
-    setTimeout(() => {
-      if (!this._unmounted) {
-        this.setState({
-          fill: 'purple',
-        });
-      }
-    }, 3000);
-  };
-  componentWillUnmount = () => {
-    this._unmounted = true;
-  };
-  private _unmounted: any;
+class orginal extends Component {
+  static title = 'orginal';
   render() {
     return (
-      <Svg height="100" width="100">
-        <G fill={this.state.fill} stroke="pink" strokeWidth="3" opacity='.5'>
-          <Circle cx="25" cy="25" r="11" />
-          <Circle cx="25" cy="75" r="11" stroke="red" />
+      <Svg height="150" width="200" style={{borderColor:'blue', borderWidth:2}}>
+        <G >
+          <Rect
+            height="50"
+            width="80"
+            stroke="#060"
+            strokeWidth="1"
+            fill="#060"
+          />
         </G>
-        <G fill="yellow" >
-          <Circle cx="50" cy="50" r="11" fill="green" />
-          <Circle cx="75" cy="25" r="11" stroke="red" />
-          <Circle cx="75" cy="75" r="11" />
+      </Svg>
+    );
+  }
+}
+
+class Scale extends Component {
+  static title = 'Scale by 2x';
+  render() {
+    return (
+      <Svg height="150" width="200" style={{borderColor:'blue', borderWidth:2}}>
+        <G scale="2" >
+          <Rect
+            height="50"
+            width="80"
+            stroke="#060"
+            strokeWidth="1"
+            fill="#060"
+          />
+        </G>
+      </Svg>
+    );
+  }
+}
+
+class Translate extends Component {
+  static title = 'Translate by 50,50';
+  render() {
+    return (
+      <Svg height="150" width="200" style={{borderColor:'blue', borderWidth:2}}>
+        <G translate="50"  >
+          <Rect
+            height="50"
+            width="80"
+            stroke="#060"
+            strokeWidth="1"
+            fill="#060"
+          />
+        </G>
+      </Svg>
+    );
+  }
+}
+
+class Rotate extends Component {
+  static title = 'Rotate  by 20 deg';
+  render() {
+    return (
+      <Svg height="150" width="200" style={{borderColor:'blue', borderWidth:2}}>
+        <G rotation="20">
+          <Rect
+            height="50"
+            width="80"
+            stroke="#060"
+            strokeWidth="1"
+            fill="#060"
+          />
         </G>
       </Svg>
     );
@@ -37,11 +78,11 @@ class GExample extends Component {
 }
 
 class GTransform extends Component {
-  static title = 'G transform';
+  static title = 'Group Rotate by -50 deg';
   render() {
     return (
-      <Svg height="100" width="200">
-        <G rotation="50" origin="40, 30" id="group">
+      <Svg height="200" width="300" style={{borderColor:'blue', borderWidth:2}}>
+        <G rotation="50" id="group">
           <Line
             x1="60"
             y1="10"
@@ -71,8 +112,6 @@ class GTransform extends Component {
         </G>
         <Use
           href="#group"
-          x="5"
-          y="40"
           rotation="-50"
           scale="0.75"
           stroke="red"
@@ -83,6 +122,6 @@ class GTransform extends Component {
   }
 }
 
-const samples = [GExample,GTransform];
+const samples = [orginal,Scale,Translate,Rotate,GTransform];
 
 export { samples};

@@ -59,10 +59,8 @@ const styles = StyleSheet.create({
     flexDirection:'row',
     flexWrap: 'wrap',
     marginHorizontal: 10,
-    marginVertical: 5,
     alignItems: "center",
     justifyContent: "center",
-
   },
   controlItems: {
     marginHorizontal: 10,

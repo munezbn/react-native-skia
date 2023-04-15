@@ -39,7 +39,6 @@ const BackButton = ({ backButtonCallback }) => {
 const styles = StyleSheet.create({
   headerView: {
     flexDirection: "column"
-
   },
   headerText: {
     fontSize: 24,

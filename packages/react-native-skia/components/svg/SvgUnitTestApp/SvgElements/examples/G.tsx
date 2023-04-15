@@ -1,5 +1,38 @@
 import React, {Component} from 'react';
-import {Svg, Circle, G, Text, Line, Rect, Use} from 'react-native-svg';
+import {Svg, Circle, G, Text, Line, Rect, Use,Defs} from 'react-native-svg';
+
+class GExample1 extends Component {
+  static title = 'Group of circles';
+  render(){
+    return (
+      <Svg  height="150" width="150" >
+        <G fill="white" stroke="green" strokeWidth="5">
+          <Circle cx="40" cy="40" r="25" />
+          <Circle cx="60" cy="60" r="25" />
+        </G>
+      </Svg>
+    );
+  }  
+}
+
+class UseExample extends Component {
+  static title = 'Group with Reuse Svg code';
+  render() {
+    return (
+      <Svg height="100" width="300">
+        <Defs>
+          <G id="reuse-shape">
+            <Circle cx="50" cy="50" r="50" />
+            <Rect x="50" y="50" width="50" height="50" />
+            <Circle cx="50" cy="50" r="5" fill="blue" />
+          </G>
+        </Defs>
+        <Use href="#reuse-shape" x="20" y="0" />
+        <Use href="#reuse-shape" x="170" y="0" />
+      </Svg>
+    );
+  }
+}
 
 class GExample extends Component {
   static title = 'G children props inherit';
@@ -83,6 +116,6 @@ class GTransform extends Component {
   }
 }
 
-const samples = [GExample,GTransform];
+const samples = [GExample1,UseExample,GExample,GTransform];
 
 export { samples};

@@ -82,6 +82,7 @@ class StrokeDashoffset extends Component {
           fill="none"
           fontSize="20"
           fontWeight="bold"
+          fontFamily='MonoSpace'
           x="100"
           y="40"
           textAnchor="middle"
@@ -93,7 +94,6 @@ class StrokeDashoffset extends Component {
     );
   }
 }
-
 
 const samples = [
   StrokeExample,
