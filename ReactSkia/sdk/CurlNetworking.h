@@ -81,10 +81,12 @@ class CurlNetworking {
   bool abortRequest(shared_ptr<CurlRequest> curlRequest);
   static CurlNetworking* sharedCurlNetworking();
   static size_t writeCallbackCurlWrapper(void* buffer, size_t size, size_t nitems, void* userData) ;
+  static size_t read_callback(void *ptr, size_t size, size_t nmemb, void *userdata);
   static size_t progressCallbackCurlWrapper(void *clientp, double dltotal, double dlnow, double ultotal, double ulnow);
   static size_t headerCallbackCurlWrapper(char* buffer, size_t size, size_t nitems, void* userData);
 
  private:
+  char *dataPtr = NULL;
   static CurlNetworking *sharedCurlNetworking_;
   ThreadSafeCache<std::string, shared_ptr<CurlResponse> >*  networkCache_;
   sem_t networkRequestSem_; 
@@ -93,7 +95,7 @@ class CurlNetworking {
   std::thread multiNetworkThread_;
   static std::mutex curlInstanceMutex_;
   void processNetworkRequest(CURLM *cm);
-  bool preparePostRequest(shared_ptr<CurlRequest> curlRequest, folly::dynamic data);
+  bool prepareRequest(shared_ptr<CurlRequest> curlRequest, folly::dynamic data, string methodName);
   void sendResponseCacheData(shared_ptr<CurlRequest> curlRequest);
   void setHeaders(shared_ptr<CurlRequest> curlRequest, folly::dynamic headers);
 };

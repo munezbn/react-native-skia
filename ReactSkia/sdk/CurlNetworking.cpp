@@ -9,7 +9,7 @@
 #include "ReactSkia/utils/RnsLog.h"
 #include "ReactSkia/utils/RnsUtils.h"
 #include "CurlNetworking.h"
-
+#include <string.h>
 using namespace std;
 namespace facebook {
 namespace react {
@@ -155,14 +155,21 @@ void CurlNetworking::processNetworkRequest(CURLM *curlMultiHandle) {
 
 }
 
-bool CurlNetworking::preparePostRequest(shared_ptr<CurlRequest> curlRequest, folly::dynamic data ) {
-  const char *dataPtr = NULL;
+size_t CurlNetworking::read_callback(void *ptr, size_t size, size_t nmemb, void *userdata)
+{
+  memcpy((char*)ptr,(char*)userdata,(size * nmemb));
+  return size * nmemb;
+}
+
+
+bool CurlNetworking::prepareRequest(shared_ptr<CurlRequest> curlRequest, folly::dynamic data, string methodName ) {
   size_t dataSize = 0;
   bool status = false;
-
+if(strcmp(methodName.c_str(),"DELETE")) {
   if(data["string"].c_str()) {
-    dataPtr = data["string"].c_str();
     dataSize = data["string"].getString().length();
+    dataPtr =(char *) malloc(dataSize);
+    strcpy(dataPtr,data["string"].c_str());
   } else if(data["formData"].c_str()) {
     RNS_LOG_NOT_IMPL;
     return status;
@@ -176,17 +183,29 @@ bool CurlNetworking::preparePostRequest(shared_ptr<CurlRequest> curlRequest, fol
     RNS_LOG_NOT_IMPL;
     return status;
   } else {
-    RNS_LOG_ERROR ("Unknown Data for Post Request\n") ;
+    RNS_LOG_ERROR("Unknown Data for Post Request");
     return status;
   }
-  
-  curl_easy_setopt(curlRequest->handle, CURLOPT_POST, 1L);
-  /* get verbose debug output please */
-  curl_easy_setopt(curlRequest->handle, CURLOPT_POSTFIELDSIZE, (long)dataSize);
-  curl_easy_setopt(curlRequest->handle, CURLOPT_COPYPOSTFIELDS, dataPtr);
-    // ResponseWrite callback and user data
-  curl_easy_setopt(curlRequest->handle, CURLOPT_WRITEDATA, curlRequest.get());
-  curl_easy_setopt(curlRequest->handle, CURLOPT_WRITEFUNCTION, writeCallbackCurlWrapper);
+}
+  if(!(strcmp(methodName.c_str(), "POST"))) {
+    curl_easy_setopt(curlRequest->handle, CURLOPT_POST, 1L);
+    /* get verbose debug output please */
+    curl_easy_setopt(curlRequest->handle, CURLOPT_POSTFIELDSIZE, (long)dataSize);
+    curl_easy_setopt(curlRequest->handle, CURLOPT_COPYPOSTFIELDS, dataPtr);
+      // ResponseWrite callback and user data
+    curl_easy_setopt(curlRequest->handle, CURLOPT_WRITEDATA, curlRequest.get());
+    curl_easy_setopt(curlRequest->handle, CURLOPT_WRITEFUNCTION, writeCallbackCurlWrapper);
+  } else if(!(strcmp(methodName.c_str(), "PUT"))) {
+    curl_easy_setopt(curlRequest->handle, CURLOPT_READFUNCTION,read_callback);
+    curl_easy_setopt(curlRequest->handle, CURLOPT_PUT, 1L);
+    curl_easy_setopt(curlRequest->handle, CURLOPT_URL, curlRequest->URL.c_str());
+    curl_easy_setopt(curlRequest->handle, CURLOPT_READDATA, dataPtr);
+    curl_easy_setopt(curlRequest->handle, CURLOPT_INFILESIZE_LARGE, (curl_off_t)dataSize);
+
+  }  else if (!(strcmp(methodName.c_str(),"DELETE"))) {
+    curl_easy_setopt(curlRequest->handle, CURLOPT_CUSTOMREQUEST, "DELETE");
+    curl_easy_setopt(curlRequest->handle, CURLOPT_URL,curlRequest->URL.c_str());
+  }
 
   status = true;
   return status;
@@ -282,7 +301,7 @@ bool CurlNetworking::sendRequest(shared_ptr<CurlRequest> curlRequest, folly::dyn
   int semCount = 0XFFFFFFFF;
   CURL *curl = nullptr;
   CURLcode res = CURLE_FAILED_INIT;
-
+  string methodName= curlRequest->method.c_str();
   auto cacheData = networkCache_->getCacheData(curlRequest->URL);
   if(cacheData.has_value()) {
     curlRequest->curlResponse = cacheData.value();
@@ -328,8 +347,14 @@ bool CurlNetworking::sendRequest(shared_ptr<CurlRequest> curlRequest, folly::dyn
   if(headers != nullptr) {
     setHeaders(curlRequest, headers);
   }
-  if(!(strcmp(curlRequest->method.c_str(), "POST"))) {
-    if((data != nullptr) && (preparePostRequest(curlRequest, data) == false))
+   if((strcmp(curlRequest->method.c_str(), "GET"))) {
+     if(!((strcmp(methodName.c_str(), "POST"))||
+          (strcmp(methodName.c_str(), "PUT"))||
+          (strcmp(methodName.c_str(), "PATCH"))||
+          (strcmp(methodName.c_str(), "DELETE")))) {
+       goto safe_return;
+     }
+    if((data != nullptr) && (prepareRequest(curlRequest, data,methodName) == false))
       goto safe_return;
   } else if(!(strcmp(curlRequest->method.c_str(),"GET"))) {
       // ResponseWrite callback and user data
