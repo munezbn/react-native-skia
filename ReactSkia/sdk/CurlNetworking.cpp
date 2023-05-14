@@ -165,28 +165,28 @@ size_t CurlNetworking::read_callback(void *ptr, size_t size, size_t nmemb, void 
 bool CurlNetworking::prepareRequest(shared_ptr<CurlRequest> curlRequest, folly::dynamic data, string methodName ) {
   size_t dataSize = 0;
   bool status = false;
-if(strcmp(methodName.c_str(),"DELETE")) {
-  if(data["string"].c_str()) {
-    dataSize = data["string"].getString().length();
-    dataPtr =(char *) malloc(dataSize);
-    strcpy(dataPtr,data["string"].c_str());
-  } else if(data["formData"].c_str()) {
-    RNS_LOG_NOT_IMPL;
-    return status;
-  } else if(data["blob"].c_str()) {
-    RNS_LOG_NOT_IMPL;
-    return status;
-  } else if(data["uri"].c_str()) {
-    RNS_LOG_NOT_IMPL;
-    return status;
-  } else if(data["base64"].c_str()) {
-    RNS_LOG_NOT_IMPL;
-    return status;
-  } else {
-    RNS_LOG_ERROR("Unknown Data for Post Request");
-    return status;
+  if(strcmp(methodName.c_str(),"DELETE")) {
+    if(data["string"].c_str()) {
+      dataSize = data["string"].getString().length();
+      dataPtr =(char *) malloc(dataSize);
+      strcpy(dataPtr,data["string"].c_str());
+    } else if(data["formData"].c_str()) {
+      RNS_LOG_NOT_IMPL;
+      return status;
+    } else if(data["blob"].c_str()) {
+      RNS_LOG_NOT_IMPL;
+      return status;
+    } else if(data["uri"].c_str()) {
+      RNS_LOG_NOT_IMPL;
+      return status;
+    } else if(data["base64"].c_str()) {
+      RNS_LOG_NOT_IMPL;
+      return status;
+    } else {
+      RNS_LOG_ERROR("Unknown Data for Post Request");
+      return status;
+    }
   }
-}
   if(!(strcmp(methodName.c_str(), "POST"))) {
     curl_easy_setopt(curlRequest->handle, CURLOPT_POST, 1L);
     /* get verbose debug output please */
@@ -202,7 +202,16 @@ if(strcmp(methodName.c_str(),"DELETE")) {
     curl_easy_setopt(curlRequest->handle, CURLOPT_READDATA, dataPtr);
     curl_easy_setopt(curlRequest->handle, CURLOPT_INFILESIZE_LARGE, (curl_off_t)dataSize);
 
-  }  else if (!(strcmp(methodName.c_str(),"DELETE"))) {
+  } else if(!(strcmp(methodName.c_str(), "PATCH"))) {
+    curl_easy_setopt(curlRequest->handle, CURLOPT_URL, curlRequest->URL.c_str());
+     // set the request method to PATCH
+    curl_easy_setopt(curlRequest->handle, CURLOPT_CUSTOMREQUEST, "PATCH");
+      // set the request body data
+    curl_easy_setopt(curlRequest->handle, CURLOPT_POSTFIELDS, dataPtr);
+    curl_easy_setopt(curlRequest->handle, CURLOPT_WRITEDATA, curlRequest.get());
+    curl_easy_setopt(curlRequest->handle, CURLOPT_WRITEFUNCTION, writeCallbackCurlWrapper);
+
+  } else if (!(strcmp(methodName.c_str(),"DELETE"))) {
     curl_easy_setopt(curlRequest->handle, CURLOPT_CUSTOMREQUEST, "DELETE");
     curl_easy_setopt(curlRequest->handle, CURLOPT_URL,curlRequest->URL.c_str());
   }
