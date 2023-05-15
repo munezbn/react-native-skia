@@ -160,16 +160,16 @@ size_t CurlNetworking::read_callback(void* ptr, size_t size, size_t nmemb, void*
   size_t readSize = size * nmemb;
 
   // Calculate the remaining data size to send
-  size_t remainingSize = curlRequest->dataLength - curlRequest->requestDataOffset;
+  size_t remainingSize = curlRequest->uploadDataLength - curlRequest->uploadBufferOffset;
 
   // Determine the size to be copied
   size_t copySize = (remainingSize < readSize) ? remainingSize : readSize;
 
   // Copy the data into the buffer
-  memcpy(ptr, curlRequest->dataPtr + curlRequest->requestDataOffset, copySize);
+  memcpy(ptr, curlRequest->uploadDataPtr + curlRequest->uploadBufferOffset, copySize);
 
   // Update the position for the next read
-  curlRequest->requestDataOffset += copySize;
+  curlRequest->uploadBufferOffset += copySize;
 
   return copySize;
 }
@@ -209,9 +209,9 @@ bool CurlNetworking::prepareRequest(shared_ptr<CurlRequest> curlRequest, folly::
     curl_easy_setopt(curlRequest->handle, CURLOPT_WRITEDATA, curlRequest.get());
     curl_easy_setopt(curlRequest->handle, CURLOPT_WRITEFUNCTION, writeCallbackCurlWrapper);
   } else if(!(strcmp(methodName.c_str(), "PUT"))) {
-    curlRequest->dataPtr = dataPtr_;
-    curlRequest->requestDataOffset = 0;
-    curlRequest->dataLength = dataSize;
+    curlRequest->uploadDataPtr = dataPtr_;
+    curlRequest->uploadBufferOffset = 0;
+    curlRequest->uploadDataLength = dataSize;
     curl_easy_setopt(curlRequest->handle, CURLOPT_READFUNCTION,read_callback);
     curl_easy_setopt(curlRequest->handle, CURLOPT_PUT, 1L);
     curl_easy_setopt(curlRequest->handle, CURLOPT_URL, curlRequest->URL.c_str());
