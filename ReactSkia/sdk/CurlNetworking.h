@@ -89,7 +89,7 @@ class CurlNetworking {
   static size_t headerCallbackCurlWrapper(char* buffer, size_t size, size_t nitems, void* userData);
 
  private:
-  char *dataPtr = NULL;
+  char *dataPtr_ = NULL;
   static CurlNetworking *sharedCurlNetworking_;
   ThreadSafeCache<std::string, shared_ptr<CurlResponse> >*  networkCache_;
   sem_t networkRequestSem_; 

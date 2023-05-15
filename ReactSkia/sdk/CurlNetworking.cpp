@@ -9,7 +9,7 @@
 #include "ReactSkia/utils/RnsLog.h"
 #include "ReactSkia/utils/RnsUtils.h"
 #include "CurlNetworking.h"
-#include <string.h>
+
 using namespace std;
 namespace facebook {
 namespace react {
@@ -168,10 +168,10 @@ size_t CurlNetworking::read_callback(void* ptr, size_t size, size_t nmemb, void*
   // Copy the data into the buffer
   memcpy(ptr, curlRequest->dataPtr + curlRequest->requestDataOffset, copySize);
 
- // Update the position for the next read
+  // Update the position for the next read
   curlRequest->requestDataOffset += copySize;
 
- return copySize;
+  return copySize;
 }
 
 
@@ -181,8 +181,8 @@ bool CurlNetworking::prepareRequest(shared_ptr<CurlRequest> curlRequest, folly::
   if(strcmp(methodName.c_str(),"DELETE")) {
     if(data["string"].c_str()) {
       dataSize = data["string"].getString().length();
-      dataPtr =(char *) malloc(dataSize);
-      strcpy(dataPtr,data["string"].c_str());
+      dataPtr_ =(char *) malloc(dataSize);
+      strcpy(dataPtr_,data["string"].c_str());
     } else if(data["formData"].c_str()) {
       RNS_LOG_NOT_IMPL;
       return status;
@@ -204,12 +204,12 @@ bool CurlNetworking::prepareRequest(shared_ptr<CurlRequest> curlRequest, folly::
     curl_easy_setopt(curlRequest->handle, CURLOPT_POST, 1L);
     /* get verbose debug output please */
     curl_easy_setopt(curlRequest->handle, CURLOPT_POSTFIELDSIZE, (long)dataSize);
-    curl_easy_setopt(curlRequest->handle, CURLOPT_COPYPOSTFIELDS, dataPtr);
+    curl_easy_setopt(curlRequest->handle, CURLOPT_COPYPOSTFIELDS, dataPtr_);
       // ResponseWrite callback and user data
     curl_easy_setopt(curlRequest->handle, CURLOPT_WRITEDATA, curlRequest.get());
     curl_easy_setopt(curlRequest->handle, CURLOPT_WRITEFUNCTION, writeCallbackCurlWrapper);
   } else if(!(strcmp(methodName.c_str(), "PUT"))) {
-    curlRequest->dataPtr = dataPtr;
+    curlRequest->dataPtr = dataPtr_;
     curlRequest->requestDataOffset = 0;
     curlRequest->dataLength = dataSize;
     curl_easy_setopt(curlRequest->handle, CURLOPT_READFUNCTION,read_callback);
@@ -222,7 +222,7 @@ bool CurlNetworking::prepareRequest(shared_ptr<CurlRequest> curlRequest, folly::
     curl_easy_setopt(curlRequest->handle, CURLOPT_URL, curlRequest->URL.c_str());
     curl_easy_setopt(curlRequest->handle, CURLOPT_CUSTOMREQUEST, "PATCH");
       // set the request body data
-    curl_easy_setopt(curlRequest->handle, CURLOPT_POSTFIELDS, dataPtr);
+    curl_easy_setopt(curlRequest->handle, CURLOPT_POSTFIELDS, dataPtr_);
     curl_easy_setopt(curlRequest->handle, CURLOPT_WRITEDATA, curlRequest.get());
     curl_easy_setopt(curlRequest->handle, CURLOPT_WRITEFUNCTION, writeCallbackCurlWrapper);
 
