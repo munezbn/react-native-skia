@@ -155,10 +155,23 @@ void CurlNetworking::processNetworkRequest(CURLM *curlMultiHandle) {
 
 }
 
-size_t CurlNetworking::read_callback(void *ptr, size_t size, size_t nmemb, void *userdata)
-{
-  memcpy((char*)ptr,(char*)userdata,(size * nmemb));
-  return size * nmemb;
+size_t CurlNetworking::read_callback(void* ptr, size_t size, size_t nmemb, void* userdata) {
+  CurlRequest *curlRequest = (CurlRequest *)userdata;
+  size_t readSize = size * nmemb;
+
+  // Calculate the remaining data size to send
+  size_t remainingSize = curlRequest->dataLength - curlRequest->requestDataOffset;
+
+  // Determine the size to be copied
+  size_t copySize = (remainingSize < readSize) ? remainingSize : readSize;
+
+  // Copy the data into the buffer
+  memcpy(ptr, curlRequest->dataPtr + curlRequest->requestDataOffset, copySize);
+
+ // Update the position for the next read
+  curlRequest->requestDataOffset += copySize;
+
+ return copySize;
 }
 
 
@@ -196,15 +209,17 @@ bool CurlNetworking::prepareRequest(shared_ptr<CurlRequest> curlRequest, folly::
     curl_easy_setopt(curlRequest->handle, CURLOPT_WRITEDATA, curlRequest.get());
     curl_easy_setopt(curlRequest->handle, CURLOPT_WRITEFUNCTION, writeCallbackCurlWrapper);
   } else if(!(strcmp(methodName.c_str(), "PUT"))) {
+    curlRequest->dataPtr = dataPtr;
+    curlRequest->requestDataOffset = 0;
+    curlRequest->dataLength = dataSize;
     curl_easy_setopt(curlRequest->handle, CURLOPT_READFUNCTION,read_callback);
     curl_easy_setopt(curlRequest->handle, CURLOPT_PUT, 1L);
     curl_easy_setopt(curlRequest->handle, CURLOPT_URL, curlRequest->URL.c_str());
-    curl_easy_setopt(curlRequest->handle, CURLOPT_READDATA, dataPtr);
+    curl_easy_setopt(curlRequest->handle, CURLOPT_READDATA, curlRequest.get());
     curl_easy_setopt(curlRequest->handle, CURLOPT_INFILESIZE_LARGE, (curl_off_t)dataSize);
 
   } else if(!(strcmp(methodName.c_str(), "PATCH"))) {
     curl_easy_setopt(curlRequest->handle, CURLOPT_URL, curlRequest->URL.c_str());
-     // set the request method to PATCH
     curl_easy_setopt(curlRequest->handle, CURLOPT_CUSTOMREQUEST, "PATCH");
       // set the request body data
     curl_easy_setopt(curlRequest->handle, CURLOPT_POSTFIELDS, dataPtr);
@@ -356,13 +371,11 @@ bool CurlNetworking::sendRequest(shared_ptr<CurlRequest> curlRequest, folly::dyn
   if(headers != nullptr) {
     setHeaders(curlRequest, headers);
   }
-   if((strcmp(curlRequest->method.c_str(), "GET"))) {
-     if(!((strcmp(methodName.c_str(), "POST"))||
-          (strcmp(methodName.c_str(), "PUT"))||
-          (strcmp(methodName.c_str(), "PATCH"))||
-          (strcmp(methodName.c_str(), "DELETE")))) {
-       goto safe_return;
-     }
+  if((!(strcmp(methodName.c_str(), "POST")))||
+     (!(strcmp(methodName.c_str(), "PUT")))||
+     (!(strcmp(methodName.c_str(), "PATCH")))||
+     (!(strcmp(methodName.c_str(), "DELETE")))) {
+
     if((data != nullptr) && (prepareRequest(curlRequest, data,methodName) == false))
       goto safe_return;
   } else if(!(strcmp(curlRequest->method.c_str(),"GET"))) {

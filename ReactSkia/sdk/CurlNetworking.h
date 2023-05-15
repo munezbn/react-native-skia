@@ -66,6 +66,9 @@ class CurlRequest {
   std::string URL;
   size_t timeout;
   std::string method;
+  unsigned int dataLength;
+  unsigned int requestDataOffset;
+  char *dataPtr;
   Curldelegator curldelegator;
   shared_ptr<CurlResponse> curlResponse;
   std::mutex bufferLock;
