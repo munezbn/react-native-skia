@@ -68,12 +68,13 @@ class CurlRequest {
   std::string method;
   unsigned int uploadDataLength;
   unsigned int uploadBufferOffset;
-  char *uploadDataPtr;
+  char *uploadDataPtr = NULL;
   Curldelegator curldelegator;
   shared_ptr<CurlResponse> curlResponse;
   std::mutex bufferLock;
   bool shouldCacheData();
   CurlRequest(CURL *lhandle, std::string lURL, size_t ltimeout, std::string lmethod);
+  ~CurlRequest();
 };
 
 class CurlNetworking {
@@ -89,7 +90,6 @@ class CurlNetworking {
   static size_t headerCallbackCurlWrapper(char* buffer, size_t size, size_t nitems, void* userData);
 
  private:
-  char *dataPtr_ = NULL;
   static CurlNetworking *sharedCurlNetworking_;
   ThreadSafeCache<std::string, shared_ptr<CurlResponse> >*  networkCache_;
   sem_t networkRequestSem_; 
