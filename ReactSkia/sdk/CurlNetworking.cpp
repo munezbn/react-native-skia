@@ -56,6 +56,7 @@ CurlRequest::CurlRequest(CURL *lhandle, std::string lURL, size_t ltimeout, std::
 CurlRequest::~CurlRequest() {
   if(uploadDataPtr!=NULL) {
     free(uploadDataPtr);
+    uploadDataPtr = NULL;
   }
 }
 
@@ -161,10 +162,13 @@ void CurlNetworking::processNetworkRequest(CURLM *curlMultiHandle) {
 
 }
 
-size_t CurlNetworking::read_callback(void* ptr, size_t size, size_t nmemb, void* userdata) {
+size_t CurlNetworking::readCallback(void* ptr, size_t size, size_t nitems, void* userdata) {
 
   CurlRequest *curlRequest = (CurlRequest *)userdata;
-  size_t readSize = size * nmemb;
+  if(!curlRequest) {
+    return 0;
+  }
+  size_t readSize = size * nitems;
 
   // Calculate the remaining data size to send
   size_t remainingSize = curlRequest->uploadDataLength - curlRequest->uploadBufferOffset;
@@ -174,7 +178,6 @@ size_t CurlNetworking::read_callback(void* ptr, size_t size, size_t nmemb, void*
   }
   // Determine the size to be copied
   size_t copySize = (remainingSize < readSize) ? remainingSize : readSize;
-
   // Copy the data into the buffer
   memcpy(ptr, curlRequest->uploadDataPtr + curlRequest->uploadBufferOffset, copySize);
 
@@ -189,21 +192,21 @@ bool CurlNetworking::prepareRequest(shared_ptr<CurlRequest> curlRequest, folly::
   size_t dataSize = 0;
   bool status = false;
 
-  if(strcmp(methodName.c_str(),"DELETE")) {
+  if(methodName.compare("DELETE")) {
     if(data["string"].c_str()) {
       dataSize = data["string"].getString().length();
       curlRequest->uploadDataPtr =(char *) malloc(dataSize);
       strcpy(curlRequest->uploadDataPtr,data["string"].c_str());
-    } else if(data["formData"].c_str()) {
+    } else if(!data["formData"].empty()) {
       RNS_LOG_NOT_IMPL;
       return status;
-    } else if(data["blob"].c_str()) {
+    } else if(!data["blob"].empty()) {
       RNS_LOG_NOT_IMPL;
       return status;
-    } else if(data["uri"].c_str()) {
+    } else if(!data["uri"].empty()) {
       RNS_LOG_NOT_IMPL;
       return status;
-    } else if(data["base64"].c_str()) {
+    } else if(!data["base64"].empty()) {
       RNS_LOG_NOT_IMPL;
       return status;
     } else {
@@ -211,7 +214,7 @@ bool CurlNetworking::prepareRequest(shared_ptr<CurlRequest> curlRequest, folly::
       return status;
     }
   }
-  if(!(strcmp(methodName.c_str(), "POST"))) {
+  if(!(methodName.compare("POST"))) {
     curl_easy_setopt(curlRequest->handle, CURLOPT_POST, 1L);
     /* get verbose debug output please */
     curl_easy_setopt(curlRequest->handle, CURLOPT_POSTFIELDSIZE, (long)dataSize);
@@ -219,16 +222,16 @@ bool CurlNetworking::prepareRequest(shared_ptr<CurlRequest> curlRequest, folly::
       // ResponseWrite callback and user data
     curl_easy_setopt(curlRequest->handle, CURLOPT_WRITEDATA, curlRequest.get());
     curl_easy_setopt(curlRequest->handle, CURLOPT_WRITEFUNCTION, writeCallbackCurlWrapper);
-  } else if(!(strcmp(methodName.c_str(), "PUT"))) {
+  } else if(!(methodName.compare("PUT"))) {
     curlRequest->uploadBufferOffset = 0;
     curlRequest->uploadDataLength = dataSize;
-    curl_easy_setopt(curlRequest->handle, CURLOPT_READFUNCTION,read_callback);
+    curl_easy_setopt(curlRequest->handle, CURLOPT_READFUNCTION,readCallback);
     curl_easy_setopt(curlRequest->handle, CURLOPT_PUT, 1L);
     curl_easy_setopt(curlRequest->handle, CURLOPT_URL, curlRequest->URL.c_str());
     curl_easy_setopt(curlRequest->handle, CURLOPT_READDATA, curlRequest.get());
     curl_easy_setopt(curlRequest->handle, CURLOPT_INFILESIZE_LARGE, (curl_off_t)dataSize);
 
-  } else if(!(strcmp(methodName.c_str(), "PATCH"))) {
+  } else if(!(methodName.compare("PATCH"))) {
     curl_easy_setopt(curlRequest->handle, CURLOPT_URL, curlRequest->URL.c_str());
     curl_easy_setopt(curlRequest->handle, CURLOPT_CUSTOMREQUEST, "PATCH");
       // set the request body data
@@ -236,7 +239,7 @@ bool CurlNetworking::prepareRequest(shared_ptr<CurlRequest> curlRequest, folly::
     curl_easy_setopt(curlRequest->handle, CURLOPT_WRITEDATA, curlRequest.get());
     curl_easy_setopt(curlRequest->handle, CURLOPT_WRITEFUNCTION, writeCallbackCurlWrapper);
 
-  } else if (!(strcmp(methodName.c_str(),"DELETE"))) {
+  } else if (!(methodName.compare("DELETE"))) {
     curl_easy_setopt(curlRequest->handle, CURLOPT_CUSTOMREQUEST, "DELETE");
     curl_easy_setopt(curlRequest->handle, CURLOPT_URL,curlRequest->URL.c_str());
   }

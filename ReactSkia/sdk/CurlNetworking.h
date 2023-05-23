@@ -85,7 +85,7 @@ class CurlNetworking {
   bool abortRequest(shared_ptr<CurlRequest> curlRequest);
   static CurlNetworking* sharedCurlNetworking();
   static size_t writeCallbackCurlWrapper(void* buffer, size_t size, size_t nitems, void* userData) ;
-  static size_t read_callback(void *ptr, size_t size, size_t nmemb, void *userdata);
+  static size_t readCallback(void *ptr, size_t size, size_t nmemb, void *userdata);
   static size_t progressCallbackCurlWrapper(void *clientp, double dltotal, double dlnow, double ultotal, double ulnow);
   static size_t headerCallbackCurlWrapper(char* buffer, size_t size, size_t nitems, void* userData);
 
