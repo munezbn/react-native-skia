@@ -164,7 +164,7 @@ void CurlNetworking::processNetworkRequest(CURLM *curlMultiHandle) {
 
 size_t CurlNetworking::readCallback(void* ptr, size_t size, size_t nitems, void* userdata) {
 
-  CurlRequest *curlRequest = (CurlRequest *)userdata;
+  CurlRequest *curlRequest = static_cast<CurlRequest *>(userdata);
   if(!curlRequest) {
     return 0;
   }
@@ -193,21 +193,21 @@ bool CurlNetworking::prepareRequest(shared_ptr<CurlRequest> curlRequest, folly::
   bool status = false;
 
   if(methodName.compare("DELETE")) {
-    if(data["string"].c_str()) {
+    if(!data["string"].empty()) {
       dataSize = data["string"].getString().length();
       curlRequest->uploadDataPtr =(char *) malloc(dataSize);
       strcpy(curlRequest->uploadDataPtr,data["string"].c_str());
     } else if(!data["formData"].empty()) {
-      RNS_LOG_NOT_IMPL;
+      RNS_LOG_NOT_IMPL_MSG("formData");
       return status;
     } else if(!data["blob"].empty()) {
-      RNS_LOG_NOT_IMPL;
+      RNS_LOG_NOT_IMPL_MSG("blob");
       return status;
     } else if(!data["uri"].empty()) {
-      RNS_LOG_NOT_IMPL;
+      RNS_LOG_NOT_IMPL_MSG("uri");
       return status;
     } else if(!data["base64"].empty()) {
-      RNS_LOG_NOT_IMPL;
+      RNS_LOG_NOT_IMPL_MSG("base64");
       return status;
     } else {
       RNS_LOG_ERROR("Unknown Data for Post Request");
