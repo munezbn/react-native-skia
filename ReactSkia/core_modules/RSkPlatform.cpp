@@ -87,8 +87,8 @@ folly::dynamic RSkPlatformModule::getConstants() {
   return platformConstants;
 }
 
-void RSkPlatformModule::PlatformCallBackClient::onStubEvent() {
-  RNS_LOG_DEBUG("onStubEventReceived");
+void RSkPlatformModule::PlatformCallBackClient::onSafeAreaInsetsDidChange() {
+  RNS_LOG_DEBUG("onSafeAreaInsetsDidChange");
   RNS_UNUSED(platformModule_);
 }
 
