@@ -163,16 +163,13 @@ void CurlNetworking::processNetworkRequest(CURLM *curlMultiHandle) {
 }
 
 size_t CurlNetworking::readCallback(void* ptr, size_t size, size_t nitems, void* userdata) {
-
   CurlRequest *curlRequest = static_cast<CurlRequest *>(userdata);
   if(!curlRequest) {
     return 0;
   }
   size_t readSize = size * nitems;
-
   // Calculate the remaining data size to send
   size_t remainingSize = curlRequest->uploadDataLength - curlRequest->uploadBufferOffset;
-
   if(remainingSize == 0) { // no more data left to copy,stop the current transfer
     return remainingSize;
   }
@@ -180,10 +177,8 @@ size_t CurlNetworking::readCallback(void* ptr, size_t size, size_t nitems, void*
   size_t copySize = (remainingSize < readSize) ? remainingSize : readSize;
   // Copy the data into the buffer
   memcpy(ptr, curlRequest->uploadDataPtr + curlRequest->uploadBufferOffset, copySize);
-
   // Update the position for the next read
   curlRequest->uploadBufferOffset += copySize;
-
   return copySize;
 }
 
