@@ -12,10 +12,12 @@
 
 #include "JSITurboModuleManager.h"
 #include "version.h"
+#include "core_modules/RSkAppearanceModule.h"
 #include "core_modules/RSkAppStateModule.h"
 #include "core_modules/RSkDeviceInfo.h"
 #include "core_modules/RSkImageLoader.h"
 #include "core_modules/RSkKeyboardObserver.h"
+#include "core_modules/RSkLinkingManagerModule.h"
 #include "core_modules/RSkPlatform.h"
 #include "core_modules/RSkTimingModule.h"
 #include "modules/platform/nopoll/RSkWebSocketModule.h"
@@ -150,14 +152,22 @@ JSITurboModuleManager::JSITurboModuleManager(Instance *bridgeInstance)
       std::make_shared<RSkTVNavigationEventEmitter>("TVNavigationEventEmitter",jsInvoker, bridgeInstance);
 #endif //TARGET_OS_TV
 
+  // These are the stubbed/Partially implemeted Turbo modules which is required to launch rn-tester
+  modules_["Appearance"] =
+      std::make_shared<RSkAppearanceModule>("Appearance", jsInvoker, bridgeInstance);
+  modules_["LinkingManager"] =
+      std::make_shared<RSkLinkingManagerModule>("LinkingManager", jsInvoker, bridgeInstance);
+
   modules_["DevSettings"] =
       std::make_shared<UnimplementedTurboModule>("DevSettings", jsInvoker);
   modules_["StatusBarManager"] =
       std::make_shared<UnimplementedTurboModule>("StatusBarManager", jsInvoker);
-  modules_["Appearance"] =
-      std::make_shared<UnimplementedTurboModule>("Appearance", jsInvoker);
-  modules_["NativeAnimatedModule"] = std::make_shared<UnimplementedTurboModule>(
-      "NativeAnimatedModule", jsInvoker);
+  modules_["NativeAnimatedModule"] =
+      std::make_shared<UnimplementedTurboModule>("NativeAnimatedModule", jsInvoker);
+  modules_["SampleTurboModule"] =
+      std::make_shared<UnimplementedTurboModule>("SampleTurboModule", jsInvoker);
+  modules_["Vibration"] =
+      std::make_shared<UnimplementedTurboModule>("Vibration", jsInvoker);
 }
 
 TurboModuleProviderFunctionType JSITurboModuleManager::GetProvider() {

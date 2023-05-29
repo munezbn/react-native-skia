@@ -18,20 +18,15 @@ namespace react {
 using namespace std;
 using namespace rnsplugin;
 
-class RSkAppStateModule : public react::RSkEventEmitter {
+class RSkAppearanceModule : public react::RSkEventEmitter {
  public:
-  RSkAppStateModule(
+  RSkAppearanceModule(
     const std::string &name,
     std::shared_ptr<react::CallInvoker> jsInvoker,
     react::Instance *bridgeInstance);
-  ~RSkAppStateModule(){};
+  ~RSkAppearanceModule(){};
 
-  static jsi::Value getConstantsWrapper(
-    jsi::Runtime &rt,
-    TurboModule &turboModule,
-    const jsi::Value *args,
-    size_t count);
-  static jsi::Value getCurrentAppStateWrapper(
+  static jsi::Value getColorSchemeWrapper(
     jsi::Runtime &rt,
     TurboModule &turboModule,
     const jsi::Value *args,
@@ -41,33 +36,29 @@ class RSkAppStateModule : public react::RSkEventEmitter {
   void stopObserving()override;
 
   std::vector<std::string> supportedEvents() override {
-    return {"appStateDidChange", "memoryWarning"};
+    return {"appearanceChanged"};
   }
 
  private:
   // RNS Plugin Factory and interface
   RnsPluginFactory *pluginFactory_;
-  std::unique_ptr<RNSApplicationManagerInterface> appManagerHandle_;
+  std::unique_ptr<RNSPlatformManagerInterface> platformManagerHandle_;
 
   void lazyInit();
-  jsi::Value getConstants(jsi::Runtime &rt);
-  jsi::Value getCurrentAppState(jsi::Runtime &rt, const jsi::Object &successObj, const jsi::Object &errorObj);
+  jsi::Value getColorScheme(jsi::Runtime &rt);
 
   //CallBackClient for Events
-  class AppStateCallBackClient : public RNSApplicationManagerInterface::CallbackClient {
+  class AppearanceCallBackClient : public RNSPlatformManagerInterface::CallbackClient {
    public:
-    AppStateCallBackClient(RSkAppStateModule& appStateModule);
-    ~AppStateCallBackClient(){}
+    AppearanceCallBackClient(RSkAppearanceModule& appearanceModule);
+    ~AppearanceCallBackClient(){}
 
-    void onChange(string appState) override;
-    void onMemoryWarning() override;
-    void onFocus() override;
-    void onBlur() override;
+    void onSafeAreaInsetsDidChange() override { };
 
    private:
-    RSkAppStateModule& appStateModule_;
+    RSkAppearanceModule& appearanceModule_;
   };
-  AppStateCallBackClient appStateCallBackClient_;
+  AppearanceCallBackClient appearanceCallBackClient_;
 };
 
 } // react
