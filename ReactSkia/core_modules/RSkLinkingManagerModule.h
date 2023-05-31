@@ -12,6 +12,8 @@
 #include "ReactSkia/pluginfactory/RnsPlugin.h"
 #include "ReactSkia/pluginfactory/RnsPluginFactory.h"
 
+#undef RNS_LINKING_TEST_DUMMY_EVENT // emit dummy 'url' event when calling openURL API.
+
 namespace facebook {
 namespace react {
 
@@ -64,6 +66,9 @@ class RSkLinkingManagerModule : public react::RSkEventEmitter {
 
   void lazyInit();
   jsi::Value getInitialURL(jsi::Runtime &rt);
+  jsi::Value canOpenURL(jsi::Runtime &rt, std::string url);
+  jsi::Value openURL(jsi::Runtime &rt, std::string url);
+  jsi::Value openSettings(jsi::Runtime &rt);
 
 };
 
