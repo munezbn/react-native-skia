@@ -18,6 +18,8 @@ namespace react {
 using namespace std;
 using namespace rnsplugin;
 
+#undef RNS_APPEARENCE_TEST_DUMMY_EVENT // Scehdule a 'appearenceChanged' event 2 seconds after calling getColorScheme API.
+
 class RSkAppearanceModule : public react::RSkEventEmitter {
  public:
   RSkAppearanceModule(
@@ -54,6 +56,9 @@ class RSkAppearanceModule : public react::RSkEventEmitter {
     ~AppearanceCallBackClient(){}
 
     void onSafeAreaInsetsDidChange() override { };
+#ifdef RNS_APPEARENCE_TEST_DUMMY_EVENT // Scehdule a 'appearenceChanged' event 2 seconds after calling getColorScheme API.
+    void onAppearanceChange(string newAppearance);
+#endif
 
    private:
     RSkAppearanceModule& appearanceModule_;

@@ -8,6 +8,10 @@
 #include "ReactSkia/core_modules/RSkAppearanceModule.h"
 #include "ReactSkia/utils/RnsLog.h"
 
+#ifdef RNS_APPEARENCE_TEST_DUMMY_EVENT // Scehdule a 'appearenceChanged' event 2 seconds after calling getColorScheme API.
+#include "rns_shell/platform/linux/TaskLoop.h"
+#endif
+
 namespace facebook {
 namespace react {
 
@@ -57,14 +61,21 @@ jsi::Value RSkAppearanceModule::getColorScheme(jsi::Runtime &rt) {
       RNS_LOG_TODO("Use Platform plugin API to get colorScheme");
       //string colorSCheme = platformManager->getDeviceColorScheme();
       //return jsi::valueFromDynamic(rt, colorSCheme);
+#ifdef RNS_APPEARENCE_TEST_DUMMY_EVENT // Scehdule a 'appearenceChanged' event 2 seconds after calling getColorScheme API.
+      static string colorSCheme = "light";
+      string newScheme = (colorSCheme == "light") ? "dark" : "light" ;
+      RnsShell::TaskLoop::main().scheduleDispatch([this, newScheme]() {appearanceCallBackClient_.onAppearanceChange(newScheme);}, 2000);
+      colorSCheme = newScheme;
+#endif
   }
+
   return jsi::valueFromDynamic(rt, "light"); // default
 }
 
 void RSkAppearanceModule::startObserving() {RNS_LOG_NOT_IMPL;}
 void RSkAppearanceModule::stopObserving() {RNS_LOG_NOT_IMPL;}
 
-#if 0
+#ifdef RNS_APPEARENCE_TEST_DUMMY_EVENT // Scehdule a 'appearenceChanged' event 2 seconds after calling getColorScheme API.
 void RSkAppearanceModule::AppearanceCallBackClient::onAppearanceChange(string newAppearance) {
   folly::dynamic appearance = folly::dynamic::object();
   appearance["colorScheme"] = newAppearance;
@@ -72,6 +83,7 @@ void RSkAppearanceModule::AppearanceCallBackClient::onAppearanceChange(string ne
   appearanceModule_.sendEventWithName("appearanceChanged", folly::dynamic(appearance));
 }
 #endif
+
 } // react
 } // facebook
 
