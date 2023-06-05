@@ -130,7 +130,7 @@ def main():
   else:
     print('xxxxxxxxxx Application '+ appPath +' Doesnt Exist xxxxxxxxxx')
 
-  externalBuildGnPath = sys.argv[1] + '/ReactSkia/external'
+  externalBuildGnPath = sys.argv[1] + '/gen/ReactSkia/external'
   generateBuildGn(externalBuildGnPath, buildTargets)
 
   codegenConfigFileHandle.close()
