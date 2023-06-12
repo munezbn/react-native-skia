@@ -49,7 +49,7 @@ void RSkComponentUnimplementedView::OnPaint(
                 layerRef->shadowImageFilter,layerRef->shadowMaskFilter
               );
   }
-  drawBackground(canvas,frame,borderMetrics,SK_ColorWHITE);
+  drawBackground(canvas,frame,borderMetrics,SK_ColorTRANSPARENT);
   drawBorder(canvas,frame,borderMetrics,viewProps.backgroundColor);
 
   // Draw lattice to show that this is an unimplemented view.
@@ -57,10 +57,11 @@ void RSkComponentUnimplementedView::OnPaint(
   SkMatrix lattice;
   lattice.setScale(5.0f, 5.0f);
   lattice.preRotate(30.0f);
-  paint.setPathEffect(SkLine2DPathEffect::Make(0.0f, lattice));
+  //paint.setPathEffect(SkLine2DPathEffect::Make(0.0f, lattice));
   paint.setAntiAlias(true);
   SkRect bounds = SkRect::MakeXYWH(frame.origin.x, frame.origin.y, frame.size.width, frame.size.height);
   bounds.outset(-2.0f, -2.0f);
+  paint.setColor(SK_ColorTRANSPARENT);
   canvas->drawRect(bounds, paint);
 }
 
