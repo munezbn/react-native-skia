@@ -23,7 +23,7 @@ RnsShell::LayerInvalidateMask RSkComponentRootView::updateComponentProps(SharedP
 
 void RSkComponentRootView::OnPaint(
     SkCanvas *canvas) {
-  canvas->clear(SK_ColorWHITE);
+  canvas->clear(SK_ColorBLACK);
 }
 
 bool RSkComponentRootView::isVisible(RSkComponent* candidate) {
