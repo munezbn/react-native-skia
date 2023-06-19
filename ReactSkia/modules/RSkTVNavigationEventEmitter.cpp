@@ -22,9 +22,11 @@ RSkTVNavigationEventEmitter::RSkTVNavigationEventEmitter(
 
 void RSkTVNavigationEventEmitter::handleTVNavigationEventNotification(folly::dynamic paramObject, NotificationCompleteVoidCallback completeCallback) {
 #if !defined(GOOGLE_STRIP_LOG) || (GOOGLE_STRIP_LOG <= INFO)
+    RNS_LOG_INFO("Notify RCTTVNavigationEventNotification : {");
     for (auto& pair : paramObject.items()) {
-      RNS_LOG_INFO("Notify RCTTVNavigationEventNotification : { " << pair.first << " : " << pair.second << " }");
+      RNS_LOG_INFO("\t{ " << pair.first << " : " << pair.second << " }");
     }
+    RNS_LOG_INFO("}");
 #endif
     sendEventWithName(events_[0], folly::dynamic(paramObject), completeCallback);
 }

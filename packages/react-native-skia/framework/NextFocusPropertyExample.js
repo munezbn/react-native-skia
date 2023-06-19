@@ -198,7 +198,7 @@ class DirectionalNextFocusExample extends React.Component<
               width: width * 3,
               height,
             }}
-            label="nextLeft destination does not work because there is no actual focusable in the direction"
+            label="nextLeft destination"
           />
         </View>
       </View>
