@@ -160,7 +160,11 @@ void drawRect(FrameType frameType,SkCanvas *canvas,
     if(paint != NULL){ paintObj = *paint; }
 
     paintObj.setAntiAlias(true);
+    if((frame.size.height == 701) ||(frame.size.height == 720)){
     paintObj.setColor(SK_ColorTRANSPARENT);
+    } else {
+         paintObj.setColor(Color);
+    }
 
     if(shadowMaskFilter != nullptr){
         paintObj.setMaskFilter(shadowMaskFilter);
