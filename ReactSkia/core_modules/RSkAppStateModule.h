@@ -45,7 +45,7 @@ class RSkAppStateModule : public react::RSkEventEmitter {
   }
 
  private:
-  // RNS Plugin Factgory and interface
+  // RNS Plugin Factory and interface
   RnsPluginFactory *pluginFactory_;
   std::unique_ptr<RNSApplicationManagerInterface> appManagerHandle_;
 
