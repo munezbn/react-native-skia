@@ -413,11 +413,6 @@ bool RSkSpatialNavigator::advanceFocusInDirection(Container *container, rnsKey k
       return true;
   }
 
-#if defined(TARGET_OS_TV) && TARGET_OS_TV
-  if(hasNextFocusProperty(keyEvent))
-    return true;
-#endif //TARGET_OS_TV
-
   // Focus the candidate and update the spatial navigator states
   updateFocusCandidate(focusCandidate);
   return true;
@@ -507,6 +502,12 @@ void RSkSpatialNavigator::handleKeyEvent(rnsKey  eventKeyType, rnsKeyAction even
 
     if(eventKeyAction != RNS_KEY_Press) // Need to act on keyPress only
         return;
+
+#if defined(TARGET_OS_TV) && TARGET_OS_TV
+    if(hasNextFocusProperty(eventKeyType))
+        return;
+#endif //TARGET_OS_TV
+
     // Then based on spatial navigation alogirthm, send blur/focus
     switch(eventKeyType) {
         case RNS_KEY_Up:
