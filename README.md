@@ -37,7 +37,7 @@ $ export PATH="$PATH:/path/to/depot_tools"
 
 ```shell
 $ mkdir react-native-skia && cd react-native-skia
-$ gclient config --name src --unmanaged https://github.com/nagra-opentv/react-native-skia.git@main_otv
+$ gclient config --name src --unmanaged https://github.com/munezbn/react-native-skia.git@munez/main
 $ gclient sync --with_branch_heads
 
 # We will use react-native-skia/src as working directory in the future steps.
@@ -108,7 +108,7 @@ $ ninja -C out/Debug ReactSkiaApp
 
 #### Third-party code sync
 
-We use gclient and [DEPS file](https://github.com/nagra-opentv/react-native-skia/blob/main_otv/DEPS) to manage third party code, including react-native.
+We use gclient and [DEPS file](https://github.com/munezbn/react-native-skia/blob/munez/main/DEPS) to manage third party code, including react-native.
 
 Once updating the git revision in DEPS, `gclient sync` could sync the local files accordingly.
 The change of DEPS could commit into git for others to have the update.
