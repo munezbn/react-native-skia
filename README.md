@@ -53,6 +53,7 @@ $ gn gen --args='mac_deployment_target="10.11.0" mac_min_system_version="10.11.0
 # $ gn gen --args='mac_deployment_target="10.11.0" mac_min_system_version="10.11.0" is_debug=false' out/Release
 
 # For Linux (Ubuntu 18)
+$ python ReactSkia/scripts/buildgngen/RSkBuildGen.py out/Debug/ ReactSkia/RSkCodegenConf.json `pwd`
 $ gn gen --args='use_sysroot=false enable_vulkan=false icu_use_data_file=false skia_use_system_nopoll=true gl_use_glx=false is_debug=false is_component_build=true' out/Debug
     Usage of gen args - 
     use_sysroot=false : Default is true, set to false to use system sysroot 

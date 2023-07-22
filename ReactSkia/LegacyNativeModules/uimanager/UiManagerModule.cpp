@@ -162,7 +162,7 @@ dynamic Uimanager::getConstantsForViewManager(std::string viewManagerName) {
         DIRECT_EVENTS_KEY, folly::dynamic::object());
     return {std::move(registry)};
   } else {
-    RNS_LOG_WARN("viewManager : " << viewManagerName << " not available in default list, check in thirdparty list");
+    RNS_LOG_INFO("viewManager : " << viewManagerName << " not available in default list, check in thirdparty list");
   }
 
   // Reached here only if it doesnt find any view manager in default inbuilt-list
