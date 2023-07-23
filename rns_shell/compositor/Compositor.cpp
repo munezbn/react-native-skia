@@ -1,6 +1,7 @@
 /*
 * Copyright 2016 Google Inc.
 * Copyright (C) 1994-2022 OpenTV, Inc. and Nagravision S.A.
+* Copyright (C) Munez BN munezbn.dev@gmail.com
 *
 * Use of this source code is governed by a BSD-style license that can be
 * found in the LICENSE file.
@@ -23,14 +24,17 @@
 
 namespace RnsShell {
 
-std::unique_ptr<Compositor> Compositor::create(Client& compositorClient, PlatformDisplayID displayID, SkSize& viewPortSize, float scaleFactor) {
+std::unique_ptr<Compositor> Compositor::create(Client& compositorClient, DisplayRefreshMonitor::Delegator &displayRefreshMonitorClient, PlatformDisplayID displayID, SkSize& viewPortSize, float scaleFactor) {
     RNS_LOG_INFO("Create New Compositor");
-    return std::make_unique<Compositor>(compositorClient, displayID, viewPortSize, scaleFactor);
+    return std::make_unique<Compositor>(compositorClient, displayRefreshMonitorClient, displayID, viewPortSize, scaleFactor);
 }
 
-Compositor::Compositor(Client& client, PlatformDisplayID displayID, SkSize& viewportSize, float scaleFactor)
+Compositor::Compositor(Client& client, DisplayRefreshMonitor::Delegator &displayRefreshMonitorClient, PlatformDisplayID displayID, SkSize& viewportSize, float scaleFactor)
     :client_(client)
-    ,rootLayer_(nullptr) {
+#if ENABLE(RNS_DISPLAY_REFRESH_MONITOR)
+    ,displayRefreshMonitor_(DisplayRefreshMonitor::create(displayRefreshMonitorClient))
+#endif
+    ,rootLayer_(nullptr){
 
     nativeWindowHandle_ = reinterpret_cast<GLNativeWindowType>(client_.nativeSurfaceHandle());
     if(nativeWindowHandle_) {
@@ -247,6 +251,10 @@ void Compositor::renderLayerTree() {
           frameDamageHistory_.pop_front();
         }
         frameDamageHistory_.push_back(currentFrameDamages);
+#endif
+#if ENABLE(RNS_DISPLAY_REFRESH_MONITOR)
+        if(displayRefreshMonitor_->requiresDisplayRefreshCallback())
+          displayRefreshMonitor_->dispatchDisplayRefreshCallback();
 #endif
     }
 }
