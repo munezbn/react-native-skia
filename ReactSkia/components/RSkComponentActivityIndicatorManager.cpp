@@ -1,5 +1,6 @@
 /*
  * Copyright (C) 1994-2022 OpenTV, Inc. and Nagravision S.A.
+ * Copyright (C) Munez BN munezbn.dev@gmail.com
  *
  * This source code is licensed under the MIT license found in the
  * LICENSE file in the root directory of this source tree.
@@ -16,11 +17,18 @@ namespace react {
 
 RSkComponentActivityIndicatorManager *RSkComponentActivityIndicatorManager::activityIndicatorManager_{nullptr};
 
-RSkComponentActivityIndicatorManager::RSkComponentActivityIndicatorManager(){
-  animRequest_ = new RnsJsRequestAnimation([this](double timestamp){
-    RNS_LOG_DEBUG("[" << this->animRequest_ << "] Register Activity Indicator request Animation callback [" << timestamp << "]");
+RSkComponentActivityIndicatorManager::RSkComponentActivityIndicatorManager() {
+#if ENABLE(RNS_DISPLAY_REFRESH_MONITOR)
+  rafMonitor_ = DisplayRefreshMonitor::sharedMonitor()->createClient([this](double timestamp){
+    RNS_LOG_DEBUG("[" << this->rafMonitor_ << "] Activity Indicator display refresh callback [" << timestamp << "]");
     handleActivityIndicatorAnimation(timestamp);
   });
+#else
+  animRequest_ = new RnsJsRequestAnimation([this](double timestamp){
+    RNS_LOG_DEBUG("[" << this->animRequest_ << "] Activity Indicator request Animation callback [" << timestamp << "]");
+    handleActivityIndicatorAnimation(timestamp);
+  });
+#endif
 }
 
 RSkComponentActivityIndicatorManager* RSkComponentActivityIndicatorManager::getActivityIndicatorManager(){
@@ -38,7 +46,11 @@ void RSkComponentActivityIndicatorManager::addComponent(std::weak_ptr<RSkCompone
     actIndComponentList_.push_back(candidate);
 
     if(actIndComponentList_.size() == 1){
+#if ENABLE(RNS_DISPLAY_REFRESH_MONITOR)
+      DisplayRefreshMonitor::sharedMonitor()->addClient(rafMonitor_);
+#else
       animRequest_->start();
+#endif
     }
   } 
 }
@@ -60,7 +72,11 @@ void RSkComponentActivityIndicatorManager::removeComponent(Tag tag){
   }
 
   if(actIndComponentList_.size() == 0){
+#if ENABLE(RNS_DISPLAY_REFRESH_MONITOR)
+    DisplayRefreshMonitor::sharedMonitor()->removeClient(rafMonitor_);
+#else
     animRequest_->stop();
+#endif
   } 
 }
 
@@ -76,8 +92,9 @@ void RSkComponentActivityIndicatorManager::handleActivityIndicatorAnimation(doub
     std::shared_ptr<RnsShell::Layer> layer = firstComponent->layer();
 
     if(layer.get() != nullptr){
+#if !ENABLE(RNS_DISPLAY_REFRESH_MONITOR)
       layer->client().notifyFlushBegin();
-
+#endif
       for( auto & iter : actIndComponentList_){
         std::shared_ptr<RSkComponent> component = iter.lock();
 
@@ -86,8 +103,9 @@ void RSkComponentActivityIndicatorManager::handleActivityIndicatorAnimation(doub
           component->layer()->invalidate( RnsShell::LayerLayoutInvalidate);
         }
       }
-
+#if !ENABLE(RNS_DISPLAY_REFRESH_MONITOR)
       layer->client().notifyFlushRequired();
+#endif
     }
   }
 }
