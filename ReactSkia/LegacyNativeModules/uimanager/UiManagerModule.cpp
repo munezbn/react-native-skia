@@ -169,17 +169,17 @@ dynamic Uimanager::getConstantsForViewManager(std::string viewManagerName) {
   return Uimanager::getConstantsForThirdpartyViewManager(viewManagerName);
 }
 
-void Uimanager::updateView(int Tag, std::string viewManagerName, dynamic props) {
+void Uimanager::updateView(int viewTag, std::string viewManagerName, dynamic props) {
   RSkComponentProvider* provider = viewManagerName.empty() ?
-                                      componentViewRegistry_->GetProvider(Tag) :
+                                      componentViewRegistry_->GetProvider(viewTag) :
                                       componentViewRegistry_->GetProvider(viewManagerName.c_str());
 
   if(provider == nullptr) {
-    RNS_LOG_ERROR("Unable to updateView,invalid provider for tag (" << Tag << ") name (" << viewManagerName << ") !!");
+    RNS_LOG_ERROR("Unable to updateView,invalid provider for view tag (" << viewTag << ") name (" << viewManagerName << ") !!");
     return;
   }
   const ComponentDescriptor* componentDescriptor = componentViewRegistry_->getComponentDescriptor(provider->GetDescriptorProvider().handle);
-  auto component = provider->GetComponent(Tag);
+  auto component = provider->GetComponent(viewTag);
 
   if((componentDescriptor != nullptr) && (component != nullptr)) {
 
@@ -193,14 +193,14 @@ void Uimanager::updateView(int Tag, std::string viewManagerName, dynamic props) 
   }
 }
 
-std::shared_ptr<RSkComponent> Uimanager::getComponent(int Tag) {
-  RSkComponentProvider* provider = componentViewRegistry_->GetProvider(Tag);
+std::shared_ptr<RSkComponent> Uimanager::getComponent(int viewTag) {
+  RSkComponentProvider* provider = componentViewRegistry_->GetProvider(viewTag);
 
   if(provider == nullptr) {
-    RNS_LOG_ERROR("Unable to get provider for tag (" << Tag << ") !!");
+    RNS_LOG_ERROR("Unable to get provider for view tag (" << viewTag << ") !!");
     return nullptr;
   }
-  return(provider->GetComponent(Tag));
+  return(provider->GetComponent(viewTag));
 }
 
 UimanagerModule::UimanagerModule(std::unique_ptr<Uimanager> uimanager)

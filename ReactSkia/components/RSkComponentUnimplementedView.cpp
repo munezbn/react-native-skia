@@ -49,7 +49,7 @@ void RSkComponentUnimplementedView::OnPaint(
                 layerRef->shadowImageFilter,layerRef->shadowMaskFilter
               );
   }
-  drawBackground(canvas,frame,borderMetrics,SK_ColorWHITE);
+  drawBackground(canvas,frame,borderMetrics,viewProps.backgroundColor);
   drawBorder(canvas,frame,borderMetrics,viewProps.backgroundColor);
 
   // Draw lattice to show that this is an unimplemented view.
