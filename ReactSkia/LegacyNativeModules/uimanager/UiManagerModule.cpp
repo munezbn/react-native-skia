@@ -162,24 +162,24 @@ dynamic Uimanager::getConstantsForViewManager(std::string viewManagerName) {
         DIRECT_EVENTS_KEY, folly::dynamic::object());
     return {std::move(registry)};
   } else {
-    RNS_LOG_WARN("viewManager : " << viewManagerName << " not available in default list, check in thirdparty list");
+    RNS_LOG_INFO("viewManager : " << viewManagerName << " not available in default list, check in thirdparty list");
   }
 
   // Reached here only if it doesnt find any view manager in default inbuilt-list
   return Uimanager::getConstantsForThirdpartyViewManager(viewManagerName);
 }
 
-void Uimanager::updateView(int Tag, std::string viewManagerName, dynamic props) {
+void Uimanager::updateView(int viewTag, std::string viewManagerName, dynamic props) {
   RSkComponentProvider* provider = viewManagerName.empty() ?
-                                      componentViewRegistry_->GetProvider(Tag) :
+                                      componentViewRegistry_->GetProvider(viewTag) :
                                       componentViewRegistry_->GetProvider(viewManagerName.c_str());
 
   if(provider == nullptr) {
-    RNS_LOG_ERROR("Unable to updateView,invalid provider for tag (" << Tag << ") name (" << viewManagerName << ") !!");
+    RNS_LOG_ERROR("Unable to updateView,invalid provider for view tag (" << viewTag << ") name (" << viewManagerName << ") !!");
     return;
   }
   const ComponentDescriptor* componentDescriptor = componentViewRegistry_->getComponentDescriptor(provider->GetDescriptorProvider().handle);
-  auto component = provider->GetComponent(Tag);
+  auto component = provider->GetComponent(viewTag);
 
   if((componentDescriptor != nullptr) && (component != nullptr)) {
 
@@ -193,14 +193,23 @@ void Uimanager::updateView(int Tag, std::string viewManagerName, dynamic props) 
   }
 }
 
-std::shared_ptr<RSkComponent> Uimanager::getComponent(int Tag) {
-  RSkComponentProvider* provider = componentViewRegistry_->GetProvider(Tag);
+std::shared_ptr<RSkComponent> Uimanager::getComponent(int viewTag) {
+  RSkComponentProvider* provider = componentViewRegistry_->GetProvider(viewTag);
 
   if(provider == nullptr) {
-    RNS_LOG_ERROR("Unable to get provider for tag (" << Tag << ") !!");
+    RNS_LOG_ERROR("Unable to get provider for view tag (" << viewTag << ") !!");
     return nullptr;
   }
-  return(provider->GetComponent(Tag));
+  return(provider->GetComponent(viewTag));
+}
+
+std::string Uimanager::viewNameForReactTag(int viewTag) {
+  RSkComponentProvider* provider = componentViewRegistry_->GetProvider(viewTag);
+  if(provider == nullptr) {
+    RNS_LOG_ERROR("Unable to get viewName, invalid provider for tag (" << viewTag << ") !!");
+    return "UnknownView";
+  }
+  return provider->GetDescriptorProvider().name;
 }
 
 UimanagerModule::UimanagerModule(std::unique_ptr<Uimanager> uimanager)
@@ -236,6 +245,10 @@ void UimanagerModule::updateViewForReactTag(int viewTag, folly::dynamic newProps
 
 std::shared_ptr<RSkComponent> UimanagerModule::getComponentForReactTag(int viewTag) {
   return uimanager_->getComponent(viewTag);
+}
+
+std::string UimanagerModule::getViewNameForReactTag(int viewTag) {
+  return uimanager_->viewNameForReactTag(viewTag);
 }
 
 std::unique_ptr<xplat::module::CxxModule> UimanagerModule::createModule(ComponentViewRegistry *componentViewRegistry) {

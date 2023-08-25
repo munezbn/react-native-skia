@@ -175,6 +175,7 @@ TurboModuleProviderFunctionType JSITurboModuleManager::GetProvider() {
              const std::string &name,
              const jsi::Value *schema) -> std::shared_ptr<TurboModule> {
     if (modules_.find(name) != modules_.end()) {
+      RNS_LOG_INFO("+++++ Turbo Module " << name << " found +++++");
       return modules_[name];
     }
     RNS_LOG_WARN("!!!!! Turbo Module " << name << " Not found !!!!!");

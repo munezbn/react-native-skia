@@ -287,7 +287,7 @@ void RNInstance::RegisterComponents() {
         componentViewRegistry_->Register(std::move(provider));
         return;
       }
-      RNS_LOG_WARN("!!!!!!!!!! Requested View Component " << requestedComponentName << " not found in thirdparty, use unimplemented view");
+      RNS_LOG_INFO("!!!!!!!!!! Requested View Component " << requestedComponentName << " not found in thirdparty, use unimplemented view");
 
       // Fallback 2 : Create UnimplementedView object with given requested name as flavour& handle. Refer RCTComponentViewFactory.mm
       auto flavor = std::make_shared<std::string const>(requestedComponentName);
