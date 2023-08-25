@@ -203,6 +203,15 @@ std::shared_ptr<RSkComponent> Uimanager::getComponent(int viewTag) {
   return(provider->GetComponent(viewTag));
 }
 
+std::string Uimanager::viewNameForReactTag(int viewTag) {
+  RSkComponentProvider* provider = componentViewRegistry_->GetProvider(viewTag);
+  if(provider == nullptr) {
+    RNS_LOG_ERROR("Unable to get viewName, invalid provider for tag (" << viewTag << ") !!");
+    return "UnknownView";
+  }
+  return provider->GetDescriptorProvider().name;
+}
+
 UimanagerModule::UimanagerModule(std::unique_ptr<Uimanager> uimanager)
     : uimanager_(std::move(uimanager)) {}
 
@@ -236,6 +245,10 @@ void UimanagerModule::updateViewForReactTag(int viewTag, folly::dynamic newProps
 
 std::shared_ptr<RSkComponent> UimanagerModule::getComponentForReactTag(int viewTag) {
   return uimanager_->getComponent(viewTag);
+}
+
+std::string UimanagerModule::getViewNameForReactTag(int viewTag) {
+  return uimanager_->viewNameForReactTag(viewTag);
 }
 
 std::unique_ptr<xplat::module::CxxModule> UimanagerModule::createModule(ComponentViewRegistry *componentViewRegistry) {

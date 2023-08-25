@@ -32,6 +32,7 @@ class Uimanager {
   folly::dynamic getConstantsForViewManager(std::string viewManagerName);
   void updateView(int viewTag, std::string viewManagerName, folly::dynamic props);
   std::shared_ptr<RSkComponent> getComponent(int viewTag);
+  std::string viewNameForReactTag(int viewTag);
 
   // This Function will be generated using codeGen
   folly::dynamic getConstantsForThirdpartyViewManager(std::string viewManagerName);
@@ -52,6 +53,7 @@ class UimanagerModule : public module::CxxModule {
 
   void updateViewForReactTag(int viewTag, folly::dynamic newViewProps);
   std::shared_ptr<RSkComponent> getComponentForReactTag(int viewTag);
+  std::string getViewNameForReactTag(int viewTag);
 
  private:
   std::unique_ptr<Uimanager> uimanager_;
