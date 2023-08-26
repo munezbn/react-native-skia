@@ -38,6 +38,9 @@ config("rns_shell_config") {
         defines += ["ENABLE_RNS_SHELL_BUFFER_AGE"]
       }
     }
+    if(enable_display_refresh_monitor) {
+      defines += ["ENABLE_RNS_DISPLAY_REFRESH_MONITOR=1"]
+    }
   }
 
   if(rns_enable_scroll_layer_bitmap) {
@@ -127,6 +130,7 @@ source_set("rns_shell") {
     "compositor/RendererDelegate.cpp",
     "compositor/Compositor.h",
     "compositor/Compositor.cpp",
+    "compositor/DisplayRefreshMonitor.h",
     "compositor/layers/Layer.h",
     "compositor/layers/Layer.cpp",
     "compositor/layers/PictureLayer.h",
@@ -134,6 +138,12 @@ source_set("rns_shell") {
     "compositor/layers/ScrollLayer.h",
     "compositor/layers/ScrollLayer.cpp",
   ]
+
+  if(enable_display_refresh_monitor) {
+    sources += [
+      "compositor/DisplayRefreshMonitor.cpp",
+    ]
+  }
 
   if(gl_has_gpu) {
     sources += [

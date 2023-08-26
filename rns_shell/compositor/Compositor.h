@@ -1,6 +1,7 @@
 /*
 * Copyright 2016 Google Inc.
 * Copyright (C) 1994-2022 OpenTV, Inc. and Nagravision S.A.
+* Copyright (C) Munez BN munezbn.dev@gmail.com
 *
 * Use of this source code is governed by a BSD-style license that can be
 * found in the LICENSE file.
@@ -9,10 +10,14 @@
 
 #include <list>
 
-#include "third_party/skia/include/core/SkRect.h"
+#include "ReactSkia/utils/RnsUtils.h"
 
-#include "WindowContext.h"
+#include "third_party/skia/include/core/SkRect.h"
+#if ENABLE(RNS_DISPLAY_REFRESH_MONITOR)
+#include "DisplayRefreshMonitor.h"
+#endif
 #include "PlatformDisplay.h"
+#include "WindowContext.h"
 #include "layers/Layer.h"
 
 #define RNS_TARGET_FPS_US 16666.7 // In Microseconds
@@ -32,8 +37,8 @@ public:
         virtual void didRenderFrame() = 0;
     };
 
-    static std::unique_ptr<Compositor> create(Client&, PlatformDisplayID, SkSize&, float scaleFactor = 1.0);
-    Compositor(Client&, PlatformDisplayID, SkSize&, float);
+    static std::unique_ptr<Compositor> create(Client&, DisplayRefreshMonitor::Delegator&, PlatformDisplayID, SkSize&, float scaleFactor = 1.0);
+    Compositor(Client&, DisplayRefreshMonitor::Delegator&, PlatformDisplayID, SkSize&, float);
     virtual ~Compositor();
 
     Layer* rootLayer() { return rootLayer_.get(); }
@@ -62,6 +67,9 @@ private:
 #endif
     std::mutex isMutating; // Lock the renderLayer tree while updating and rendering
     Client& client_;
+#if ENABLE(RNS_DISPLAY_REFRESH_MONITOR)
+    std::shared_ptr<DisplayRefreshMonitor> displayRefreshMonitor_;
+#endif
     SharedLayer rootLayer_;
     std::unique_ptr<WindowContext> windowContext_;
     sk_sp<SkSurface> backBuffer_;

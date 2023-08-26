@@ -1,5 +1,6 @@
 /*
 * Copyright (C) 1994-2021 OpenTV, Inc. and Nagravision S.A.
+* Copyright (C) Munez BN munezbn.dev@gmail.com
 *
 * Use of this source code is governed by a BSD-style license that can be
 * found in the LICENSE file.
@@ -23,12 +24,15 @@ class LayerTreeHost {
   void begin();
   void commitScene(bool immediate);
   void sizeDidChange(SkSize& size);
+#if ENABLE(RNS_DISPLAY_REFRESH_MONITOR)
+  void handleDisplayRefreshMonitorUpdate();
+#endif
 
   PlatformDisplayID displayID() const { return displayID_; }
   Compositor* compositor() { return compositor_.get(); }
 
  private:
-  class CompositorClient : public Compositor::Client {
+  class CompositorClient : public Compositor::Client, public DisplayRefreshMonitor::Delegator {
     RNS_MAKE_NONCOPYABLE(CompositorClient);
 
    public:
@@ -38,6 +42,9 @@ class LayerTreeHost {
 
    private:
     uint64_t nativeSurfaceHandle() override { return layerTreeHost_.nativeSurfaceHandle(); }
+    void notifyDisplayRefreshMonitorUpdate() override {layerTreeHost_.begin();}
+    void handleDisplayRefreshMonitorUpdate() override {layerTreeHost_.handleDisplayRefreshMonitorUpdate();}
+
     void didRenderFrame() override { layerTreeHost_.didRenderFrame(); }
     LayerTreeHost& layerTreeHost_;
   };

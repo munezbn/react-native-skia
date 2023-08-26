@@ -1,5 +1,6 @@
 /*
 * Copyright (C) 1994-2021 OpenTV, Inc. and Nagravision S.A.
+* Copyright (C) Munez BN munezbn.dev@gmail.com
 *
 * Use of this source code is governed by a BSD-style license that can be
 * found in the LICENSE file.
@@ -17,7 +18,7 @@ LayerTreeHost::LayerTreeHost(Application& app)
       compositorClient_(*this),
       displayID_(std::numeric_limits<uint32_t>::max() - app_.identifier()) {
   SkSize viewPort(SkSize::MakeEmpty());
-  compositor_ = Compositor::create(compositorClient_, displayID_, viewPort);
+  compositor_ = Compositor::create(compositorClient_, compositorClient_, displayID_, viewPort);
 }
 
 LayerTreeHost::~LayerTreeHost() {
@@ -43,6 +44,13 @@ void LayerTreeHost::sizeDidChange(SkSize& size) {
 void LayerTreeHost::begin() {
   compositor_->begin();
 }
+
+#if ENABLE(RNS_DISPLAY_REFRESH_MONITOR)
+void LayerTreeHost::handleDisplayRefreshMonitorUpdate() {
+  // TODO this must be called from main thread for now, so by default passing true
+  commitScene(true);
+}
+#endif
 
 void LayerTreeHost::commitScene(bool immediate) {
   // TODO Check compositor state idle, progress, scheduled
