@@ -30,7 +30,7 @@ class Uimanager {
   Uimanager(ComponentViewRegistry *componentViewRegistry)
     : componentViewRegistry_(componentViewRegistry) {}
   folly::dynamic getConstantsForViewManager(std::string viewManagerName);
-  void updateView(int viewTag, std::string viewManagerName, folly::dynamic props);
+  void updateView(int viewTag, std::string viewManagerName, folly::dynamic props, bool flushDisplay=true);
   std::shared_ptr<RSkComponent> getComponent(int viewTag);
   std::string viewNameForReactTag(int viewTag);
 
@@ -51,7 +51,7 @@ class UimanagerModule : public module::CxxModule {
 
   std::string getName();
 
-  void updateViewForReactTag(int viewTag, folly::dynamic newViewProps);
+  void updateViewForReactTag(int viewTag, std::string viewName, folly::dynamic newViewProps, bool flushDisplay=true);
   std::shared_ptr<RSkComponent> getComponentForReactTag(int viewTag);
   std::string getViewNameForReactTag(int viewTag);
 

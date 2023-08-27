@@ -169,7 +169,7 @@ dynamic Uimanager::getConstantsForViewManager(std::string viewManagerName) {
   return Uimanager::getConstantsForThirdpartyViewManager(viewManagerName);
 }
 
-void Uimanager::updateView(int viewTag, std::string viewManagerName, dynamic props) {
+void Uimanager::updateView(int viewTag, std::string viewManagerName, dynamic props, bool flushDisplay) {
   RSkComponentProvider* provider = viewManagerName.empty() ?
                                       componentViewRegistry_->GetProvider(viewTag) :
                                       componentViewRegistry_->GetProvider(viewManagerName.c_str());
@@ -186,10 +186,17 @@ void Uimanager::updateView(int viewTag, std::string viewManagerName, dynamic pro
     SharedProps oldProps = component->getComponentData().props;
     SharedProps newProps = componentDescriptor->cloneProps(oldProps,RawProps(props));
 
-    component->layer()->client().notifyFlushBegin();
-    RnsShell::LayerInvalidateMask invalidateMask = component->updateProps(newProps,false);
-    component->drawAndSubmit(invalidateMask);
-    component->layer()->client().notifyFlushRequired();
+    if(flushDisplay) {
+      component->layer()->client().notifyFlushBegin();
+      RnsShell::LayerInvalidateMask invalidateMask = component->updateProps(newProps,false);
+      component->drawAndSubmit(invalidateMask);
+      component->layer()->client().notifyFlushRequired();
+    } else {
+      RnsShell::LayerInvalidateMask invalidateMask = component->updateProps(newProps,false);
+      component->drawAndSubmit(invalidateMask);
+    }
+  } else {
+    RNS_LOG_WARN("Unable to updateView, invalid componentDescriptor[" << componentDescriptor << "] or component[" << component << "], for " << viewManagerName << " tag (" << viewTag << ")");
   }
 }
 
@@ -211,6 +218,8 @@ std::string Uimanager::viewNameForReactTag(int viewTag) {
   }
   return provider->GetDescriptorProvider().name;
 }
+
+// Module
 
 UimanagerModule::UimanagerModule(std::unique_ptr<Uimanager> uimanager)
     : uimanager_(std::move(uimanager)) {}
@@ -239,8 +248,9 @@ auto UimanagerModule::getMethods() -> std::vector<Method> {
   };
 }
 
-void UimanagerModule::updateViewForReactTag(int viewTag, folly::dynamic newProps) {
-  uimanager_->updateView(viewTag,std::string(),newProps);
+void UimanagerModule::updateViewForReactTag(int viewTag, std::string viewName, folly::dynamic newProps, bool flushDisplay) {
+  // TODO schedule in MAIN thread if it is not aleady in main thread
+  uimanager_->updateView(viewTag, std::string(), newProps, flushDisplay);
 }
 
 std::shared_ptr<RSkComponent> UimanagerModule::getComponentForReactTag(int viewTag) {
