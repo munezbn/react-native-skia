@@ -51,6 +51,11 @@ void Container::removeComponent(RSkComponent *candidate) {
     RSkSpatialNavigator::sharedSpatialNavigator()->updateSpatialNavigatorState(ComponentRemoved, candidate);
     navComponentList_.erase(it);
   }
+#if  (!defined(GOOGLE_STRIP_LOG) || (GOOGLE_STRIP_LOG <= INFO))
+  auto containerCandidate = static_cast<RSkComponent*>(this);
+  RNS_LOG_DEBUG("Removed " << candidate->getComponentData().componentName << "[" << candidate->getComponentData().tag << "]" <<
+                " from container : " << containerCandidate->getComponentData().componentName  << "[" << containerCandidate->getComponentData().tag << "]");
+#endif
 }
 
 void Container::updateComponent(RSkComponent *candidate) {
@@ -99,6 +104,11 @@ RSkComponent* Container::preferredFocusInContainer() {
   RSkComponent *preferredFocus = nullptr;
   std::vector<RSkComponent*>::reverse_iterator i;
   CandidateList &navCompList = navComponentList_;
+
+#if  (!defined(GOOGLE_STRIP_LOG) || (GOOGLE_STRIP_LOG <= INFO))
+  auto containerCandidate = static_cast<RSkComponent*>(this);
+  RNS_LOG_DEBUG("Find preferred component in container : " << containerCandidate->getComponentData().componentName  << "[" << containerCandidate->getComponentData().tag << "] of size " << navComponentList_.size());
+#endif
 
   for (i = navCompList.rbegin(); i != navCompList.rend(); ++i ) {
     preferredFocus = *i;
