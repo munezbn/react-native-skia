@@ -1,0 +1,24 @@
+{
+	"name": "rnTester",
+	"version": "1.2.3",
+	"private": true,
+	"rnpm": {
+		"assets": [
+			"./fonts/"
+		]
+	},
+	"scripts": {
+		"clean": "react-native-clean-project",
+		"android": "react-native run-android",
+		"ios": "react-native run-ios",
+		"skia": "react-native run-skia",
+		"start": "react-native start",
+		"doc": "node --experimental-json-modules scripts/doc/index.mjs"
+	},
+	"dependencies": {
+		"react-native-fast-image": "https://github.com/nagra-opentv/react-native-fast-image/archive/refs/tags/v8.6.3_rsk.tar.gz",
+		"@react-native-async-storage/async-storage": "https://github.com/nagra-opentv/async-storage/archive/refs/tags/v1.17.10_rsk.tar.gz"
+	},
+	"devDependencies": {
+	}
+}
