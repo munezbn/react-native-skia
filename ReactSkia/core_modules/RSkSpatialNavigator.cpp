@@ -84,6 +84,9 @@ void RSkSpatialNavigator::updateSpatialNavigatorState(NavigatorStateOperation op
                 sendNotificationWithEventType("blur", currentFocus_->getComponentData().tag, completeCallback_);
                 currentFocus_ = nullptr;
             }
+            if(currentContainer_ == candidate) { // reset current container if the container itself is removed
+              currentContainer_ = nullptr;
+            }
             break;
         case ComponentUpdated: // Called when the candidate is not focusable anymore
             if (currentFocus_ == candidate) {
